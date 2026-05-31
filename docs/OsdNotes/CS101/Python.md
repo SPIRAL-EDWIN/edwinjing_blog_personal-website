@@ -223,6 +223,7 @@ print(z)
 
 2. Close the file
 `myfile.close()` **关闭的不是读取的数据，而是open的文件**
+
 3. Use the data
 
 `a = a.split(',')`  split()是不能对*list*操作的，只能对*str*操作
@@ -615,6 +616,7 @@ rdata = requests.get( 'http://samplecsvs.s3.amazonaws.com/Sacramentorealestatetr
   - 遗失冒号
 - 关键字误用：`def = 5`                *35个 Keywords 被当做变量*
 或 抛出`IdentationError`：
+
 - 缩进错误
 - Tab和空格混用（没见过）
 
