@@ -359,15 +359,38 @@ a {
 }
 
 /* ----- 修复无序/有序列表显示与 Obsidian 风格高亮 ----- */
+/* 通用：缩进 + 强制 li 显示为列表项 */
 .md-typeset ul,
 .md-typeset ol {
     margin-left: 1.5em !important;
     padding-left: 1em !important;
-    list-style-type: disc !important; /* 强制显示圆点 */
 }
 
 .md-typeset li {
     display: list-item !important; /* 确保列表项表现为列表 */
+}
+
+/* 无序列表（ul）：圆点 → 空心圆 → 方块（按嵌套层级递进）*/
+.md-typeset ul {
+    list-style-type: disc !important;
+}
+.md-typeset ul ul {
+    list-style-type: circle !important;
+}
+.md-typeset ul ul ul {
+    list-style-type: square !important;
+}
+
+/* 有序列表（ol）：阿拉伯数字 → 小写字母 → 罗马数字（按嵌套层级递进）
+   修复了之前误把 ol 也设置成 disc 导致 1. 2. 3. 显示为黑点的 bug */
+.md-typeset ol {
+    list-style-type: decimal !important;
+}
+.md-typeset ol ol {
+    list-style-type: lower-alpha !important;
+}
+.md-typeset ol ol ol {
+    list-style-type: lower-roman !important;
 }
 
 /* pymdownx.mark 将渲染为 <mark> 或 .pymdownx-mark, 统一样式 */
@@ -1268,3 +1291,149 @@ html, body {
     color: #93c5fd !important;
 }
 
+
+/* ==============================================
+   斜体强调 (Italic Emphasis) - 浅绿色，与浙大蓝/琥珀金互补
+   亮色: 沉稳的深松绿；暗色: 柔和的薄荷绿
+   *text*       → em            → 浅绿斜体
+   ***text***   → strong>em     → 粗+斜+绿色 + 半透明绿底色横条
+   补丁：作为本地 patch 追加到上游样式之后，覆盖任何未定义的 em 样式
+   ============================================== */
+[data-md-color-scheme="default"] .md-typeset em {
+    color: #15803d;
+    font-style: italic;
+    font-weight: 500;
+}
+
+[data-md-color-scheme="default"] .md-typeset strong em,
+[data-md-color-scheme="default"] .md-typeset em strong {
+    color: #14532d;
+    font-style: italic;
+    font-weight: 700;
+    background: linear-gradient(180deg, transparent 65%, rgba(21, 128, 61, 0.15) 65%);
+    padding: 0 0.1em;
+    border-radius: 2px;
+}
+
+[data-md-color-scheme="slate"] .md-typeset em {
+    color: #86efac;
+    font-style: italic;
+    font-weight: 500;
+}
+
+[data-md-color-scheme="slate"] .md-typeset strong em,
+[data-md-color-scheme="slate"] .md-typeset em strong {
+    color: #bbf7d0;
+    font-style: italic;
+    font-weight: 700;
+    background: linear-gradient(180deg, transparent 65%, rgba(134, 239, 172, 0.18) 65%);
+    padding: 0 0.1em;
+    border-radius: 2px;
+}
+/* ==============================================
+   右侧目录 TOC (.md-sidebar--secondary) 标题等级区分
+   Material 默认对各级目录项视觉上完全一致，难以分辨层级。
+   下面通过 [data-md-component="toc"] 下嵌套 <ul> 的深度，
+   逐层减小字号、降低对比度、降低字重，营造视觉层级。
+   ============================================== */
+
+/* 通用：覆盖前面 .md-nav__link 的等宽字体设置 —— TOC 用 sans 更易读 */
+.md-sidebar--secondary [data-md-component="toc"] .md-nav__link {
+    font-family: var(--ej-font-sans, "Inter", "Noto Sans SC", "Segoe UI", sans-serif);
+    line-height: 1.45;
+    transition: color 0.2s ease, padding 0.2s ease, opacity 0.2s ease;
+}
+
+/* 第 1 级（页面 H2）—— 最显眼：粗、深色、稍大 */
+[data-md-component="toc"] > li > .md-nav__link {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--md-default-fg-color, #1c1917);
+    letter-spacing: -0.005em;
+    margin-top: 0.35rem;
+}
+
+/* 第 2 级（页面 H3）—— 中等：常规字重、中等灰 */
+[data-md-component="toc"] li li > .md-nav__link {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--md-default-fg-color--light, #57534e);
+    opacity: 0.95;
+}
+
+/* 第 3 级（页面 H4）—— 次要：更小、更浅灰 */
+[data-md-component="toc"] li li li > .md-nav__link {
+    font-size: 0.68rem;
+    font-weight: 400;
+    color: var(--md-default-fg-color--light, #57534e);
+    opacity: 0.78;
+}
+
+/* 第 4 级（页面 H5）—— 更次要 */
+[data-md-component="toc"] li li li li > .md-nav__link {
+    font-size: 0.66rem;
+    font-weight: 400;
+    opacity: 0.65;
+}
+
+/* 第 5 级（页面 H6）—— 最次要：斜体提示这是深层级 */
+[data-md-component="toc"] li li li li li > .md-nav__link {
+    font-size: 0.64rem;
+    font-weight: 400;
+    font-style: italic;
+    opacity: 0.55;
+}
+
+/* 当前高亮项（滚动到对应位置时）—— 蓝色高亮，所有层级一致醒目 */
+[data-md-component="toc"] .md-nav__link--active,
+[data-md-component="toc"] .md-nav__link--passed + nav .md-nav__link--active {
+    color: var(--ej-brand, #1e3a8a) !important;
+    font-weight: 600 !important;
+    opacity: 1 !important;
+}
+
+/* Hover 时统一加深 */
+[data-md-component="toc"] .md-nav__link:hover {
+    color: var(--ej-brand-hover, #1d4ed8);
+    opacity: 1;
+}
+
+/* 暗色模式：调整深浅 */
+[data-md-color-scheme="slate"] [data-md-component="toc"] > li > .md-nav__link {
+    color: #e2e8f0;
+}
+
+[data-md-color-scheme="slate"] [data-md-component="toc"] li li > .md-nav__link {
+    color: #cbd5e1;
+}
+
+[data-md-color-scheme="slate"] [data-md-component="toc"] li li li > .md-nav__link,
+[data-md-color-scheme="slate"] [data-md-component="toc"] li li li li > .md-nav__link,
+[data-md-color-scheme="slate"] [data-md-component="toc"] li li li li li > .md-nav__link {
+    color: #94a3b8;
+}
+
+[data-md-color-scheme="slate"] [data-md-component="toc"] .md-nav__link--active {
+    color: #93c5fd !important;
+}
+
+[data-md-color-scheme="slate"] [data-md-component="toc"] .md-nav__link:hover {
+    color: #bfdbfe;
+}
+
+/* TOC 标题（"目录"二字）字号略大一点，与列表项形成分界 */
+.md-sidebar--secondary .md-nav__title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--ej-brand, #1e3a8a);
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(28, 25, 23, 0.08);
+    margin-bottom: 0.5rem;
+}
+
+[data-md-color-scheme="slate"] .md-sidebar--secondary .md-nav__title {
+    color: #93c5fd;
+    border-bottom-color: rgba(148, 163, 184, 0.2);
+}

@@ -205,6 +205,23 @@ nav:
     - Embodied AI:
       - "Hua Chen - Embodied AI & Humanoids Robots": "OsdNotes/Embodied AI/Hua Chen - Embodied AI & Humanoids Robots.md"
       - "具身智能基础路线": "OsdNotes/Embodied AI/具身智能基础路线.md"
+      - VLA:
+        - "π0.7: Compositional Generalization": "OsdNotes/Embodied AI/VLA/π0.7：组合泛化的思考.md"
+        - 概念参考:
+          - "DROID 数据集": "OsdNotes/Embodied AI/VLA/DROID 数据集.md"
+          - "Franka 臂": "OsdNotes/Embodied AI/VLA/Franka 臂.md"
+    - 化学:
+      - "CHEM 102": "OsdNotes/CHEM/CHEM 102.md"
+      - "Valence Electron Pairs": "OsdNotes/CHEM/Valence Electron Pairs.md"
+    - 哲学:
+      - "PHIL 206 Notes": "OsdNotes/PHIL/PHIL 206.md"
+      - "PHIL 206 Exam Samples": "OsdNotes/PHIL/Phil 206 EXAMS sample.md"
+      - 专题笔记:
+        - "小复习 (Quick Review)": "OsdNotes/PHIL/小复习.md"
+        - "实证法 (Positive Law)": "OsdNotes/PHIL/实证法（Positive law）.md"
+        - "早期哲学家对宇宙论、本体论论证的改编": "OsdNotes/PHIL/早期哲学家对宇宙论、本体论论证的改编.md"
+        - "斯大林对马基雅维利政治的践行": "OsdNotes/PHIL/斯大林对马基雅维利政治的践行.md"
+        - "纯粹的大众民主极易变成暴民政治": "OsdNotes/PHIL/纯粹的大众民主极易变成暴民政治.md"
   - Experiences:
     - 经验分享/machineLearning.md
     - 年终总结:
