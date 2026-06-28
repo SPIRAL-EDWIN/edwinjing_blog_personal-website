@@ -1,8 +1,6 @@
-# 🔗 Friends | 友链
+# Friends | Links I followed
 
-这里是我的好朋友们，欢迎互换友链！
-
----
+Here are the websites I follow and recommend.
 
 <div class="friend-links">
 
@@ -14,55 +12,37 @@
     </div>
 </a>
 
-<a href="https://example2.com" target="_blank" class="friend-card">
-    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mia" alt="Mia's Avatar" class="friend-avatar">
+<a href="https://horacech.github.io/" target="_blank" class="friend-card">
+    <span class="friend-avatar-stack" aria-label="Horace Chen avatar">
+        <span class="friend-avatar friend-avatar--light" style="background-image: url('/assets/images/friends/horace-chan-light.jpg');"></span>
+        <span class="friend-avatar friend-avatar--dark" style="background-image: url('/assets/images/friends/horace-chan-dark.jpg');"></span>
+    </span>
     <div class="friend-info">
-        <span class="friend-name">Mia's Space</span>
-        <span class="friend-desc">设计师 / 插画师 / 猫奴</span>
-    </div>
-</a>
-
-<a href="https://example3.com" target="_blank" class="friend-card">
-    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Alex's Avatar" class="friend-avatar">
-    <div class="friend-info">
-        <span class="friend-name">Alex 的技术笔记</span>
-        <span class="friend-desc">专注于后端开发与架构设计</span>
-    </div>
-</a>
-
-<a href="https://example4.com" target="_blank" class="friend-card">
-    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" alt="Luna's Avatar" class="friend-avatar">
-    <div class="friend-info">
-        <span class="friend-name">Luna's Garden</span>
-        <span class="friend-desc">数学与编程的奇妙世界</span>
+        <span class="friend-name">Horace Chen</span>
+        <span class="friend-desc">Builder of the Real | Merging Bits &amp; Atoms</span>
     </div>
 </a>
 
 </div>
 
----
+## Link Exchange
 
-## 💌 申请友链
+If you would like to exchange links, please make sure your website meets these conditions:
 
-如果你想交换友链，请确保你的网站满足以下条件：
+- Original content
+- HTTPS support
+- Clean and thoughtful design
 
-- 📝 有原创内容
-- 🔒 支持 HTTPS
-- 🎨 网站设计简洁美观
+Please contact me through the social links on the homepage.
 
-请通过以下方式联系我：
-
-- 📧 Email: [edwin2025661@gmail.com](mailto:edwin2025661@gmail.com)
-- 💬 在评论区留言
-
-**友链格式：**
+**Link format:**
 
 ```yaml
-name: 你的网站名称
-url: https://你的网站地址
-avatar: 头像链接
-desc: 一句话介绍
+name: Your website name
+url: https://your-website.example
+avatar: Avatar URL
+desc: One-line introduction
 ```
 
-!!! note "友链说明"
-    友链按照添加时间排序，不定期检查链接有效性。如果你的网站已无法访问，友链将被暂时移除。恢复后可重新申请。
+!!! note "Link Notes"
+    Links are ordered by the time they are added. I check link availability from time to time. If your website becomes unavailable, the link may be temporarily removed and can be restored later.

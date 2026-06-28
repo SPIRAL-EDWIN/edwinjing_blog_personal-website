@@ -44,6 +44,73 @@
     return new URL(relativePath, homeUrl).pathname;
   }
 
+  var sourceFactsObserverStarted = false;
+
+  function sourceFactMarkup() {
+    return [
+      '<ul class="md-source__facts" data-edwinos-source-facts="true">',
+      '  <li class="md-source__fact" data-source-fact="stars">0</li>',
+      '  <li class="md-source__fact" data-source-fact="forks">0</li>',
+      '</ul>'
+    ].join("");
+  }
+
+  function normalizeSourceFacts() {
+    var sources = document.querySelectorAll(".md-header__source .md-source");
+    sources.forEach(function (source) {
+      var repo = source.querySelector(".md-source__repository");
+      if (!repo) return;
+
+      var facts = Array.prototype.filter.call(repo.children, function (child) {
+        return child.classList && child.classList.contains("md-source__facts");
+      });
+      var realFacts = facts.filter(function (factList) {
+        return !factList.hasAttribute("data-edwinos-source-facts");
+      });
+
+      if (realFacts.length) {
+        facts.forEach(function (factList) {
+          if (factList.hasAttribute("data-edwinos-source-facts")) {
+            factList.remove();
+          }
+        });
+        facts = realFacts;
+      } else if (!facts.length) {
+        repo.insertAdjacentHTML("beforeend", sourceFactMarkup());
+        facts = Array.prototype.filter.call(repo.children, function (child) {
+          return child.classList && child.classList.contains("md-source__facts");
+        });
+      }
+
+      if (facts.length > 1) {
+        facts.slice(0, -1).forEach(function (factList) {
+          factList.remove();
+        });
+        facts = facts.slice(-1);
+      }
+
+      repo.classList.add("md-source__repository--active");
+      facts.forEach(function (factList) {
+        Array.prototype.forEach.call(factList.querySelectorAll(".md-source__fact"), function (fact, index) {
+          fact.setAttribute("data-source-fact", index === 0 ? "stars" : "forks");
+        });
+      });
+    });
+  }
+
+  function watchSourceFacts() {
+    if (sourceFactsObserverStarted || !document.body) return;
+    sourceFactsObserverStarted = true;
+
+    var observer = new MutationObserver(function () {
+      normalizeSourceFacts();
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
   function profileSidebarHtml() {
     return [
       '<div class="profile-card">',
@@ -61,7 +128,7 @@
       '  <div class="profile-followers">',
       '    <a href="' + siteHref("HOME/friends/") + '" class="follower-link">',
       '      <svg class="meta-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2 5.5a3.5 3.5 0 1 1 5.898 2.549 5.508 5.508 0 0 1 3.034 4.084.75.75 0 1 1-1.482.235 4 4 0 0 0-7.9 0 .75.75 0 0 1-1.482-.236A5.507 5.507 0 0 1 3.102 8.05 3.493 3.493 0 0 1 2 5.5ZM11 4a3.001 3.001 0 0 1 2.22 5.018 5.01 5.01 0 0 1 2.56 3.012.749.749 0 0 1-.885.954.752.752 0 0 1-.549-.514 3.507 3.507 0 0 0-2.522-2.372.75.75 0 0 1-.574-.73v-.352a.75.75 0 0 1 .416-.68 1.5 1.5 0 0 0-.14-2.828.75.75 0 0 1-.714-.807l.006-.051A1.5 1.5 0 0 0 11 4Z"></path></svg>',
-      '      <span class="follower-text"><span class="follower-count" id="friend-count">1</span> follower <span class="follower-separator">&middot;</span> following</span>',
+      '      <span class="follower-text"><span class="follower-count" id="friend-count">2</span> follower <span class="follower-separator">&middot;</span> following</span>',
       '    </a>',
       '  </div>',
       '  <ul class="profile-meta">',
@@ -252,6 +319,8 @@
 
   function runAll() {
     updateHomepageClass();
+    normalizeSourceFacts();
+    watchSourceFacts();
     ensureHomeProfileLayout();
     updateBeijingTime();
     updateFriendCount();
