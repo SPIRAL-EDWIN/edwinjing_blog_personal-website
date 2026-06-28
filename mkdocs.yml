@@ -7,14 +7,14 @@
 # ==============================================================================
 
 # --- 1. 基础项目信息 (Project Information) ---
-site_name: "Chen JING's Personal Website"  # 网站标题，将显示在浏览器标签页
+site_name: "Chen Jing | Zhejiang University"  # 网站标题，将显示在浏览器标签页
 site_url: https://edwinjing-blog.com/  # 生产环境的域名，用于生成 SEO 规范链接 (Canonical URL) [13]
 site_author: Chen Jing
 site_description: "基于 MkDocs 构建的个人学术知识库与技术文档。"
 copyright: >-
-  <span class="footer-copyright">Copyright &copy; 2026 Chen Jing.</span>
+  <span class="footer-copyright">&copy; 2025-2026 Chen Jing.</span>
   <span class="site-status"><span class="site-status__dot" aria-hidden="true"></span>Syncing Knowledge Garden</span>
-  <span class="footer-license">This post is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a></span>
+  <span class="footer-license">Content licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></span>
   
 # --- 2. 代码仓库链接 (Repository) ---
 # 配置后，页面右上角会出现 GitHub 图标，方便快速跳转到源码或编辑页面 [13]
@@ -25,6 +25,7 @@ repo_url: https://github.com/SPIRAL-EDWIN/edwinjing-blog-website
 theme:
   name: material
   language: zh # 强制界面语言为简体中文 (如“上一页”、“目录”等 UI 文本) [14]
+  favicon: assets/favicon.svg
   
   # 图标设置 (Icon) 
   icon:
@@ -128,14 +129,6 @@ extra:
       - HOME/**
       - blog/index.md
       - OsdNotes/index.md
-  social: 
-    - icon: fontawesome/brands/bilibili   #b站图标
-      link: https://space.bilibili.com/3493263893858624   #个人主页
-    - icon: fontawesome/regular/envelope #联系方式图标
-      link: mailto:<edwin2025661@gmail.com> #邮件联系方式
-    - icon: fontawesome/brands/weixin
-      link: https://i.ibb.co/qL5gbz2F/qrcode-for-gh-ea6e88fc6fb6-258.jpg
-      name: Wechat Public Account
   # (可选) 博客插件：如果需要独立的博客板块 [5, 19]
   # - blog
 
@@ -191,25 +184,21 @@ extra_javascript:
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
   - javascripts/mathjax.js
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
-  - javascripts/typewriter.js
   - javascripts/block-links.js?v=20260624b  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js
+  - javascripts/ui-perf.js?v=20260626b
 
 extra_css:
-  - stylesheets/extra.css?v=20260624b       # 用于自定义 CSS 样式调整
-  - stylesheets/typewriter.css?v=20260320a  # 首页打字效果
+  - stylesheets/extra.css?v=20260627d       # 用于自定义 CSS 样式调整
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。
 nav:
-  - Home:
+  - Overview:
     - index.md
     - Archive: HOME/Archive/index.md
     - Friends: HOME/friends.md
-  - AboutMe:
-    - AboutMe/RESUME.md
   - OsdNotes:
-    - 概览: OsdNotes/index.md
+    - Introduction: OsdNotes/index.md
     - CS101:
       - OsdNotes/CS101/Python.md
       - OsdNotes/CS101/MATLAB.md
@@ -235,7 +224,7 @@ nav:
         - "早期哲学家对宇宙论、本体论论证的改编": "OsdNotes/PHIL/早期哲学家对宇宙论、本体论论证的改编.md"
         - "斯大林对马基雅维利政治的践行": "OsdNotes/PHIL/斯大林对马基雅维利政治的践行.md"
         - "纯粹的大众民主极易变成暴民政治": "OsdNotes/PHIL/纯粹的大众民主极易变成暴民政治.md"
-  - Experiences:
+  - More Experiences:
     - 经验分享/machineLearning.md
     - 年终总结:
       - "2025年终总结": "经验分享/年终总结/2025年终总结：Be Global. Be Active..md"

@@ -53,7 +53,6 @@
 - 首页： [docs/index.md](docs/index.md)
 - 全站配置： [mkdocs.yml](mkdocs.yml)
 - 自定义样式： [docs/stylesheets/extra.css](docs/stylesheets/extra.css)
-- 首页打字效果： [docs/javascripts/typewriter.js](docs/javascripts/typewriter.js)
 - 数学公式配置： [docs/javascripts/mathjax.js](docs/javascripts/mathjax.js)
 
 ---
@@ -77,11 +76,6 @@
 ### 4.3 修改首页内容
 
 首页文案位于 [docs/index.md](docs/index.md)。
-
-如果要修改打字动画文案：
-
-- 修改 [docs/javascripts/typewriter.js](docs/javascripts/typewriter.js)
-- 关键字段为 `config.line1Text` 与 `config.line2Phrases`
 
 ### 4.4 调整主题配色
 

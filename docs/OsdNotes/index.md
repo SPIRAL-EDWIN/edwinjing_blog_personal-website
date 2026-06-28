@@ -1,8 +1,9 @@
-这里是我的开源开发学习笔记集合：
+Here is my collection of open-source development learning notes: 
 
-&nbsp;	是本人在大学期间，对课堂、讲座、科研笔记的不定期整理~
+<ul class="intro-dot-list">
+  <li>These are my occasional compilations of class notes, lectures, and research records from my university years.</li>
+</ul>
 
-供大家学习讨论
+For everyone's study and discussion 📖 
 
-如有问题，请右下角联系我
-
+If you have any questions or need to communicate, please contact me through the contact information on the homepage 🥂
