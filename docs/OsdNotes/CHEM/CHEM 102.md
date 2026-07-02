@@ -96,7 +96,7 @@ Significant figure：有效数字
 ## Chapter 2
 
 ### History
-Antoine Lavosier 拉瓦锡 ==> **Law of conservation of mass 质量守恒定律**
+Antoine Lavoisier 拉瓦锡 ==> **Law of conservation of mass 质量守恒定律**
 Joseph Proust 约瑟夫·普鲁斯特 ==> **Law of definite proportion 定比定律**
   某一特定化合物始终含有相同质量比例的元素
 John Dalton 道尔顿 ==> **Law of Multiple Proportions 多重比例定律**
@@ -1261,7 +1261,7 @@ $键级=\frac{成键电子数-反键电子数}{2}$
 - 只有原子的**价轨道 (valence orbitals)** 对特定分子的分子轨道有显著贡献
   - 在构建分子轨道时，我们只看最外层的价电子，内层核心电子因为被原子核抓得很紧，几乎不参与成键
 > [!example] Boron $B_2$ —— 以硼分子为例
-> 电子构型 Electrons configuration：$1s^22s^22p^1$
+> 电子构型 Electron configuration：$1s^22s^22p^1$
 > -->基于p原子轨道结合成分子轨道
 > - p 轨道以一组三个**相互垂直 (mutually perpendicular)** 的轨道出现
 > - 两对 p 轨道可以**平行 (parallel)** 重叠，一对可以**头碰头 (head-on)** 重叠

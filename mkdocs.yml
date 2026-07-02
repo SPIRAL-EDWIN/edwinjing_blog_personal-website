@@ -57,7 +57,6 @@ theme:
     - navigation.expand        # 右侧目录跟随滚动
     - toc.follow               # 右侧目录随内容滚动高亮
     - content.code.copy        # 代码块添加“一键复制”按钮 [17]
-    - search.suggest           # 搜索框提供输入建议
     - search.highlight         # 搜索结果关键词高亮显示、
     - search.share #搜索分享按钮
 
@@ -91,8 +90,9 @@ plugins:
   # 搜索插件：核心配置 [4, 8, 13]
   # 注意：必须在 Python 环境中安装 jieba 库 (pip install jieba) 才能生效
   - search:
-      lang: ['en', 'zh']       # 启用英文和中文索引
+      lang: ['zh']             # 启用中文索引，并保留英文原词匹配
       separator: '[\s\u200b\-]' # 自定义分词分隔符，优化中文切词精度
+      pipeline: []             # 禁用词干化，避免 Embodied 等完整英文词搜索失败
 
   # Obsidian Callouts 转换插件
   # 将 Obsidian 风格的 > [!NOTE] 转换为 MkDocs 的 admonition 格式
@@ -184,10 +184,10 @@ extra_javascript:
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
   - javascripts/mathjax.js
   - javascripts/block-links.js?v=20260624b  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js?v=20260701b
+  - javascripts/ui-perf.js?v=20260702e
 
 extra_css:
-  - stylesheets/extra.css?v=20260701b       # 用于自定义 CSS 样式调整
+  - stylesheets/extra.css?v=20260702e       # 用于自定义 CSS 样式调整
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。
@@ -204,7 +204,7 @@ nav:
     - Github笔记:
       - "Markdown学习（转载Github）": "OsdNotes/Github学习笔记/Markdown学习（转载Github）.md"
     - Embodied AI:
-      - "Hua Chen - Embodied AI & Humanoids Robots": "OsdNotes/Embodied AI/Hua Chen - Embodied AI & Humanoids Robots.md"
+      - "Hua Chen - Embodied AI & Humanoid Robots": "OsdNotes/Embodied AI/Hua Chen - Embodied AI & Humanoid Robots.md"
       - "具身智能基础路线": "OsdNotes/Embodied AI/具身智能基础路线.md"
       - VLA:
         - "π0.7: Compositional Generalization": "OsdNotes/Embodied AI/VLA/π0.7：组合泛化的思考.md"

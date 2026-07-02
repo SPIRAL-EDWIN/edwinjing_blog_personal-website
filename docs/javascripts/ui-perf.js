@@ -37,6 +37,86 @@
     });
   }
 
+  function setupSearchActivation() {
+    var search = document.querySelector(".md-search");
+    var input = search ? search.querySelector(".md-search__input") : null;
+    var form = search ? search.querySelector(".md-search__form") : null;
+    var searchToggle = document.querySelector('[data-md-toggle="search"]');
+
+    if (!search || !input || !form || !searchToggle || search.dataset.edwinosSearchReady === "1") return;
+    search.dataset.edwinosSearchReady = "1";
+
+    var emitQuery = function () {
+      input.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, key: "Unidentified" }));
+    };
+
+    var scheduleQueryEmit = function () {
+      if (!input.value.trim()) return;
+
+      window.setTimeout(emitQuery, 40);
+      window.setTimeout(emitQuery, 180);
+      window.setTimeout(emitQuery, 520);
+    };
+
+    var openSearch = function () {
+      if (!searchToggle.checked) {
+        searchToggle.checked = true;
+        searchToggle.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+
+      scheduleQueryEmit();
+    };
+
+    var updateSharedQuery = function () {
+      var query = input.value.trim();
+      var url = new URL(window.location.href);
+
+      if (query) {
+        url.searchParams.set("q", query);
+      } else {
+        url.searchParams.delete("q");
+      }
+      url.searchParams.delete("query");
+
+      window.history.replaceState(null, "", url);
+    };
+
+    input.addEventListener("focus", openSearch);
+    input.addEventListener("click", openSearch);
+    input.addEventListener("input", openSearch);
+    input.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter") return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === "function") {
+        event.stopImmediatePropagation();
+      }
+
+      openSearch();
+      updateSharedQuery();
+      scheduleQueryEmit();
+    }, true);
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      openSearch();
+      updateSharedQuery();
+      scheduleQueryEmit();
+      input.focus();
+    }, true);
+
+    var params = new URLSearchParams(window.location.search);
+    var sharedQuery = params.get("q") || params.get("query");
+    if (sharedQuery && !input.value) {
+      input.value = sharedQuery;
+      window.requestAnimationFrame(function () {
+        openSearch();
+        scheduleQueryEmit();
+      });
+    }
+  }
+
   function siteHref(relativePath) {
     var logo = document.querySelector(".md-header__button.md-logo");
     var logoHref = logo ? (logo.getAttribute("href") || "").trim() : "";
@@ -562,6 +642,7 @@
     ensureHomeProfileLayout();
     updateBeijingTime();
     updateFriendCount();
+    setupSearchActivation();
     setupVisitorMap();
     fixOrderedListContinuity();
   }

@@ -46,7 +46,7 @@ Most basic definition: love + wisdom
 
 宗教附属于哲学
 ### What is philosophy
-- Karl Max: *Traditional philosophy* seeks to *interpret* the world, but he believes that the task of **philosophy is to change the world**
+- Karl Marx: *Traditional philosophy* seeks to *interpret* the world, but he believes that the task of **philosophy is to change the world**
 
 - Pythagoras（毕达哥拉斯）: The philosopher is not a player in the game, but an **observer who analyses and critiques**
 
@@ -137,7 +137,7 @@ The epistemological presupposition that sensory experience is the primary or eve
 > 在古代哲学中，人们先问“世界是什么”（形而上学）；但笛卡尔开启了现代转向，先问“我怎么知道世界是什么”（认识论）。如果不能确定认知的可靠性，就无法讨论存在
 ## 方法论与怀疑
 ### Method of Doubt 怀疑的方法
-- Also know as "**methodological skepticism（方法论怀疑主义）**"
+- Also known as "**methodological skepticism（方法论怀疑主义）**"
   - --><u>opposed</u> to **ontological skepticism（本体论怀疑主义）**
 - Descartes tentatively rejects all *truth-claims on which doubts cannot be eliminated（无法消除疑虑的真理主张）*, in order to rebuild **a system of knowledge** on the basis of propositions that **cannot be doubted**
 > 笛卡尔不是为了怀疑而怀疑（那是彻底的怀疑论），他是把怀疑当作一种工具（方法），通过过滤掉所有可能虚假的东西，找到那个绝对坚固的基石 ^f77b47
@@ -540,7 +540,7 @@ Kant's objection to Descartes's ontological argument, with which Cartesian metap
 ### David Hume 大卫·休谟
 - 苏格兰哲学家
 - 在欧洲大陆以<u>历史学家</u>和<u>文学评论家</u>闻名（*The History of England*）。
-- 因其著作*Natural Historyof Religion*&*The DialoguesConcerning Natural Religion*==被==称为“**无神论者 atheist”**。（注意不是自称，这是要掉脑袋的） ^b91393
+- 因其著作 *Natural History of Religion* 与 *The Dialogues Concerning Natural Religion* ==被==称为“**无神论者 atheist”**。（注意不是自称，这是要掉脑袋的） ^b91393
 - 其在认识论上的神作*An Enquiry Concerning Human Understanding*和哲学地位在生前并未得到应有的认可
 - 曾与*Jean-Jacques Rouseau 让-雅克·卢梭* 交好
 > 休谟是一个标志性的近代历史学家。
@@ -654,7 +654,7 @@ Kant's objection to Descartes's ontological argument, with which Cartesian metap
 ### Weber's Reception in Contemporary China
 - 1990年代中国对基督教研究的兴趣爆发-->韦伯是很重要的原因
 - 改革开放项目的支持者（Proponents of the Open and Reformed Program）自认为是“韦伯主义者（Weberians）“
-- The Weberian thesis among Mainland NewConfucians (大陆新儒家) and Neo-Leftists（新左派）
+- The Weberian thesis among Mainland New Confucians (大陆新儒家) and Neo-Leftists（新左派）
   - 新教伦理（Protestantism/Christianity）在16至19世纪欧洲经济增长中扮演核心角色。“大陆新儒家”和“新左派”等不同意识形态的阵营，都在借由反思、批判或借鉴韦伯的命题，来寻找中国传统文化（如儒家）在现代化的位置，以及中国社会发展的精神动力。
 - 像马云这样的企业家表现出了强烈的韦伯式理想
 > 韦伯的命题**有对有错**。

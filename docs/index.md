@@ -6,8 +6,6 @@ hide:
 title: "Overview"
 ---
 
-<div class="hero-bg-dynamic" aria-hidden="true"></div>
-
 <div class="academic-home-layout">
   <aside class="academic-sidebar">
     <div class="profile-card">

@@ -26,7 +26,7 @@
  **注意！`0+1j`中，0和1均为float型**
  对于 complex 型的 c=4+2j，`c.real` 为实部，`c.imag` 为虚部
 
-```
+```python
 x = complex("5.1 - 4.4j") -5
 print(x)
 >>> Error!
@@ -615,7 +615,7 @@ rdata = requests.get( 'http://samplecsvs.s3.amazonaws.com/Sacramentorealestatetr
   - 判断句中的`==`打成 `=`
   - 遗失冒号
 - 关键字误用：`def = 5`                *35个 Keywords 被当做变量*
-或 抛出`IdentationError`：
+或抛出 `IndentationError`：
 
 - 缩进错误
 - Tab和空格混用（没见过）
@@ -1009,7 +1009,7 @@ pprint.pprint(sys.path)
 ### 更多的库
 
 1. `Pandas`—Python for Data Analysis
-2. `Scikit-Learn` or `pyTorch` —machine learning
+2. `scikit-learn` or `PyTorch` — machine learning
 3. `Classes` (object-oriented programming)
 4. `Bokeh`—interactive plots, like web graphics
 

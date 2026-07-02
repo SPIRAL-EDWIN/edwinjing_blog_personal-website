@@ -34,7 +34,7 @@ MATLAB numbers **by default** are all `float`s.
 - 即使数值看起来像整数，它在内存中依然占用 64 位（8 字节）。
 - 这是为了在科学计算中保持高精度并避免溢出
 
-对于数字，MatLab实现了：
+对于数字，MATLAB 实现了：
 
 - integers
 - floating-point numbers
@@ -282,7 +282,7 @@ to append the value of `A` into a file with the name `test.txt`
 ## Load
 
 `A = load( ’test’, ’A’ );` Load variable A from `text.mat`
- ***更简单的方案：双击文件，变量和值就会导入WorkSpace***
+ ***更简单的方案：双击文件，变量和值就会导入 Workspace***
 `A = imread( ’myPicture.jpg’ );`  Use `imread` to open `images` (`.jpg`, `.png` or others)  然后用 `image();` 可以输出图片
 
 `dataV = importdata( ’rainfall.txt’ );`

@@ -61,23 +61,6 @@
   --md-accent-fg-color:         #003F88;
 }
 
-/* 
- * 特殊修复：页眉背景
- * 在某些 Material 主题版本中，页眉背景可能需要显式指定
- * 才能正确应用自定义的 Hex 颜色值。
- */
-[data-md-color-scheme="default"].md-header {
-  background-color: var(--md-primary-fg-color);
-}
-
-/* 
- * 特殊修复：移动端导航栏
- * 确保移动端的标签页背景也同步为浙大蓝。
- */
-[data-md-color-scheme="default"].md-tabs {
-  background-color: var(--md-primary-fg-color);
-}
-
 /* --- 页脚定制开始 --- */
 
 /* 强制页脚内部容器两端对齐 */
@@ -112,41 +95,22 @@
 /* --- 页脚定制结束 --- */
 
 /* ==============================================
-   友链卡片样式 (Friend Links)
+   友链结构基础 (Friend Links)
+   最终视觉样式在文件尾部的 GitHub friends-page polish 中统一覆盖。
    ============================================== */
 .friend-links {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-    padding: 20px 0;
 }
 
 .friend-card {
     display: flex;
     align-items: center;
-    padding: 15px;
-    border-radius: 12px;
-    background: var(--md-default-bg-color, #fff);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     text-decoration: none !important;
     color: inherit;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.friend-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 63, 136, 0.15);
-    border-color: var(--md-primary-fg-color, #003F88);
 }
 
 .friend-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
     object-fit: cover;
-    margin-right: 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     flex-shrink: 0;
 }
 
@@ -157,59 +121,17 @@
 }
 
 .friend-name {
-    font-size: 1.1em;
-    font-weight: 600;
-    color: var(--md-primary-fg-color, #003F88);
-    margin-bottom: 5px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .friend-desc {
-    font-size: 0.85em;
-    color: #666;
-    line-height: 1.4;
     line-clamp: 2;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-}
-
-/* 暗色模式适配 */
-[data-md-color-scheme="slate"] .friend-card {
-    background: #161b22;
-    border-color: #30363d;
-}
-
-[data-md-color-scheme="slate"] .friend-card:hover {
-    box-shadow: 0 8px 30px rgba(1, 4, 9, 0.35);
-    border-color: rgba(88, 166, 255, 0.45);
-}
-
-[data-md-color-scheme="slate"] .friend-name {
-    color: #58a6ff;
-}
-
-[data-md-color-scheme="slate"] .friend-desc {
-    color: #8b949e;
-}
-
-/* 移动端适配 */
-@media screen and (max-width: 600px) {
-    .friend-links {
-        grid-template-columns: 1fr;
-    }
-    
-    .friend-card {
-        padding: 12px;
-    }
-    
-    .friend-avatar {
-        width: 50px;
-        height: 50px;
-    }
 }
 
 /* ==============================================
@@ -265,6 +187,10 @@ a {
 
 .md-search__input:focus {
     box-shadow: 0 0 0 3px rgba(0, 63, 136, 0.2);
+}
+
+.md-search__suggest {
+    display: none !important;
 }
 
 /* 内容卡片化效果 */
@@ -1867,24 +1793,6 @@ body[data-md-color-scheme="slate"] .md-tabs,
     border-bottom-color: #30363d !important;
 }
 
-.hero-bg-dynamic {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image:
-        radial-gradient(rgba(0, 63, 136, 0.07) 1px, transparent 1px),
-        linear-gradient(rgba(0, 63, 136, 0.018) 1px, transparent 1px);
-    background-size: 22px 22px, 100% 100%;
-    animation: none !important;
-}
-
-[data-md-color-scheme="slate"] .hero-bg-dynamic {
-    background-image:
-        radial-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
-        linear-gradient(rgba(148, 163, 184, 0.014) 1px, transparent 1px);
-}
-
 body.is-homepage .md-main__inner,
 body:has(.academic-home-layout) .md-main__inner {
     max-width: none;
@@ -2066,82 +1974,11 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .md-tabs {
     color: var(--academic-accent) !important;
 }
 
-.profile-title {
-    margin: 0.45rem 0 0.95rem;
-    color: var(--academic-muted);
-    font-size: 0.86rem;
-    line-height: 1.55;
-}
-
-.md-typeset .profile-university,
-.md-typeset .profile-university:hover {
-    color: var(--academic-ink) !important;
-    border-bottom: 1px dashed var(--academic-muted);
-    font-weight: 700;
-    text-decoration: none !important;
-    transition: all 0.2s ease;
-}
-
-.md-typeset .profile-university:hover {
-    color: var(--academic-accent) !important;
-    border-bottom-color: var(--academic-accent);
-}
-
-.md-typeset .profile-email,
-.md-typeset .profile-email:hover {
-    margin-bottom: 1.15rem;
-    color: var(--academic-muted);
-    font-family: "JetBrains Mono", monospace;
-    font-size: 0.73rem;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.md-typeset .profile-email:hover {
-    color: var(--academic-accent);
-}
-
-.profile-social {
-    display: flex;
-    gap: 0.45rem;
-    justify-content: center;
-    margin-top: 0;
-}
-
-.md-typeset .profile-social a,
-.md-typeset .profile-social a:hover {
-    display: inline-flex;
-    width: 2.15rem;
-    height: 2.15rem;
-    align-items: center;
-    justify-content: center;
-    color: var(--academic-ink);
-    background: var(--academic-soft);
-    border: 1px solid transparent;
-    border-bottom: 1px solid transparent !important;
-    border-radius: 50%;
-    font-family: "Inter", "Noto Sans SC", sans-serif;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-decoration: none !important;
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, background-color 0.25s ease, color 0.2s ease;
-}
-
 .social-icon {
     display: block;
     width: 1.05rem;
     height: 1.05rem;
     fill: currentColor;
-}
-
-.md-typeset .profile-social a:hover {
-    transform: translateY(-2px);
-    border-color: rgba(0, 63, 136, 0.22);
-    color: var(--academic-accent);
-}
-
-[data-md-color-scheme="slate"] .md-typeset .profile-social a:hover {
-    border-color: rgba(88, 166, 255, 0.45);
 }
 
 .academic-content {
@@ -2832,10 +2669,6 @@ body[data-md-color-scheme="slate"] .academic-home-layout .news-text strong {
         height: 6.6rem;
     }
 
-    .profile-social {
-        justify-content: center;
-    }
-
     .grid-cards {
         grid-template-columns: 1fr;
     }
@@ -2876,7 +2709,6 @@ body[data-md-color-scheme="slate"] .academic-home-layout .news-text strong {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .hero-bg-dynamic,
     .animate-slide-up {
         animation: none !important;
     }
@@ -2887,8 +2719,7 @@ body[data-md-color-scheme="slate"] .academic-home-layout .news-text strong {
     }
 
     .hover-lift,
-    .profile-avatar,
-    .profile-social a {
+    .profile-avatar {
         transition: none !important;
     }
 }
@@ -3396,8 +3227,7 @@ body[data-md-color-scheme="slate"] .academic-home-layout .news-text strong {
     fill: #8b949e !important;
 }
 
-[data-md-color-scheme="slate"] .md-typeset .meta-link:hover,
-[data-md-color-scheme="slate"] .md-typeset .profile-university:hover {
+[data-md-color-scheme="slate"] .md-typeset .meta-link:hover {
     color: #58a6ff !important;
 }
 
@@ -3929,19 +3759,35 @@ body[data-md-color-scheme="slate"] .md-tabs,
     }
 
     .md-search__suggest {
-        padding-left: 2.25rem !important;
-        line-height: 2.1rem !important;
+        display: none !important;
     }
 
     .md-search__overlay {
         display: none;
     }
 
-    [data-md-toggle="search"]:checked ~ .md-header .md-search {
+    [data-md-toggle="search"]:checked ~ .md-header .md-search,
+    .md-header .md-search:focus-within {
         animation: none !important;
+        opacity: 1 !important;
         transform: none !important;
         will-change: auto !important;
         z-index: 20 !important;
+    }
+
+    [data-md-toggle="search"]:checked ~ .md-header .md-header__source,
+    [data-md-toggle="search"]:checked ~ .md-header .md-header__option {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        will-change: auto !important;
+    }
+
+    [data-md-toggle="search"]:checked ~ .md-header .md-header__option {
+        width: 2.2rem !important;
+        min-width: 2.2rem !important;
+        max-width: 2.2rem !important;
+        overflow: visible !important;
     }
 
     [data-md-toggle="search"]:checked ~ .md-header .md-search__overlay {
@@ -3957,25 +3803,32 @@ body[data-md-color-scheme="slate"] .md-tabs,
         pointer-events: auto !important;
     }
 
-    [data-md-toggle="search"]:checked ~ .md-header .md-search__inner {
+    [data-md-toggle="search"]:checked ~ .md-header .md-search__inner,
+    .md-header .md-search:focus-within .md-search__inner {
         position: relative !important;
         z-index: 2 !important;
         width: 100% !important;
     }
 
-    [data-md-toggle="search"]:checked ~ .md-header .md-search__output {
+    [data-md-toggle="search"]:checked ~ .md-header .md-search__output,
+    .md-header .md-search:focus-within .md-search__output {
         position: absolute !important;
         top: calc(2.1rem + 0.55rem) !important;
         right: 0 !important;
         left: 0 !important;
         z-index: 3 !important;
+        height: auto !important;
         margin: 0 !important;
         border-radius: 12px !important;
         overflow: hidden;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
         box-shadow: 0 16px 36px rgba(1, 4, 9, 0.18) !important;
     }
 
-    [data-md-toggle="search"]:checked ~ .md-header .md-search__scrollwrap {
+    [data-md-toggle="search"]:checked ~ .md-header .md-search__scrollwrap,
+    .md-header .md-search:focus-within .md-search__scrollwrap {
         max-height: min(68vh, 32rem) !important;
     }
 
@@ -4140,12 +3993,6 @@ body[data-md-color-scheme="slate"] .md-content__inner,
 body[data-md-color-scheme="slate"] .academic-home-layout {
     background: var(--github-frame-dark-bg) !important;
     background-color: var(--github-frame-dark-bg) !important;
-    background-image: none !important;
-}
-
-.hero-bg-dynamic {
-    display: none !important;
-    background: none !important;
     background-image: none !important;
 }
 
