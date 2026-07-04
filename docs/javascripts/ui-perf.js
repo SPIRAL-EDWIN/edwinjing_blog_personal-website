@@ -317,7 +317,18 @@
     return match ? match[2] : "";
   }
 
-  function visitorSizedBackgroundUrl(url, width) {
+  function visitorLocalBackgroundUrl(container) {
+    if (!container) return "";
+
+    var backgroundPath = (container.getAttribute("data-map-bg") || "").trim();
+    if (!backgroundPath) return "";
+
+    return siteHref(backgroundPath.replace(/^\.?\//, ""));
+  }
+
+  function visitorSizedBackgroundUrl(container, url, width) {
+    var localBackgroundUrl = visitorLocalBackgroundUrl(container);
+    if (localBackgroundUrl) return localBackgroundUrl;
     if (!url || !width) return url;
 
     return url.replace(/bg-w_[^-/.?]+/, "bg-w_" + width);
@@ -346,7 +357,7 @@
     map.style.backgroundSize = "100% 100%";
 
     var backgroundUrl = visitorBackgroundUrl(map);
-    var sizedBackgroundUrl = visitorSizedBackgroundUrl(backgroundUrl, assetWidth);
+    var sizedBackgroundUrl = visitorSizedBackgroundUrl(container, backgroundUrl, assetWidth);
     if (sizedBackgroundUrl && sizedBackgroundUrl !== backgroundUrl) {
       setVisitorBackgroundUrl(map, sizedBackgroundUrl);
       backgroundUrl = sizedBackgroundUrl;
@@ -361,6 +372,10 @@
     if (/Total Pageviews|Pageviews/i.test(text)) return true;
 
     return !!container.querySelector("#mapmyvisitors-widget .jvectormap-container svg");
+  }
+
+  function visitorWidgetExists(container) {
+    return !!(container && container.querySelector("#mapmyvisitors-widget .mapmyvisitors-map"));
   }
 
   function nudgeVisitorMapSize() {
@@ -400,6 +415,12 @@
 
     var fail = function () {
       if (settled) return;
+
+      if (visitorWidgetExists(container) || visitorMapHasData(container)) {
+        markLoaded();
+        return;
+      }
+
       settled = true;
       window.clearTimeout(timeout);
       if (observer) observer.disconnect();

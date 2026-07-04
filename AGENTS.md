@@ -81,6 +81,36 @@ Do not start with a full rewrite. Use a gradual migration plan:
 8. Remove superseded legacy rules only after the replacement is proven.
 9. Update this `AGENTS.md` file whenever the governance model changes.
 
+## Local Preview Standard
+
+After each conversation that changes local repository files, keep a local MkDocs
+preview available for Edwin's review whenever possible.
+
+- Prefer `http://127.0.0.1:8000/`.
+- If an old local preview is already running on port 8000, reuse it when it is
+  the current repository's MkDocs server; MkDocs hot reload is sufficient.
+- If port 8000 is occupied by a stale or unrelated server, stop or replace the
+  old preview before starting the new one.
+- Only use another port when 8000 cannot reasonably be recovered. If another
+  port is used, state it clearly to the user.
+- The local preview should reflect the current working tree, not only the last
+  committed state.
+
+## Push and Deployment Standard
+
+When Edwin explicitly says the changes can be pushed, use the repository's
+existing GitHub Actions deployment workflow. Do not invent a separate deployment
+method.
+
+- Check `.github/workflows/deploy.yml` before pushing.
+- The current workflow deploys GitHub Pages on pushes to `main` or `master`.
+- Default to committing and pushing the current branch to `origin/main` when the
+  working branch is `main`.
+- After pushing, confirm that the `Deploy MkDocs to GitHub Pages` workflow was
+  triggered and report its result when possible.
+- Do not deploy by manually copying files to another branch, uploading artifacts,
+  or using an unrelated hosting command unless Edwin explicitly requests it.
+
 ## Verification Standard
 
 For small CSS-only changes:

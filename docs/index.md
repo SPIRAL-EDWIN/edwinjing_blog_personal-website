@@ -205,7 +205,7 @@ title: "Overview"
 
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.9s;">
       <h2 class="section-title"><span class="title-dash"></span>Visitors</h2>
-      <div class="visitor-container hover-lift" data-visitor-map data-map-src="https://mapmyvisitors.com/map.js?cl=ffffff&amp;w=a&amp;t=tt&amp;d=qHninQDTRLus6vHDooTU4b9v5lsWQ-hrTzJKxmFxli0&amp;co=2d78ad&amp;cmo=3acc3a&amp;cmn=ff5353&amp;ct=ffffff">
+      <div class="visitor-container hover-lift" data-visitor-map data-map-src="https://mapmyvisitors.com/map.js?cl=ffffff&amp;w=a&amp;t=tt&amp;d=qHninQDTRLus6vHDooTU4b9v5lsWQ-hrTzJKxmFxli0&amp;co=2d78ad&amp;cmo=3acc3a&amp;cmn=ff5353&amp;ct=ffffff" data-map-bg="assets/images/visitors/map-bg-1200.png">
         <div class="visitor-fallback">
           <span class="visitor-fallback__eyebrow">Global Footprints</span>
           <span class="visitor-fallback__title">Visitor map loading</span>
