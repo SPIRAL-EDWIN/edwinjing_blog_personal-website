@@ -1,0 +1,93 @@
+/*
+ * EdwinOS override layer
+ * --------------------------------------------------------------------------
+ * This file is loaded after extra.css and owns small, component-specific final
+ * corrections. Keep broad theme tokens and legacy Material overrides in
+ * extra.css; put new pixel-level fixes here so the cascade stays traceable.
+ */
+
+/* ==========================================================================
+   Recent News first-line alignment
+   ========================================================================== */
+
+body.is-homepage .news-list li,
+body.is-home-profile-page .news-list li,
+body:has(.academic-home-layout) .news-list li {
+    display: grid !important;
+    grid-template-columns: 5.2rem minmax(0, 1fr) !important;
+    column-gap: 0.8rem !important;
+    row-gap: 0 !important;
+    align-items: baseline !important;
+    align-items: first baseline !important;
+}
+
+body.is-homepage .news-date,
+body.is-homepage .news-text,
+body.is-home-profile-page .news-date,
+body.is-home-profile-page .news-text,
+body:has(.academic-home-layout) .news-date,
+body:has(.academic-home-layout) .news-text {
+    display: block !important;
+    margin-top: 0 !important;
+}
+
+body.is-homepage .news-date,
+body.is-home-profile-page .news-date,
+body:has(.academic-home-layout) .news-date {
+    align-self: baseline !important;
+    align-self: first baseline !important;
+    white-space: nowrap !important;
+}
+
+body.is-homepage .news-text,
+body.is-home-profile-page .news-text,
+body:has(.academic-home-layout) .news-text {
+    align-self: baseline !important;
+    align-self: first baseline !important;
+    min-width: 0 !important;
+}
+
+/* ==========================================================================
+   Experiences timeline axis lock
+   ========================================================================== */
+
+body.is-homepage .timeline-cv,
+body.is-home-profile-page .timeline-cv,
+body:has(.academic-home-layout) .timeline-cv {
+    --cv-axis-x: 7px;
+    --cv-marker-size: 14px;
+    position: relative !important;
+    padding-left: 41px !important;
+    border-left: 0 !important;
+}
+
+body.is-homepage .timeline-cv::before,
+body.is-home-profile-page .timeline-cv::before,
+body:has(.academic-home-layout) .timeline-cv::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: var(--cv-axis-x) !important;
+    width: 1px !important;
+    background: var(--academic-card-border) !important;
+    transform: translateX(-0.5px) !important;
+}
+
+body.is-homepage .cv-item,
+body.is-home-profile-page .cv-item,
+body:has(.academic-home-layout) .cv-item {
+    position: relative !important;
+    padding-left: 0 !important;
+}
+
+body.is-homepage .cv-marker,
+body.is-home-profile-page .cv-marker,
+body:has(.academic-home-layout) .cv-marker {
+    box-sizing: border-box !important;
+    top: 0.32rem !important;
+    left: calc(var(--cv-axis-x) - var(--cv-marker-size) / 2 - 41px) !important;
+    width: var(--cv-marker-size) !important;
+    height: var(--cv-marker-size) !important;
+    z-index: 1 !important;
+}
