@@ -6,6 +6,1117 @@
  * extra.css; put new pixel-level fixes here so the cascade stays traceable.
  */
 
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap");
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+:root {
+    --edwinos-font-serif: "Source Serif 4", Georgia, "Noto Serif SC", serif;
+    --edwinos-font-hand: "Caveat", cursive;
+    --edwinos-font-mono: "JetBrains Mono", "Courier New", monospace;
+}
+
+body,
+.md-typeset,
+.md-content,
+.academic-content,
+.academic-section,
+.archive-hero__lead,
+.archive-note,
+.friend-desc {
+    font-family: var(--edwinos-font-serif) !important;
+}
+
+.md-typeset .section-title,
+.section-title,
+.md-typeset .archive-hero h1,
+.archive-hero h1,
+.md-typeset .archive-year__heading h2,
+.archive-year__heading h2 {
+    font-family: var(--edwinos-font-hand) !important;
+    letter-spacing: 0 !important;
+}
+
+body.is-homepage .md-typeset .profile-name,
+body.is-home-profile-page .md-typeset .profile-name,
+body:has(.academic-home-layout) .md-typeset .profile-name,
+body.is-homepage .md-typeset .profile-cn-name,
+body.is-home-profile-page .md-typeset .profile-cn-name,
+body:has(.academic-home-layout) .md-typeset .profile-cn-name,
+body.is-homepage .md-typeset .pub-title,
+body.is-home-profile-page .md-typeset .pub-title,
+body:has(.academic-home-layout) .md-typeset .pub-title,
+body.is-homepage .md-typeset .proj-header h3,
+body.is-home-profile-page .md-typeset .proj-header h3,
+body:has(.academic-home-layout) .md-typeset .proj-header h3,
+body.is-homepage .md-typeset .education-school,
+body.is-homepage .md-typeset .education-school a,
+body.is-home-profile-page .md-typeset .education-school,
+body.is-home-profile-page .md-typeset .education-school a,
+body:has(.academic-home-layout) .md-typeset .education-school,
+body:has(.academic-home-layout) .md-typeset .education-school a,
+body.is-homepage .md-typeset .cv-title,
+body.is-home-profile-page .md-typeset .cv-title,
+body:has(.academic-home-layout) .md-typeset .cv-title,
+body.is-homepage .md-typeset .archive-card__title,
+body.is-home-profile-page .md-typeset .archive-card__title,
+body:has(.academic-home-layout) .md-typeset .archive-card__title,
+body.is-homepage .md-typeset .friend-name,
+body.is-home-profile-page .md-typeset .friend-name,
+body:has(.academic-home-layout) .md-typeset .friend-name {
+    font-family: var(--edwinos-font-serif) !important;
+    letter-spacing: 0 !important;
+}
+
+body.is-homepage .section-title,
+body.is-home-profile-page .section-title,
+body:has(.academic-home-layout) .section-title {
+    font-size: 1.48rem !important;
+    font-weight: 700 !important;
+    line-height: 1.08 !important;
+}
+
+body.is-homepage .md-typeset .profile-name,
+body.is-home-profile-page .md-typeset .profile-name,
+body:has(.academic-home-layout) .md-typeset .profile-name {
+    font-size: 1.42rem !important;
+    font-weight: 600 !important;
+    line-height: 1.12 !important;
+}
+
+body.is-homepage .md-typeset .profile-cn-name,
+body.is-home-profile-page .md-typeset .profile-cn-name,
+body:has(.academic-home-layout) .md-typeset .profile-cn-name {
+    font-weight: 400 !important;
+}
+
+body.is-homepage .md-typeset .pub-title,
+body.is-home-profile-page .md-typeset .pub-title,
+body:has(.academic-home-layout) .md-typeset .pub-title {
+    font-size: 1.06rem !important;
+    font-weight: 600 !important;
+    line-height: 1.28 !important;
+}
+
+body.is-homepage .md-typeset .pub-title strong,
+body.is-home-profile-page .md-typeset .pub-title strong,
+body:has(.academic-home-layout) .md-typeset .pub-title strong {
+    font-family: inherit !important;
+    font-weight: inherit !important;
+}
+
+body.is-homepage .md-typeset .proj-header h3,
+body.is-home-profile-page .md-typeset .proj-header h3,
+body:has(.academic-home-layout) .md-typeset .proj-header h3,
+body.is-homepage .md-typeset .education-school,
+body.is-homepage .md-typeset .education-school a,
+body.is-home-profile-page .md-typeset .education-school,
+body.is-home-profile-page .md-typeset .education-school a,
+body:has(.academic-home-layout) .md-typeset .education-school,
+body:has(.academic-home-layout) .md-typeset .education-school a,
+body.is-homepage .md-typeset .cv-title,
+body.is-home-profile-page .md-typeset .cv-title,
+body:has(.academic-home-layout) .md-typeset .cv-title {
+    font-size: 1.04rem !important;
+    font-weight: 600 !important;
+    line-height: 1.28 !important;
+}
+
+.md-header,
+.md-tabs,
+.md-nav,
+.md-search,
+.md-footer,
+.profile-pronouns,
+.profile-role,
+.profile-actions,
+.profile-followers,
+.profile-meta,
+.profile-social-left,
+.news-date,
+.award-year,
+.cv-time,
+.proj-year,
+.education-time,
+.archive-hero__eyebrow,
+.archive-hero__stats,
+.archive-card__meta,
+.archive-card__status,
+.archive-card__category,
+.pub-links,
+.proj-tags,
+.beijing-time-main,
+.beijing-time-zone,
+.md-typeset code,
+.md-typeset pre code {
+    font-family: var(--edwinos-font-mono) !important;
+}
+
+.profile-meta,
+.profile-meta a,
+.profile-meta .meta-text {
+    font-family: var(--edwinos-font-mono) !important;
+}
+
+.profile-meta #beijing-time,
+.profile-meta .beijing-time-main,
+.profile-meta .beijing-time-zone {
+    font-family: var(--edwinos-font-mono) !important;
+}
+
+body.is-homepage .md-typeset .btn-github-action,
+body.is-homepage .md-typeset .btn-github-action:hover,
+body.is-homepage .md-typeset .btn-github-action:focus,
+body.is-home-profile-page .md-typeset .btn-github-action,
+body.is-home-profile-page .md-typeset .btn-github-action:hover,
+body.is-home-profile-page .md-typeset .btn-github-action:focus,
+body:has(.academic-home-layout) .md-typeset .btn-github-action,
+body:has(.academic-home-layout) .md-typeset .btn-github-action:hover,
+body:has(.academic-home-layout) .md-typeset .btn-github-action:focus {
+    font-family: var(--edwinos-font-mono) !important;
+    font-size: 0.84rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.2 !important;
+}
+
+body.is-homepage .profile-followers,
+body.is-homepage .profile-followers a,
+body.is-homepage .profile-followers .follower-text,
+body.is-homepage .profile-followers .follower-count,
+body.is-homepage .profile-followers .follower-separator,
+body.is-home-profile-page .profile-followers,
+body.is-home-profile-page .profile-followers a,
+body.is-home-profile-page .profile-followers .follower-text,
+body.is-home-profile-page .profile-followers .follower-count,
+body.is-home-profile-page .profile-followers .follower-separator,
+body:has(.academic-home-layout) .profile-followers,
+body:has(.academic-home-layout) .profile-followers a,
+body:has(.academic-home-layout) .profile-followers .follower-text,
+body:has(.academic-home-layout) .profile-followers .follower-count,
+body:has(.academic-home-layout) .profile-followers .follower-separator {
+    font-family: var(--edwinos-font-mono) !important;
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+}
+
+body.is-homepage .profile-followers .follower-text,
+body.is-home-profile-page .profile-followers .follower-text,
+body:has(.academic-home-layout) .profile-followers .follower-text {
+    gap: 0.16rem !important;
+}
+
+body.is-homepage .academic-section p,
+body.is-homepage .academic-section li,
+body.is-homepage .news-text,
+body.is-homepage .pub-authors,
+body.is-homepage .pub-venue,
+body.is-homepage .project-card p,
+body.is-homepage .education-degree,
+body.is-homepage .cv-subtitle,
+body.is-homepage .cv-desc,
+body.is-homepage .award-copy,
+body.is-homepage .personalities-list li,
+body.is-home-profile-page .academic-section p,
+body.is-home-profile-page .academic-section li,
+body.is-home-profile-page .news-text,
+body.is-home-profile-page .pub-authors,
+body.is-home-profile-page .pub-venue,
+body.is-home-profile-page .project-card p,
+body.is-home-profile-page .education-degree,
+body.is-home-profile-page .cv-subtitle,
+body.is-home-profile-page .cv-desc,
+body.is-home-profile-page .award-copy,
+body.is-home-profile-page .personalities-list li,
+body:has(.academic-home-layout) .academic-section p,
+body:has(.academic-home-layout) .academic-section li,
+body:has(.academic-home-layout) .news-text,
+body:has(.academic-home-layout) .pub-authors,
+body:has(.academic-home-layout) .pub-venue,
+body:has(.academic-home-layout) .project-card p,
+body:has(.academic-home-layout) .education-degree,
+body:has(.academic-home-layout) .cv-subtitle,
+body:has(.academic-home-layout) .cv-desc,
+body:has(.academic-home-layout) .award-copy,
+body:has(.academic-home-layout) .personalities-list li {
+    font-family: var(--edwinos-font-serif) !important;
+    letter-spacing: 0 !important;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+@media screen and (max-width: 76.1875em) {
+    :root {
+        --edwinos-mobile-header-height: 3.5rem;
+        --edwinos-mobile-header-control-space: 5.25rem;
+    }
+
+    .md-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 20 !important;
+        min-height: var(--edwinos-mobile-header-height) !important;
+        height: var(--edwinos-mobile-header-height) !important;
+        transform: none !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+    }
+
+    .md-header__inner {
+        display: flex !important;
+        width: 100% !important;
+        max-width: none !important;
+        height: var(--edwinos-mobile-header-height) !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 0.2rem !important;
+        margin: 0 !important;
+        padding: 0 0.72rem 0 0.6rem !important;
+        overflow: visible !important;
+        position: relative !important;
+        z-index: 24 !important;
+    }
+
+    .md-header__button.md-logo,
+    .md-header__button[for="__drawer"],
+    .md-header__source,
+    .md-header__title,
+    .md-header__topic {
+        display: none !important;
+    }
+
+    .md-header__option {
+        display: inline-flex !important;
+        width: 2.2rem !important;
+        height: 2.2rem !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        order: 1;
+    }
+
+    .md-header__option,
+    .md-header .md-search,
+    .md-header__button[for="__search"] {
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .md-header__option::before,
+    .md-header__option::after,
+    .md-header .md-search::before,
+    .md-header .md-search::after,
+    .md-header__button[for="__search"]::before,
+    .md-header__button[for="__search"]::after {
+        display: none !important;
+        content: none !important;
+    }
+
+    .md-header__option .md-header__button,
+    .md-header__button[for="__search"] {
+        width: 2.2rem !important;
+        height: 2.2rem !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border-radius: 999px !important;
+    }
+
+    .md-header__option .md-option + .md-header__button,
+    .md-header__option .md-header__button[hidden] {
+        display: none !important;
+    }
+
+    .md-header__option .md-option + .md-header__button:not([hidden]),
+    .md-header__option .md-option:checked + .md-header__button,
+    .md-header__button[for="__search"] {
+        display: inline-flex !important;
+    }
+
+    .md-header__button[for="__search"] {
+        order: 2;
+    }
+
+    .md-tabs,
+    .md-tabs[data-md-state="hidden"],
+    .md-tabs[data-md-state="lock"] {
+        position: fixed !important;
+        top: 0 !important;
+        right: calc(var(--edwinos-mobile-header-control-space) + 0.8rem) !important;
+        left: 0.72rem !important;
+        z-index: 25 !important;
+        display: flex !important;
+        width: auto !important;
+        height: var(--edwinos-mobile-header-height) !important;
+        min-height: var(--edwinos-mobile-header-height) !important;
+        align-items: center !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        transform: none !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        background: transparent !important;
+        border-bottom: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .md-tabs .md-grid {
+        display: flex !important;
+        width: 100% !important;
+        max-width: none !important;
+        height: 100% !important;
+        align-items: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scrollbar-width: none;
+    }
+
+    .md-tabs .md-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    .md-tabs__list {
+        display: flex !important;
+        width: max-content !important;
+        min-width: 0 !important;
+        height: auto !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 0.18rem !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .md-tabs__item {
+        display: block !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .md-tabs__link {
+        display: inline-flex !important;
+        height: 2.1rem !important;
+        min-height: 2.1rem !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        padding: 0 0.56rem !important;
+        border-radius: 999px !important;
+        font-family: var(--edwinos-font-mono) !important;
+        font-size: 0.86rem !important;
+        font-weight: 500 !important;
+        letter-spacing: 0 !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+    }
+
+    .md-tabs__link::after {
+        display: none !important;
+    }
+
+    [data-md-color-scheme="default"] .md-header {
+        background: var(--github-frame-light-bg, #f6f8fa) !important;
+        border-bottom: 1px solid var(--github-frame-light-border, #d0d7de) !important;
+    }
+
+    [data-md-color-scheme="slate"] .md-header {
+        background: var(--github-frame-dark-bg, #0d1117) !important;
+        border-bottom: 1px solid var(--github-frame-dark-border, #30363d) !important;
+    }
+
+    [data-md-toggle="search"]:checked ~ .md-header .md-search {
+        position: fixed !important;
+        top: 0.55rem !important;
+        right: 0.72rem !important;
+        left: 0.72rem !important;
+        z-index: 30 !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+}
+
+@media screen and (max-width: 34rem) {
+    :root {
+        --edwinos-mobile-header-control-space: 4.65rem;
+    }
+
+    .md-header__inner {
+        gap: 0.12rem !important;
+        padding-right: 0.58rem !important;
+        padding-left: 0.5rem !important;
+    }
+
+    .md-header__option,
+    .md-header__option .md-header__button,
+    .md-header__button[for="__search"] {
+        width: 2rem !important;
+        height: 2rem !important;
+    }
+
+    .md-tabs {
+        right: calc(var(--edwinos-mobile-header-control-space) + 0.55rem) !important;
+        left: 0.58rem !important;
+    }
+
+    .md-tabs__list {
+        gap: 0.06rem !important;
+    }
+
+    .md-tabs__link {
+        height: 2rem !important;
+        min-height: 2rem !important;
+        padding: 0 0.32rem !important;
+        font-size: 0.84rem !important;
+    }
+}
+
+@media screen and (max-width: 27rem) {
+    :root {
+        --edwinos-mobile-header-control-space: 2.55rem;
+    }
+
+    .md-header .md-search,
+    .md-header__button[for="__search"] {
+        display: none !important;
+        width: 0 !important;
+        max-width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    .md-tabs {
+        right: calc(var(--edwinos-mobile-header-control-space) + 0.42rem) !important;
+        left: 0.52rem !important;
+    }
+
+    .md-tabs__list {
+        gap: 0.02rem !important;
+    }
+
+    .md-tabs__link {
+        padding: 0 0.22rem !important;
+        font-size: 0.82rem !important;
+    }
+}
+
+@media screen and (max-width: 24rem) {
+    .md-tabs__link {
+        padding: 0 0.16rem !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+/* ==========================================================================
+   Drawer Navigation
+   ========================================================================== */
+
+.md-sidebar--primary .edwinos-profile-drawer-entry,
+.md-sidebar--primary .md-nav--primary .md-nav__item:has(> .md-nav__link[href$="HOME/Archive/"]),
+.md-sidebar--primary .md-nav--primary .md-nav__item:has(> .md-nav__link[href$="HOME/Archive/index.html"]),
+.md-sidebar--primary .md-nav--primary .md-nav__item:has(> .md-nav__link[href$="HOME/friends/"]),
+.md-sidebar--primary .md-nav--primary .md-nav__item:has(> .md-nav__link[href$="HOME/friends/index.html"]) {
+    display: none !important;
+}
+
+@media screen and (max-width: 76.1875em) {
+    [data-md-toggle="drawer"]:checked ~ .md-container .md-sidebar--primary,
+    [data-md-toggle="drawer"]:checked ~ .md-overlay {
+        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+}
+
+/* ==========================================================================
+   Profile Card
+   ========================================================================== */
+
+body.is-homepage .profile-followers,
+body.is-homepage .profile-followers a,
+body.is-homepage .md-typeset .profile-meta li,
+body.is-homepage .md-typeset .profile-meta a,
+body.is-homepage .md-typeset .profile-meta .meta-text,
+body.is-home-profile-page .profile-followers,
+body.is-home-profile-page .profile-followers a,
+body.is-home-profile-page .md-typeset .profile-meta li,
+body.is-home-profile-page .md-typeset .profile-meta a,
+body.is-home-profile-page .md-typeset .profile-meta .meta-text,
+body:has(.academic-home-layout) .profile-followers,
+body:has(.academic-home-layout) .profile-followers a,
+body:has(.academic-home-layout) .md-typeset .profile-meta li,
+body:has(.academic-home-layout) .md-typeset .profile-meta a,
+body:has(.academic-home-layout) .md-typeset .profile-meta .meta-text {
+    font-size: 0.78rem !important;
+    line-height: 1.38 !important;
+}
+
+body.is-homepage .profile-social-left,
+body.is-home-profile-page .profile-social-left,
+body:has(.academic-home-layout) .profile-social-left {
+    gap: 0.72rem !important;
+    transform: translateX(-0.06rem);
+}
+
+body.is-homepage .md-typeset .profile-social-left a,
+body.is-homepage .md-typeset .profile-social-left a:hover,
+body.is-homepage .md-typeset .profile-social-left a:focus,
+body.is-home-profile-page .md-typeset .profile-social-left a,
+body.is-home-profile-page .md-typeset .profile-social-left a:hover,
+body.is-home-profile-page .md-typeset .profile-social-left a:focus,
+body:has(.academic-home-layout) .md-typeset .profile-social-left a,
+body:has(.academic-home-layout) .md-typeset .profile-social-left a:hover,
+body:has(.academic-home-layout) .md-typeset .profile-social-left a:focus {
+    width: 1.08rem !important;
+    height: 1.08rem !important;
+}
+
+body.is-homepage .profile-social-left .social-icon,
+body.is-home-profile-page .profile-social-left .social-icon,
+body:has(.academic-home-layout) .profile-social-left .social-icon {
+    width: 0.96rem !important;
+    height: 0.96rem !important;
+}
+
+/* ==========================================================================
+   About Me
+   ========================================================================== */
+
+body.is-homepage .academic-content > .academic-section:first-of-type p,
+body.is-homepage .academic-content > .academic-section:first-of-type li,
+body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type p,
+body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type li {
+    color: #1a1a1a !important;
+    font-family: var(--edwinos-font-serif) !important;
+    font-size: 0.96rem !important;
+    font-weight: 400 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.75 !important;
+}
+
+body.is-homepage .academic-content > .academic-section:first-of-type p,
+body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type p {
+    margin-bottom: 0.72rem !important;
+}
+
+body.is-homepage .academic-content > .academic-section:first-of-type strong,
+body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type strong {
+    color: inherit !important;
+    font-family: inherit !important;
+    font-weight: 600 !important;
+}
+
+body.is-homepage .academic-content > .academic-section:first-of-type a,
+body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type a {
+    color: #2563eb !important;
+    text-decoration: none !important;
+}
+
+body.is-homepage .academic-content > .academic-section:first-of-type a:hover,
+body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type a:hover {
+    color: #1d4ed8 !important;
+    text-decoration: underline !important;
+}
+
+body[data-md-color-scheme="slate"].is-homepage .academic-content > .academic-section:first-of-type p,
+body[data-md-color-scheme="slate"].is-homepage .academic-content > .academic-section:first-of-type li,
+body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content > .academic-section:first-of-type p,
+body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content > .academic-section:first-of-type li {
+    color: #e6edf3 !important;
+}
+
+body[data-md-color-scheme="slate"].is-homepage .academic-content > .academic-section:first-of-type a,
+body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content > .academic-section:first-of-type a {
+    color: #58a6ff !important;
+}
+
+body[data-md-color-scheme="slate"].is-homepage .academic-content > .academic-section:first-of-type a:hover,
+body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content > .academic-section:first-of-type a:hover {
+    color: #79c0ff !important;
+}
+
+@media screen and (min-width: 46em) and (max-width: 63.25em) {
+    body.is-homepage .academic-home-layout .profile-card,
+    body.is-home-profile-page .academic-home-layout .profile-card,
+    body:has(.academic-home-layout) .academic-home-layout .profile-card {
+        grid-template-columns: 9rem minmax(0, 1fr) !important;
+        column-gap: 1.15rem !important;
+    }
+
+    body.is-homepage .profile-avatar,
+    body.is-home-profile-page .profile-avatar,
+    body:has(.academic-home-layout) .profile-avatar {
+        grid-row: 1 / span 5 !important;
+        max-width: 9rem !important;
+    }
+
+    body.is-homepage .md-typeset .profile-meta,
+    body.is-home-profile-page .md-typeset .profile-meta,
+    body:has(.academic-home-layout) .md-typeset .profile-meta {
+        grid-column: 2 !important;
+        grid-row: 4 !important;
+        justify-content: flex-start !important;
+        justify-self: start !important;
+        flex-wrap: nowrap !important;
+        gap: 0.28rem 0.42rem !important;
+        width: 100% !important;
+        margin: 0.1rem 0 0 !important;
+        text-align: left !important;
+    }
+
+    body.is-homepage .profile-followers,
+    body.is-homepage .profile-followers a,
+    body.is-homepage .profile-followers .follower-text,
+    body.is-homepage .profile-followers .follower-count,
+    body.is-homepage .profile-followers .follower-separator,
+    body.is-home-profile-page .profile-followers,
+    body.is-home-profile-page .profile-followers a,
+    body.is-home-profile-page .profile-followers .follower-text,
+    body.is-home-profile-page .profile-followers .follower-count,
+    body.is-home-profile-page .profile-followers .follower-separator,
+    body:has(.academic-home-layout) .profile-followers,
+    body:has(.academic-home-layout) .profile-followers a,
+    body:has(.academic-home-layout) .profile-followers .follower-text,
+    body:has(.academic-home-layout) .profile-followers .follower-count,
+    body:has(.academic-home-layout) .profile-followers .follower-separator,
+    body.is-homepage .md-typeset .profile-meta li,
+    body.is-homepage .md-typeset .profile-meta a,
+    body.is-homepage .md-typeset .profile-meta .meta-text,
+    body.is-home-profile-page .md-typeset .profile-meta li,
+    body.is-home-profile-page .md-typeset .profile-meta a,
+    body.is-home-profile-page .md-typeset .profile-meta .meta-text,
+    body:has(.academic-home-layout) .md-typeset .profile-meta li,
+    body:has(.academic-home-layout) .md-typeset .profile-meta a,
+    body:has(.academic-home-layout) .md-typeset .profile-meta .meta-text {
+        min-width: 0 !important;
+        font-size: 0.72rem !important;
+        line-height: 1.25 !important;
+        white-space: nowrap !important;
+    }
+
+    body.is-homepage .profile-social-left,
+    body.is-home-profile-page .profile-social-left,
+    body:has(.academic-home-layout) .profile-social-left {
+        grid-column: 2 !important;
+        grid-row: 5 !important;
+        justify-content: flex-start !important;
+        justify-self: start !important;
+        margin-top: 0.28rem !important;
+    }
+}
+
+@media screen and (min-width: 43em) and (max-width: 45.9375em) {
+    body.is-homepage .academic-home-layout .profile-card,
+    body.is-home-profile-page .academic-home-layout .profile-card,
+    body:has(.academic-home-layout) .academic-home-layout .profile-card {
+        display: grid !important;
+        grid-template-columns: 7.6rem minmax(0, 1fr) !important;
+        column-gap: 1rem !important;
+        row-gap: 0.32rem !important;
+        align-items: start !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+
+    body.is-homepage .profile-avatar,
+    body.is-home-profile-page .profile-avatar,
+    body:has(.academic-home-layout) .profile-avatar {
+        grid-column: 1 !important;
+        grid-row: 1 / span 5 !important;
+        max-width: 7.6rem !important;
+        margin: 0 !important;
+    }
+
+    body.is-homepage .profile-name-wrap,
+    body.is-home-profile-page .profile-name-wrap,
+    body:has(.academic-home-layout) .profile-name-wrap,
+    body.is-homepage .profile-actions,
+    body.is-home-profile-page .profile-actions,
+    body:has(.academic-home-layout) .profile-actions,
+    body.is-homepage .profile-followers,
+    body.is-home-profile-page .profile-followers,
+    body:has(.academic-home-layout) .profile-followers,
+    body.is-homepage .md-typeset .profile-meta,
+    body.is-home-profile-page .md-typeset .profile-meta,
+    body:has(.academic-home-layout) .md-typeset .profile-meta,
+    body.is-homepage .profile-social-left,
+    body.is-home-profile-page .profile-social-left,
+    body:has(.academic-home-layout) .profile-social-left {
+        grid-column: 2 !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+
+    body.is-homepage .profile-name-wrap,
+    body.is-home-profile-page .profile-name-wrap,
+    body:has(.academic-home-layout) .profile-name-wrap {
+        grid-row: 1 !important;
+        margin-bottom: 0.1rem !important;
+    }
+
+    body.is-homepage .profile-actions,
+    body.is-home-profile-page .profile-actions,
+    body:has(.academic-home-layout) .profile-actions {
+        grid-row: 2 !important;
+        max-width: 15rem !important;
+        margin-bottom: 0.12rem !important;
+    }
+
+    body.is-homepage .profile-followers,
+    body.is-home-profile-page .profile-followers,
+    body:has(.academic-home-layout) .profile-followers {
+        grid-row: 3 !important;
+        margin-bottom: 0 !important;
+    }
+
+    body.is-homepage .md-typeset .profile-meta,
+    body.is-home-profile-page .md-typeset .profile-meta,
+    body:has(.academic-home-layout) .md-typeset .profile-meta {
+        grid-row: 4 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 0.24rem 0.48rem !important;
+        margin: 0.05rem 0 0 !important;
+    }
+
+    body.is-homepage .profile-followers,
+    body.is-homepage .profile-followers a,
+    body.is-home-profile-page .profile-followers,
+    body.is-home-profile-page .profile-followers a,
+    body:has(.academic-home-layout) .profile-followers,
+    body:has(.academic-home-layout) .profile-followers a,
+    body.is-homepage .md-typeset .profile-meta li,
+    body.is-homepage .md-typeset .profile-meta a,
+    body.is-homepage .md-typeset .profile-meta .meta-text,
+    body.is-home-profile-page .md-typeset .profile-meta li,
+    body.is-home-profile-page .md-typeset .profile-meta a,
+    body.is-home-profile-page .md-typeset .profile-meta .meta-text,
+    body:has(.academic-home-layout) .md-typeset .profile-meta li,
+    body:has(.academic-home-layout) .md-typeset .profile-meta a,
+    body:has(.academic-home-layout) .md-typeset .profile-meta .meta-text {
+        min-width: 0 !important;
+        font-size: 0.68rem !important;
+        line-height: 1.22 !important;
+        white-space: nowrap !important;
+    }
+
+    body.is-homepage .profile-social-left,
+    body.is-home-profile-page .profile-social-left,
+    body:has(.academic-home-layout) .profile-social-left {
+        grid-row: 5 !important;
+        justify-content: flex-start !important;
+        margin-top: 0.18rem !important;
+    }
+}
+
+@media screen and (min-width: 40em) and (max-width: 42.9375em) {
+    body.is-homepage .academic-home-layout .profile-card,
+    body.is-home-profile-page .academic-home-layout .profile-card,
+    body:has(.academic-home-layout) .academic-home-layout .profile-card {
+        display: grid !important;
+        grid-template-columns: 6.5rem minmax(0, 1fr) !important;
+        column-gap: 0.82rem !important;
+        row-gap: 0.26rem !important;
+        align-items: start !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+
+    body.is-homepage .profile-avatar,
+    body.is-home-profile-page .profile-avatar,
+    body:has(.academic-home-layout) .profile-avatar {
+        grid-column: 1 !important;
+        grid-row: 1 / span 5 !important;
+        max-width: 6.5rem !important;
+        margin: 0 !important;
+    }
+
+    body.is-homepage .profile-name-wrap,
+    body.is-home-profile-page .profile-name-wrap,
+    body:has(.academic-home-layout) .profile-name-wrap,
+    body.is-homepage .profile-actions,
+    body.is-home-profile-page .profile-actions,
+    body:has(.academic-home-layout) .profile-actions,
+    body.is-homepage .profile-followers,
+    body.is-home-profile-page .profile-followers,
+    body:has(.academic-home-layout) .profile-followers,
+    body.is-homepage .md-typeset .profile-meta,
+    body.is-home-profile-page .md-typeset .profile-meta,
+    body:has(.academic-home-layout) .md-typeset .profile-meta,
+    body.is-homepage .profile-social-left,
+    body.is-home-profile-page .profile-social-left,
+    body:has(.academic-home-layout) .profile-social-left {
+        grid-column: 2 !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+
+    body.is-homepage .profile-name-wrap,
+    body.is-home-profile-page .profile-name-wrap,
+    body:has(.academic-home-layout) .profile-name-wrap {
+        grid-row: 1 !important;
+        margin-bottom: 0.08rem !important;
+    }
+
+    body.is-homepage .profile-actions,
+    body.is-home-profile-page .profile-actions,
+    body:has(.academic-home-layout) .profile-actions {
+        grid-row: 2 !important;
+        max-width: 13.5rem !important;
+        margin-bottom: 0.08rem !important;
+    }
+
+    body.is-homepage .profile-followers,
+    body.is-home-profile-page .profile-followers,
+    body:has(.academic-home-layout) .profile-followers {
+        grid-row: 3 !important;
+        margin-bottom: 0 !important;
+    }
+
+    body.is-homepage .md-typeset .profile-meta,
+    body.is-home-profile-page .md-typeset .profile-meta,
+    body:has(.academic-home-layout) .md-typeset .profile-meta {
+        grid-row: 4 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 0.2rem 0.42rem !important;
+        margin: 0.04rem 0 0 !important;
+    }
+
+    body.is-homepage .profile-followers,
+    body.is-homepage .profile-followers a,
+    body.is-homepage .profile-followers .follower-text,
+    body.is-homepage .profile-followers .follower-count,
+    body.is-homepage .profile-followers .follower-separator,
+    body.is-home-profile-page .profile-followers,
+    body.is-home-profile-page .profile-followers a,
+    body.is-home-profile-page .profile-followers .follower-text,
+    body.is-home-profile-page .profile-followers .follower-count,
+    body.is-home-profile-page .profile-followers .follower-separator,
+    body:has(.academic-home-layout) .profile-followers,
+    body:has(.academic-home-layout) .profile-followers a,
+    body:has(.academic-home-layout) .profile-followers .follower-text,
+    body:has(.academic-home-layout) .profile-followers .follower-count,
+    body:has(.academic-home-layout) .profile-followers .follower-separator,
+    body.is-homepage .md-typeset .profile-meta li,
+    body.is-homepage .md-typeset .profile-meta a,
+    body.is-homepage .md-typeset .profile-meta .meta-text,
+    body.is-home-profile-page .md-typeset .profile-meta li,
+    body.is-home-profile-page .md-typeset .profile-meta a,
+    body.is-home-profile-page .md-typeset .profile-meta .meta-text,
+    body:has(.academic-home-layout) .md-typeset .profile-meta li,
+    body:has(.academic-home-layout) .md-typeset .profile-meta a,
+    body:has(.academic-home-layout) .md-typeset .profile-meta .meta-text {
+        min-width: 0 !important;
+        font-size: 0.64rem !important;
+        line-height: 1.18 !important;
+        white-space: nowrap !important;
+    }
+
+    body.is-homepage .profile-social-left,
+    body.is-home-profile-page .profile-social-left,
+    body:has(.academic-home-layout) .profile-social-left {
+        grid-row: 5 !important;
+        justify-content: flex-start !important;
+        margin-top: 0.12rem !important;
+    }
+}
+
+body.is-homepage .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+body.is-home-profile-page .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+body:has(.academic-home-layout) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+body.is-homepage .md-typeset .profile-meta :is(li, a, .meta-text),
+body.is-home-profile-page .md-typeset .profile-meta :is(li, a, .meta-text),
+body:has(.academic-home-layout) .md-typeset .profile-meta :is(li, a, .meta-text) {
+    font-size: 0.78rem !important;
+    line-height: 1.38 !important;
+}
+
+@media screen and (min-width: 46em) and (max-width: 63.25em) {
+    body.is-homepage .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+    body.is-home-profile-page .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+    body:has(.academic-home-layout) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+    body.is-homepage .md-typeset .profile-meta :is(li, a, .meta-text),
+    body.is-home-profile-page .md-typeset .profile-meta :is(li, a, .meta-text),
+    body:has(.academic-home-layout) .md-typeset .profile-meta :is(li, a, .meta-text) {
+        font-size: 0.72rem !important;
+        line-height: 1.25 !important;
+    }
+}
+
+@media screen and (min-width: 43em) and (max-width: 45.9375em) {
+    body.is-homepage .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+    body.is-home-profile-page .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+    body:has(.academic-home-layout) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+    body.is-homepage .md-typeset .profile-meta :is(li, a, .meta-text),
+    body.is-home-profile-page .md-typeset .profile-meta :is(li, a, .meta-text),
+    body:has(.academic-home-layout) .md-typeset .profile-meta :is(li, a, .meta-text) {
+        font-size: 0.68rem !important;
+        line-height: 1.22 !important;
+    }
+}
+
+@media screen and (min-width: 40em) and (max-width: 42.9375em) {
+    body.is-homepage .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+    body.is-home-profile-page .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+    body:has(.academic-home-layout) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+    body.is-homepage .md-typeset .profile-meta :is(li, a, .meta-text),
+    body.is-home-profile-page .md-typeset .profile-meta :is(li, a, .meta-text),
+    body:has(.academic-home-layout) .md-typeset .profile-meta :is(li, a, .meta-text) {
+        font-size: 0.64rem !important;
+        line-height: 1.18 !important;
+    }
+}
+
+body.is-homepage .md-typeset .profile-meta,
+body.is-home-profile-page .md-typeset .profile-meta,
+body:has(.academic-home-layout) .md-typeset .profile-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 0.36rem 0.88rem !important;
+    overflow: visible !important;
+}
+
+body.is-homepage .md-typeset .profile-meta li,
+body.is-home-profile-page .md-typeset .profile-meta li,
+body:has(.academic-home-layout) .md-typeset .profile-meta li {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    max-width: 100% !important;
+    align-items: center !important;
+    gap: 0.42rem !important;
+}
+
+body.is-homepage .md-typeset .profile-meta .meta-icon,
+body.is-home-profile-page .md-typeset .profile-meta .meta-icon,
+body:has(.academic-home-layout) .md-typeset .profile-meta .meta-icon {
+    flex: 0 0 auto !important;
+}
+
+body.is-homepage .md-typeset .profile-meta :is(a, .meta-text),
+body.is-home-profile-page .md-typeset .profile-meta :is(a, .meta-text),
+body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
+    min-width: max-content !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+@media screen and (min-width: 26.0625rem) and (max-width: 56.5625rem) {
+    body.is-homepage .md-typeset .profile-meta,
+    body.is-home-profile-page .md-typeset .profile-meta,
+    body:has(.academic-home-layout) .md-typeset .profile-meta {
+        grid-column: 2 !important;
+        grid-row: 4 !important;
+        justify-self: stretch !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        align-items: flex-start !important;
+        gap: 0.32rem !important;
+    }
+}
+
+@media screen and (max-width: 26rem) {
+    body.is-homepage .profile-followers,
+    body.is-home-profile-page .profile-followers,
+    body:has(.academic-home-layout) .profile-followers {
+        grid-column: 1 / -1 !important;
+        grid-row: 3 !important;
+        justify-self: stretch !important;
+        text-align: left !important;
+    }
+
+    body.is-homepage .md-typeset .profile-meta,
+    body.is-home-profile-page .md-typeset .profile-meta,
+    body:has(.academic-home-layout) .md-typeset .profile-meta {
+        grid-column: 1 / -1 !important;
+        grid-row: 4 !important;
+        justify-self: stretch !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        align-items: flex-start !important;
+        gap: 0.32rem !important;
+    }
+}
+
+/* ========================================================================
+   Education card responsive image
+   ======================================================================== */
+
+@media screen and (min-width: 36.0625rem) and (max-width: 48em) {
+    body.is-homepage .education-card,
+    body.is-home-profile-page .education-card,
+    body:has(.academic-home-layout) .education-card {
+        grid-template-columns: 5.4rem minmax(0, 1fr) !important;
+        gap: 0.95rem !important;
+        align-items: center !important;
+        justify-items: stretch !important;
+        text-align: left !important;
+    }
+
+    body.is-homepage .education-logo,
+    body.is-home-profile-page .education-logo,
+    body:has(.academic-home-layout) .education-logo {
+        display: flex !important;
+        width: 4.4rem !important;
+        height: 4.4rem !important;
+        margin: 0 !important;
+    }
+
+    body.is-homepage .education-info,
+    body.is-home-profile-page .education-info,
+    body:has(.academic-home-layout) .education-info {
+        width: auto !important;
+        min-width: 0 !important;
+    }
+}
+
+@media screen and (max-width: 36rem) {
+    body.is-homepage .education-card,
+    body.is-home-profile-page .education-card,
+    body:has(.academic-home-layout) .education-card {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 0.9rem !important;
+        justify-items: stretch !important;
+        text-align: left !important;
+    }
+
+    body.is-homepage .education-logo,
+    body.is-home-profile-page .education-logo,
+    body:has(.academic-home-layout) .education-logo {
+        display: none !important;
+    }
+
+    body.is-homepage .education-info,
+    body.is-home-profile-page .education-info,
+    body:has(.academic-home-layout) .education-info {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+}
+
 /* ==========================================================================
    Recent News first-line alignment
    ========================================================================== */
@@ -90,4 +1201,128 @@ body:has(.academic-home-layout) .cv-marker {
     width: var(--cv-marker-size) !important;
     height: var(--cv-marker-size) !important;
     z-index: 1 !important;
+}
+
+/* ==========================================================================
+   Personalities
+   ========================================================================== */
+
+.academic-home-layout .academic-content .personalities-list li {
+    border-bottom: 0 !important;
+}
+
+/* ==========================================================================
+   Visitor Footer
+   ========================================================================== */
+
+.academic-home-layout .academic-content .visitor-meta-footer {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 1.65rem 0 0;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--academic-card-border);
+}
+
+.academic-home-layout .academic-content .visitor-meta-footer__signature {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0;
+    color: var(--academic-muted);
+    font-family: var(--edwinos-font-mono);
+    font-size: 0.68rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.3;
+    text-align: center;
+}
+
+.academic-home-layout .academic-content .visitor-meta-footer__separator {
+    color: var(--academic-card-border);
+}
+
+.academic-home-layout .academic-content .visitor-container.visitor-badge-panel {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 1rem 0 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+.academic-home-layout .academic-content .visitor-badge-link {
+    display: inline-flex !important;
+    flex: 0 1 auto;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important;
+    max-width: 100%;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0;
+    border: 0 !important;
+    border-radius: 0.2rem;
+    line-height: 0;
+    text-decoration: none !important;
+}
+
+.academic-home-layout .academic-content .visitor-badge-link:focus-visible {
+    outline: 2px solid var(--academic-accent);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 1px var(--academic-card-bg);
+}
+
+.academic-home-layout .academic-content .visitor-badge-image {
+    display: block !important;
+    width: auto !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    object-fit: contain;
+}
+
+.academic-home-layout .academic-content .visitor-badge-image[hidden] {
+    display: none !important;
+}
+
+.academic-home-layout .academic-content .visitor-badge-fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.25rem;
+    max-width: 100%;
+    padding: 0;
+    color: var(--academic-muted);
+    font-family: var(--edwinos-font-mono);
+    font-size: 0.68rem;
+    font-weight: 400;
+    line-height: 1.35;
+    text-align: center;
+}
+
+@media screen and (max-width: 28rem) {
+    .academic-home-layout .academic-content .visitor-meta-footer {
+        margin-top: 1.35rem;
+        padding-top: 1rem;
+    }
+
+    .academic-home-layout .academic-content .visitor-meta-footer__signature {
+        gap: 0.32rem;
+        font-size: 0.66rem;
+    }
+
+    .academic-home-layout .academic-content .visitor-container.visitor-badge-panel {
+        margin-top: 0.85rem !important;
+    }
 }

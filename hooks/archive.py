@@ -24,7 +24,7 @@ log = logging.getLogger("mkdocs.archive")
 
 ARCHIVE_PAGE = "HOME/Archive/index.md"
 ARCHIVE_MARKER = "<!-- ARCHIVE_AUTO -->"
-DEFAULT_AUTHOR = "Chen Jing"
+DEFAULT_AUTHOR = "Chen Jing (经宸)"
 DEFAULT_EXCLUDES = (
     "index.md",
     "HOME/**",
@@ -41,6 +41,7 @@ H1_RE = re.compile(r"^#\s+(.+?)\s*$", re.M)
 OBSIDIAN_BLOCK_ID_RE = re.compile(r"(?<![#A-Za-z0-9_-])\^([A-Za-z0-9_-]{4,})[ \t]*$")
 OBSIDIAN_QUOTED_BLOCK_ID_RE = re.compile(r"(?<![#A-Za-z0-9_-])\^([A-Za-z0-9_-]{4,})([ \t]*[\"'])$")
 FENCE_START_RE = re.compile(r"^[ \t]*(?P<fence>`{3,}|~{3,})")
+BLOCKQUOTE_LINE_RE = re.compile(r"^[ \t]{0,3}>")
 OBSIDIAN_MARK_RE = re.compile(r"(?<![=<])==(?=\S)(?!>)(.+?)(?<=\S)==(?![=>])")
 INLINE_PROTECTED_RE = re.compile(r"(`+[^`\n]*`+)")
 
@@ -414,7 +415,7 @@ def _render_archive(entries: Sequence[ArchiveEntry]) -> str:
 
 {chr(10).join(sections)}
 
-<p class="archive-note">Dates come from article front matter and fall back to Git history. The default author is Chen Jing.</p>
+<p class="archive-note">Dates come from article front matter and fall back to Git history. The default author is Chen Jing (经宸).</p>
 """.strip()
 
 
@@ -516,8 +517,54 @@ def _normalize_obsidian_marks(markdown: str) -> str:
     return "".join(converted)
 
 
+def _break_lazy_blockquote_continuation(markdown: str) -> str:
+    """Keep Obsidian-style blockquotes limited to explicit ``>`` lines.
+
+    Python-Markdown follows CommonMark-style lazy continuation, so a line after
+    ``> quote`` can be absorbed into the quote even when it does not start with
+    ``>``. Obsidian notes in this vault use explicit markers, so insert a blank
+    separator whenever a quoted line is followed by ordinary Markdown.
+    """
+
+    lines = markdown.splitlines(keepends=True)
+    if not lines:
+        return markdown
+
+    converted: List[str] = []
+    active_fence: Optional[str] = None
+
+    def strip_newline(line: str) -> Tuple[str, str]:
+        if line.endswith("\r\n"):
+            return line[:-2], "\r\n"
+        if line.endswith("\n"):
+            return line[:-1], "\n"
+        return line, "\n"
+
+    for index, line in enumerate(lines):
+        content, newline = strip_newline(line)
+        fence_match = FENCE_START_RE.match(content)
+        if fence_match:
+            marker = fence_match.group("fence")[0]
+            if active_fence == marker:
+                active_fence = None
+            elif active_fence is None:
+                active_fence = marker
+
+        converted.append(line)
+
+        if active_fence or not BLOCKQUOTE_LINE_RE.match(content) or index == len(lines) - 1:
+            continue
+
+        next_content, _ = strip_newline(lines[index + 1])
+        if next_content.strip() and not BLOCKQUOTE_LINE_RE.match(next_content):
+            converted.append(newline)
+
+    return "".join(converted)
+
+
 def on_page_markdown(markdown, page, config, files, **kwargs):
     """Render the Archive page and make Obsidian block references linkable."""
+    markdown = _break_lazy_blockquote_continuation(markdown)
     markdown = _normalize_obsidian_marks(markdown)
     markdown = _add_obsidian_block_anchors(markdown)
     src_uri = getattr(page.file, "src_uri", getattr(page.file, "src_path", ""))

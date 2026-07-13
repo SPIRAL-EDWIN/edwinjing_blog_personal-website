@@ -3,14 +3,47 @@ hide:
   - toc
   - navigation
   - title
-title: "Overview"
+title: "Chen Jing (经宸)"
+description: "Chen Jing (经宸, Edwin Jing), undergraduate student at the ZJU-UIUC Institute, Zhejiang University; research notes on Embodied AI, legged locomotion, whole-body loco-manipulation, and a personal knowledge garden."
 ---
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Chen Jing",
+  "alternateName": ["经宸", "Edwin Jing"],
+  "url": "https://edwinjing-blog.com/",
+  "affiliation": {
+    "@type": "CollegeOrUniversity",
+    "name": "Zhejiang University"
+  },
+  "memberOf": {
+    "@type": "Organization",
+    "name": "ZJU-UIUC Institute"
+  },
+  "email": "mailto:edwinjing2026@outlook.com",
+  "knowsAbout": [
+    "Embodied AI",
+    "Legged Locomotion",
+    "Whole-body Loco-manipulation",
+    "Sim2Real",
+    "Robotics"
+  ],
+  "sameAs": [
+    "https://github.com/SPIRAL-EDWIN",
+    "https://www.youtube.com/@EdwinJing",
+    "https://x.com/EdwinJing661",
+    "https://www.instagram.com/edwinjing2025/"
+  ]
+}
+</script>
 
 <div class="academic-home-layout">
   <aside class="academic-sidebar">
     <div class="profile-card">
       <div class="profile-avatar">
-        <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Edwin&backgroundColor=f0f4f8" alt="Chen Jing">
+        <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Edwin&backgroundColor=f0f4f8" alt="Chen Jing (经宸)">
       </div>
 
       <div class="profile-name-wrap">
@@ -114,8 +147,8 @@ title: "Overview"
       <h2 class="section-title"><span class="title-dash"></span>Recent News</h2>
       <ul class="news-list">
         <li>
-          <span class="news-date">JUN 2026</span>
-          <span class="news-text">Released EdwinOS 2.0.2 Golden Gate, a refined GitHub-inspired experience for the personal website.</span>
+          <span class="news-date">JUL 13</span>
+          <span class="news-text">Released EdwinOS 2.1.2 on July 13, 2026, further refining the GitHub-inspired experience for the personal website.</span>
         </li>
       </ul>
     </section>
@@ -203,15 +236,17 @@ title: "Overview"
       </ul>
     </section>
 
-    <section class="academic-section animate-slide-up" style="--anim-delay: 0.9s;">
-      <h2 class="section-title"><span class="title-dash"></span>Visitors</h2>
-      <div class="visitor-container hover-lift" data-visitor-map data-map-src="https://mapmyvisitors.com/map.js?cl=ffffff&amp;w=a&amp;t=tt&amp;d=qHninQDTRLus6vHDooTU4b9v5lsWQ-hrTzJKxmFxli0&amp;co=2d78ad&amp;cmo=3acc3a&amp;cmn=ff5353&amp;ct=ffffff" data-map-bg="assets/images/visitors/map-bg-1200.png">
-        <div class="visitor-fallback">
-          <span class="visitor-fallback__eyebrow">Global Footprints</span>
-          <span class="visitor-fallback__title">Visitor map loading</span>
-          <span class="visitor-fallback__meta">The page remains ready while the external map responds.</span>
-        </div>
+    <footer class="visitor-meta-footer animate-slide-up" style="--anim-delay: 0.9s;" data-visitor-deployment data-deployment-repository="SPIRAL-EDWIN/edwinjing-blog-website" data-deployment-workflow="deploy.yml">
+      <p class="visitor-meta-footer__signature">
+        <span>&copy; Chen Jing</span>
+        <span class="visitor-meta-footer__separator" aria-hidden="true">&middot;</span>
+        <time class="visitor-meta-footer__updated" data-visitor-deployment-time datetime="2026-07-04T14:45:06+08:00">Latest updated Jul. 2026</time>
+      </p>
+      <div class="visitor-container visitor-badge-panel" data-visitor-badge>
+        <a class="visitor-badge-link" href="https://visitorbadge.io/status?path=https%3A%2F%2Fedwinjing-blog.com%2F" target="_blank" rel="noopener noreferrer" aria-label="Open Edwin's visitor statistics in a new tab">
+          <img class="visitor-badge-image" src="https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fedwinjing-blog.com%2F&amp;label=Edwin%27s%20VISITORS&amp;labelColor=%232ccce4&amp;countColor=%23003f88" alt="Edwin's visitors" decoding="async" referrerpolicy="no-referrer">
+        </a>
       </div>
-    </section>
+    </footer>
   </main>
 </div>

@@ -18,7 +18,7 @@
     document.body.classList.toggle("is-home-profile-page", isHomeProfilePage);
 
     if (isHomepage) {
-      document.title = "Chen Jing | Zhejiang University";
+      document.title = "Chen Jing (经宸) | Zhejiang University";
     }
   }
 
@@ -117,6 +117,34 @@
     }
   }
 
+  function normalizePaletteButtons() {
+    Array.prototype.forEach.call(document.querySelectorAll('.md-header__option[data-md-component="palette"]'), function (palette) {
+      var inputs = Array.prototype.slice.call(palette.querySelectorAll(".md-option"));
+      var labels = Array.prototype.slice.call(palette.querySelectorAll(".md-header__button"));
+      if (!inputs.length || !labels.length) return;
+
+      if (palette.dataset.edwinosPaletteReady !== "1") {
+        palette.dataset.edwinosPaletteReady = "1";
+        inputs.forEach(function (input) {
+          input.addEventListener("change", normalizePaletteButtons);
+        });
+      }
+
+      var checked = inputs.find(function (input) {
+        return input.checked;
+      });
+      var labelToShow = checked && checked.nextElementSibling && checked.nextElementSibling.classList.contains("md-header__button")
+        ? checked.nextElementSibling
+        : labels.find(function (label) {
+          return !label.hidden;
+        }) || labels[0];
+
+      labels.forEach(function (label) {
+        label.hidden = label !== labelToShow;
+      });
+    });
+  }
+
   function siteHref(relativePath) {
     var logo = document.querySelector(".md-header__button.md-logo");
     var logoHref = logo ? (logo.getAttribute("href") || "").trim() : "";
@@ -125,6 +153,8 @@
   }
 
   var sourceFactsObserverStarted = false;
+  var sourceFactsRequestStarted = false;
+  var latestSourceFacts = null;
 
   function sourceFactMarkup() {
     return [
@@ -133,6 +163,73 @@
       '  <li class="md-source__fact" data-source-fact="forks">0</li>',
       '</ul>'
     ].join("");
+  }
+
+  function formatSourceFactCount(value) {
+    var count = Number(value);
+    if (!Number.isFinite(count) || count < 0) return "0";
+    if (count < 1000) return String(count);
+    if (count < 1000000) return (count / 1000).toFixed(count < 10000 ? 1 : 0).replace(/\.0$/, "") + "k";
+    return (count / 1000000).toFixed(count < 10000000 ? 1 : 0).replace(/\.0$/, "") + "m";
+  }
+
+  function applySourceFacts() {
+    if (!latestSourceFacts) return;
+
+    Array.prototype.forEach.call(document.querySelectorAll('.md-source__fact[data-source-fact="stars"]'), function (fact) {
+      var text = formatSourceFactCount(latestSourceFacts.stars);
+      if (fact.textContent !== text) fact.textContent = text;
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.md-source__fact[data-source-fact="forks"]'), function (fact) {
+      var text = formatSourceFactCount(latestSourceFacts.forks);
+      if (fact.textContent !== text) fact.textContent = text;
+    });
+  }
+
+  function sourceApiUrl() {
+    var source = document.querySelector(".md-header__source .md-source");
+    var href = source ? source.getAttribute("href") : "";
+    if (!href) return "";
+
+    try {
+      var url = new URL(href, window.location.href);
+      if (url.hostname !== "github.com") return "";
+      var parts = url.pathname.replace(/^\/+|\/+$/g, "").split("/");
+      if (parts.length < 2) return "";
+      return "https://api.github.com/repos/" + encodeURIComponent(parts[0]) + "/" + encodeURIComponent(parts[1]);
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function updateSourceFactsFromGitHub() {
+    normalizeSourceFacts();
+    applySourceFacts();
+
+    if (sourceFactsRequestStarted) return;
+
+    var apiUrl = sourceApiUrl();
+    if (!apiUrl) return;
+    sourceFactsRequestStarted = true;
+
+    fetch(apiUrl, {
+      cache: "no-cache",
+      headers: { "Accept": "application/vnd.github+json" }
+    })
+      .then(function (response) {
+        if (!response.ok) throw new Error("GitHub API unavailable");
+        return response.json();
+      })
+      .then(function (data) {
+        latestSourceFacts = {
+          stars: data.stargazers_count,
+          forks: data.forks_count
+        };
+        applySourceFacts();
+      })
+      .catch(function () {
+        sourceFactsRequestStarted = false;
+      });
   }
 
   function normalizeSourceFacts() {
@@ -176,6 +273,7 @@
         });
       });
     });
+    applySourceFacts();
   }
 
   function watchSourceFacts() {
@@ -184,6 +282,7 @@
 
     var observer = new MutationObserver(function () {
       normalizeSourceFacts();
+      applySourceFacts();
     });
     observer.observe(document.body, {
       childList: true,
@@ -195,7 +294,7 @@
     return [
       '<div class="profile-card">',
       '  <div class="profile-avatar">',
-      '    <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Edwin&backgroundColor=f0f4f8" alt="Chen Jing">',
+      '    <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Edwin&backgroundColor=f0f4f8" alt="Chen Jing (经宸)">',
       '  </div>',
       '  <div class="profile-name-wrap">',
       '    <h1 class="profile-name">Chen Jing <span class="profile-cn-name">(经宸)</span></h1>',
@@ -281,261 +380,164 @@
       });
   }
 
-  function visitorFallbackMarkup(state) {
-    var title = state === "failed" ? "Visitor map unavailable" : "Visitor map loading";
-    var meta = state === "failed"
-      ? "Please view with a VPN."
-      : "The page remains ready while the external map responds.";
+  function isVisitorBadgeImage(image, link) {
+    if (!image || !link) return false;
 
-    return [
-      '<div class="visitor-fallback">',
-      '  <span class="visitor-fallback__eyebrow">Global Footprints</span>',
-      '  <span class="visitor-fallback__title">' + title + '</span>',
-      '  <span class="visitor-fallback__meta">' + meta + '</span>',
-      '</div>'
-    ].join("");
+    try {
+      var imageUrl = new URL(image.getAttribute("src") || image.currentSrc, window.location.href);
+      var linkUrl = new URL(link.getAttribute("href"), window.location.href);
+      return imageUrl.hostname === "api.visitorbadge.io" &&
+        /^\/api\/(?:visitors|daily|combined)\/?$/i.test(imageUrl.pathname) &&
+        linkUrl.hostname === "visitorbadge.io" &&
+        /^\/status\/?$/i.test(linkUrl.pathname);
+    } catch (error) {
+      return false;
+    }
   }
 
-  function visitorContentWidth(container) {
-    var style = window.getComputedStyle(container);
-    var paddingLeft = parseFloat(style.paddingLeft) || 0;
-    var paddingRight = parseFloat(style.paddingRight) || 0;
-    var width = container.clientWidth - paddingLeft - paddingRight;
-
-    return Math.max(180, Math.round(width || container.clientWidth || 300));
+  function visitorBadgeFallback() {
+    var fallback = document.createElement("span");
+    fallback.className = "visitor-badge-fallback";
+    fallback.setAttribute("role", "status");
+    fallback.setAttribute("aria-live", "polite");
+    fallback.textContent = "Visitor statistics are temporarily unavailable.";
+    return fallback;
   }
 
-  function visitorAssetWidth(displayWidth) {
-    return Math.min(1200, Math.max(300, Math.round(displayWidth || 300)));
-  }
+  var visitorDeploymentRequestStarted = false;
 
-  function visitorBackgroundUrl(map) {
-    if (!map) return "";
+  function visitorDeploymentApiUrl(container) {
+    var repository = (container.getAttribute("data-deployment-repository") || "").trim();
+    var workflow = (container.getAttribute("data-deployment-workflow") || "").trim();
 
-    var backgroundImage = map.style.backgroundImage || window.getComputedStyle(map).backgroundImage || "";
-    var match = backgroundImage.match(/url\((['"]?)(.*?)\1\)/);
-    return match ? match[2] : "";
-  }
-
-  function visitorLocalBackgroundUrl(container) {
-    if (!container) return "";
-
-    var backgroundPath = (container.getAttribute("data-map-bg") || "").trim();
-    if (!backgroundPath) return "";
-
-    return siteHref(backgroundPath.replace(/^\.?\//, ""));
-  }
-
-  function visitorSizedBackgroundUrl(container, url, width) {
-    var localBackgroundUrl = visitorLocalBackgroundUrl(container);
-    if (localBackgroundUrl) return localBackgroundUrl;
-    if (!url || !width) return url;
-
-    return url.replace(/bg-w_[^-/.?]+/, "bg-w_" + width);
-  }
-
-  function setVisitorBackgroundUrl(map, url) {
-    if (!map || !url) return;
-
-    map.style.backgroundImage = 'url("' + url.replace(/"/g, '\\"') + '")';
-  }
-
-  function normalizeVisitorMapSize(container) {
-    var widget = container.querySelector("#mapmyvisitors-widget");
-    var map = container.querySelector(".mapmyvisitors-map");
-    if (!widget || !map) return "";
-
-    var width = visitorContentWidth(container);
-    var height = Math.round(width / 2.04);
-    var assetWidth = visitorAssetWidth(width);
-
-    widget.style.width = width + "px";
-    map.style.width = width + "px";
-    map.style.height = height + "px";
-    map.style.backgroundPosition = "center center";
-    map.style.backgroundRepeat = "no-repeat";
-    map.style.backgroundSize = "100% 100%";
-
-    var backgroundUrl = visitorBackgroundUrl(map);
-    var sizedBackgroundUrl = visitorSizedBackgroundUrl(container, backgroundUrl, assetWidth);
-    if (sizedBackgroundUrl && sizedBackgroundUrl !== backgroundUrl) {
-      setVisitorBackgroundUrl(map, sizedBackgroundUrl);
-      backgroundUrl = sizedBackgroundUrl;
+    if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository) || !/^[A-Za-z0-9_.-]+\.ya?ml$/.test(workflow)) {
+      return "";
     }
 
-    return backgroundUrl;
+    return "https://api.github.com/repos/" + repository + "/actions/workflows/" + workflow +
+      "/runs?event=push&status=completed&per_page=20";
   }
 
-  function visitorMapHasData(container) {
-    var text = (container.textContent || "").replace(/\s+/g, " ").trim();
-    if (/Loading data/i.test(text)) return false;
-    if (/Total Pageviews|Pageviews/i.test(text)) return true;
+  function formatVisitorDeploymentMonth(value) {
+    var date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
 
-    return !!container.querySelector("#mapmyvisitors-widget .jvectormap-container svg");
+    var formatted = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      year: "numeric",
+      timeZone: "Asia/Shanghai"
+    }).format(date);
+
+    return formatted.replace(/^([A-Za-z]{3})\s+/, "$1. ");
   }
 
-  function visitorWidgetExists(container) {
-    return !!(container && container.querySelector("#mapmyvisitors-widget .mapmyvisitors-map"));
+  function updateVisitorDeploymentTime() {
+    var containers = document.querySelectorAll("[data-visitor-deployment]");
+    if (!containers.length || visitorDeploymentRequestStarted) return;
+
+    var apiUrl = visitorDeploymentApiUrl(containers[0]);
+    if (!apiUrl) return;
+    visitorDeploymentRequestStarted = true;
+
+    fetch(apiUrl, {
+      cache: "no-cache",
+      headers: { "Accept": "application/vnd.github+json" }
+    })
+      .then(function (response) {
+        if (!response.ok) throw new Error("GitHub deployment data unavailable");
+        return response.json();
+      })
+      .then(function (data) {
+        var latestSuccessfulRun = (data.workflow_runs || []).find(function (run) {
+          return run && run.conclusion === "success" && run.updated_at;
+        });
+        if (!latestSuccessfulRun) return;
+
+        var displayMonth = formatVisitorDeploymentMonth(latestSuccessfulRun.updated_at);
+        if (!displayMonth) return;
+
+        containers.forEach(function (container) {
+          var time = container.querySelector("[data-visitor-deployment-time]");
+          if (!time) return;
+          time.dateTime = latestSuccessfulRun.updated_at;
+          time.textContent = "Latest updated " + displayMonth;
+          time.title = "Last successful GitHub Pages deployment: " + new Date(latestSuccessfulRun.updated_at).toLocaleString("en-US", {
+            dateStyle: "medium",
+            timeStyle: "short",
+            timeZone: "Asia/Shanghai"
+          }) + " (UTC+8)";
+        });
+      })
+      .catch(function () {
+        visitorDeploymentRequestStarted = false;
+      });
   }
 
-  function nudgeVisitorMapSize() {
-    var trigger = function () {
-      window.dispatchEvent(new Event("resize"));
-    };
-
-    if (window.requestAnimationFrame) {
-      window.requestAnimationFrame(trigger);
-      return;
-    }
-
-    window.setTimeout(trigger, 0);
-  }
-
-  function startVisitorMapLoad(container) {
-    if (!container || container.dataset.visitorMapState === "loaded") return;
-    if (container.dataset.visitorMapState === "loading") return;
-
-    var mapSrc = container.getAttribute("data-map-src");
-    if (!mapSrc) return;
-
-    container.dataset.visitorMapState = "loading";
-    container.innerHTML = visitorFallbackMarkup("loading");
-
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    script.id = "mapmyvisitors";
-    script.async = true;
-    script.src = mapSrc;
-
-    var observer;
-    var timeout;
-    var settled = false;
-    var pendingBackgroundUrl = "";
-    var loadedBackgroundUrl = "";
-
-    var fail = function () {
-      if (settled) return;
-
-      if (visitorWidgetExists(container) || visitorMapHasData(container)) {
-        markLoaded();
-        return;
-      }
-
-      settled = true;
-      window.clearTimeout(timeout);
-      if (observer) observer.disconnect();
-      container.dataset.visitorMapState = "failed";
-      container.innerHTML = visitorFallbackMarkup("failed");
-    };
-
-    var markLoaded = function () {
-      if (settled) return;
-      settled = true;
-      window.clearTimeout(timeout);
-      if (observer) observer.disconnect();
-      container.dataset.visitorMapState = "loaded";
-      var fallback = container.querySelector(".visitor-fallback");
-      if (fallback) fallback.remove();
-      normalizeVisitorMapSize(container);
-      nudgeVisitorMapSize();
-    };
-
-    var verifyVisitorBackground = function (backgroundUrl) {
-      if (!backgroundUrl) return;
-      if (backgroundUrl === loadedBackgroundUrl) {
-        markLoaded();
-        return;
-      }
-      if (backgroundUrl === pendingBackgroundUrl) return;
-
-      pendingBackgroundUrl = backgroundUrl;
-
-      var image = new Image();
-      image.onload = function () {
-        if (settled || pendingBackgroundUrl !== backgroundUrl) return;
-
-        if (image.naturalWidth > 1 && image.naturalHeight > 1) {
-          loadedBackgroundUrl = backgroundUrl;
-          markLoaded();
-          return;
-        }
-
-        fail();
-      };
-      image.onerror = fail;
-      image.src = new URL(backgroundUrl, window.location.href).href;
-    };
-
-    var markLoadedIfReady = function () {
-      if (!visitorMapHasData(container)) return;
-      verifyVisitorBackground(normalizeVisitorMapSize(container));
-    };
-
-    observer = new MutationObserver(markLoadedIfReady);
-    observer.observe(container, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-      attributes: true,
-      attributeFilter: ["class", "style"]
-    });
-
-    timeout = window.setTimeout(fail, 22000);
-
-    script.addEventListener("load", function () {
-      var fallback = container.querySelector(".visitor-fallback");
-      if (fallback) fallback.remove();
-      nudgeVisitorMapSize();
-      window.setTimeout(markLoadedIfReady, 250);
-    });
-
-    script.addEventListener("error", function () {
-      window.clearTimeout(timeout);
-      fail();
-    });
-
-    container.appendChild(script);
-  }
-
-  function afterWindowLoad(callback) {
-    var run = function () {
-      window.setTimeout(callback, 900);
-    };
-
-    if (document.readyState === "complete") {
-      run();
-      return;
-    }
-
-    window.addEventListener("load", run, { once: true });
-  }
-
-  function setupVisitorMap() {
-    var containers = document.querySelectorAll("[data-visitor-map]");
-    if (!containers.length) return;
+  function setupVisitorBadge() {
+    var containers = document.querySelectorAll(
+      ".academic-home-layout .academic-content .visitor-container"
+    );
 
     containers.forEach(function (container) {
-      if (container.dataset.visitorMapObserved === "1") return;
-      container.dataset.visitorMapObserved = "1";
-      container.dataset.visitorMapState = container.dataset.visitorMapState || "idle";
+      var image = container.querySelector("a[href] img[src]");
+      var link = image ? image.closest("a[href]") : null;
+      if (!isVisitorBadgeImage(image, link)) return;
 
-      var scheduleLoad = function () {
-        afterWindowLoad(function () {
-          startVisitorMapLoad(container);
-        });
+      container.classList.add("visitor-badge-panel");
+      link.classList.add("visitor-badge-link");
+      image.classList.add("visitor-badge-image");
+
+      var visitorBadgeLinkLabel = "View visitor statistics (opens in a new tab)";
+      var visitorBadgeFailureLabel = "Visitor count is temporarily unavailable. View service status (opens in a new tab)";
+
+      link.setAttribute("target", "_blank");
+      link.setAttribute(
+        "aria-label",
+        image.dataset.visitorBadgeState === "failed" ? visitorBadgeFailureLabel : visitorBadgeLinkLabel
+      );
+
+      var rel = (link.getAttribute("rel") || "").split(/\s+/).filter(Boolean);
+      ["noopener", "noreferrer"].forEach(function (value) {
+        if (rel.indexOf(value) === -1) rel.push(value);
+      });
+      link.setAttribute("rel", rel.join(" "));
+
+      image.setAttribute("decoding", "async");
+      image.setAttribute("fetchpriority", "low");
+      if (!image.getAttribute("alt")) image.setAttribute("alt", "Visitors");
+
+      if (image.dataset.visitorBadgeReady === "1") return;
+      image.dataset.visitorBadgeReady = "1";
+
+      var markLoaded = function () {
+        image.dataset.visitorBadgeState = "loaded";
+        image.hidden = false;
+        link.setAttribute("aria-label", visitorBadgeLinkLabel);
+        container.classList.remove("visitor-badge-panel--failed");
+        var fallback = link.querySelector(".visitor-badge-fallback");
+        if (fallback) fallback.remove();
       };
 
-      if ("IntersectionObserver" in window) {
-        var observer = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            if (!entry.isIntersecting) return;
-            observer.disconnect();
-            scheduleLoad();
-          });
-        }, { rootMargin: "220px 0px" });
-        observer.observe(container);
-      } else {
-        scheduleLoad();
+      var markFailed = function () {
+        if (image.dataset.visitorBadgeState === "failed") return;
+        image.dataset.visitorBadgeState = "failed";
+        image.hidden = true;
+        link.setAttribute("aria-label", visitorBadgeFailureLabel);
+        container.classList.add("visitor-badge-panel--failed");
+        if (!link.querySelector(".visitor-badge-fallback")) {
+          link.appendChild(visitorBadgeFallback());
+        }
+      };
+
+      image.addEventListener("load", markLoaded);
+      image.addEventListener("error", markFailed);
+
+      if (image.complete) {
+        if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+          markLoaded();
+        } else {
+          markFailed();
+        }
       }
     });
   }
@@ -574,6 +576,56 @@
 
     updateBeijingTime();
     updateFriendCount();
+  }
+
+  function markProfileDrawerEntries() {
+    var primaryNav = document.querySelector(".md-sidebar--primary .md-nav--primary");
+    if (!primaryNav) return;
+
+    var profilePaths = {
+      "/HOME/Archive/": true,
+      "/HOME/friends/": true
+    };
+
+    Array.prototype.forEach.call(primaryNav.querySelectorAll("a.md-nav__link[href]"), function (link) {
+      var normalizedPath = "";
+
+      try {
+        normalizedPath = new URL(link.getAttribute("href"), window.location.href).pathname;
+      } catch (error) {
+        return;
+      }
+
+      normalizedPath = normalizedPath.replace(/\/index\.html$/i, "/");
+      if (!profilePaths[normalizedPath]) return;
+
+      var item = link.closest(".md-nav__item");
+      if (item) item.classList.add("edwinos-profile-drawer-entry");
+    });
+  }
+
+  function openExternalContentLinksInNewTabs() {
+    Array.prototype.forEach.call(document.querySelectorAll("a[href]"), function (link) {
+      var href = (link.getAttribute("href") || "").trim();
+      if (!href || href.charAt(0) === "#") return;
+      if (/^(mailto|tel|sms):/i.test(href)) return;
+
+      var url;
+      try {
+        url = new URL(href, window.location.href);
+      } catch (error) {
+        return;
+      }
+
+      if (url.origin === window.location.origin) return;
+
+      link.setAttribute("target", "_blank");
+      var rel = (link.getAttribute("rel") || "").split(/\s+/).filter(Boolean);
+      ["noopener", "noreferrer"].forEach(function (value) {
+        if (rel.indexOf(value) === -1) rel.push(value);
+      });
+      link.setAttribute("rel", rel.join(" "));
+    });
   }
 
   /**
@@ -658,13 +710,17 @@
 
   function runAll() {
     updateHomepageClass();
-    normalizeSourceFacts();
+    normalizePaletteButtons();
+    updateSourceFactsFromGitHub();
     watchSourceFacts();
     ensureHomeProfileLayout();
     updateBeijingTime();
     updateFriendCount();
     setupSearchActivation();
-    setupVisitorMap();
+    markProfileDrawerEntries();
+    openExternalContentLinksInNewTabs();
+    setupVisitorBadge();
+    updateVisitorDeploymentTime();
     fixOrderedListContinuity();
   }
 

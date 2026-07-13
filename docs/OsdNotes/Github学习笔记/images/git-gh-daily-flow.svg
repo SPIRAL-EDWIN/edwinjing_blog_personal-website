@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="220" viewBox="0 0 1120 220" role="img" aria-labelledby="title desc">
+  <title id="title">Git 日常流转</title>
+  <desc id="desc">工作区修改文件到暂存区、提交、本地仓库、远端仓库、Pull Request、评审讨论，最后合并到 main 的单向流程。</desc>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    svg {
+      background: transparent;
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .node {
+      fill: #f8fafc;
+      stroke: #b6c2d1;
+      stroke-width: 1.5;
+    }
+    .label {
+      fill: #172033;
+      font-size: 18px;
+      font-weight: 650;
+      text-anchor: middle;
+    }
+    .sub {
+      fill: #5f6f85;
+      font-size: 14px;
+      font-weight: 500;
+      text-anchor: middle;
+    }
+    .arrow {
+      fill: none;
+      stroke: #7c8da5;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      marker-end: url(#arrowhead);
+    }
+    @media (prefers-color-scheme: dark) {
+      .node {
+        fill: #111827;
+        stroke: #334155;
+      }
+      .label {
+        fill: #e5e7eb;
+      }
+      .sub {
+        fill: #a7b4c6;
+      }
+      .arrow {
+        stroke: #91a0b5;
+      }
+    }
+  </style>
+  <defs>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c8da5" />
+    </marker>
+  </defs>
+  <rect class="node" x="20" y="58" width="124" height="92" rx="16" />
+  <text class="label" x="82" y="96">工作区</text>
+  <text class="sub" x="82" y="124">修改文件</text>
+
+  <path class="arrow" d="M 152 104 H 170" />
+  <rect class="node" x="178" y="58" width="124" height="92" rx="16" />
+  <text class="label" x="240" y="96">暂存区</text>
+  <text class="sub" x="240" y="124">git add</text>
+
+  <path class="arrow" d="M 310 104 H 328" />
+  <rect class="node" x="336" y="58" width="124" height="92" rx="16" />
+  <text class="label" x="398" y="96">本地仓库</text>
+  <text class="sub" x="398" y="124">git commit</text>
+
+  <path class="arrow" d="M 468 104 H 486" />
+  <rect class="node" x="494" y="58" width="124" height="92" rx="16" />
+  <text class="label" x="556" y="96">远端仓库</text>
+  <text class="sub" x="556" y="124">GitHub / push</text>
+
+  <path class="arrow" d="M 626 104 H 644" />
+  <rect class="node" x="652" y="42" width="124" height="124" rx="16" />
+  <text class="label" x="714" y="82">Pull</text>
+  <text class="label" x="714" y="107">Request</text>
+  <text class="sub" x="714" y="136">发起合并请求</text>
+
+  <path class="arrow" d="M 784 104 H 802" />
+  <rect class="node" x="810" y="58" width="124" height="92" rx="16" />
+  <text class="label" x="872" y="96">评审讨论</text>
+  <text class="sub" x="872" y="124">review</text>
+
+  <path class="arrow" d="M 942 104 H 960" />
+  <rect class="node" x="968" y="58" width="124" height="92" rx="16" />
+  <text class="label" x="1030" y="96">main</text>
+  <text class="sub" x="1030" y="124">合并</text>
+</svg>
