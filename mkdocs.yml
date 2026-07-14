@@ -10,7 +10,7 @@
 site_name: "Chen Jing (经宸) | Zhejiang University"  # 网站标题，将显示在浏览器标签页
 site_url: https://edwinjing-blog.com/  # 生产环境的域名，用于生成 SEO 规范链接 (Canonical URL) [13]
 site_author: "Chen Jing (经宸)"
-site_description: "Chen Jing (经宸, Edwin Jing) is an undergraduate student at the ZJU-UIUC Institute, Zhejiang University, working on Embodied AI, legged locomotion, whole-body loco-manipulation, and a personal knowledge garden."
+site_description: "Official personal website of Chen Jing (经宸; name also written as Jing Chen; also known as Edwin Jing), an undergraduate student at the ZJU-UIUC Institute, Zhejiang University, working on Embodied AI, legged locomotion, whole-body loco-manipulation, and a personal knowledge garden."
 copyright: >-
   <span class="footer-copyright">Copyright 2025-2026 Chen Jing.</span>
   <span class="site-status"><span class="site-status__dot" aria-hidden="true"></span>Syncing Knowledge Garden</span>
@@ -24,6 +24,7 @@ repo_url: https://github.com/SPIRAL-EDWIN/edwinjing_blog_personal-website
 # --- 3. 主题配置 (Theme Configuration) ---
 theme:
   name: material
+  custom_dir: overrides
   language: zh # 强制界面语言为简体中文 (如“上一页”、“目录”等 UI 文本) [14]
   favicon: assets/favicon.svg
   
@@ -54,7 +55,6 @@ theme:
     - navigation.sections      # 侧边栏自动分组
     - navigation.indexes       # 允许点击文件夹名称直接跳转到该文件夹下的index.md
     - navigation.top           # 添加“回到顶部”按钮
-    - navigation.expand        # 右侧目录跟随滚动
     - toc.follow               # 右侧目录随内容滚动高亮
     - content.code.copy        # 代码块添加“一键复制”按钮 [17]
     - search.highlight         # 搜索结果关键词高亮显示、
@@ -184,7 +184,7 @@ extra_javascript:
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
   - javascripts/mathjax.js
   - javascripts/block-links.js?v=20260624b  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js?v=20260713b
+  - javascripts/ui-perf.js?v=20260715b
 
 extra_css:
   - stylesheets/extra.css?v=20260704a       # Base theme and legacy UI layer
@@ -226,6 +226,6 @@ nav:
         - "斯大林对马基雅维利政治的践行": "OsdNotes/PHIL/斯大林对马基雅维利政治的践行.md"
         - "纯粹的大众民主极易变成暴民政治": "OsdNotes/PHIL/纯粹的大众民主极易变成暴民政治.md"
   - More Experiences:
-    - 经验分享/machineLearning.md
+    - "Ubuntu 下 Codex 无法在 VS Code 中打开": "经验分享/关于Ubuntu系统下Codex无法在VS Code中打开的问题.md"
     - 年终总结:
       - "2025年终总结": "经验分享/年终总结/2025年终总结：Be Global. Be Active..md"

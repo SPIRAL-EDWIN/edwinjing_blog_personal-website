@@ -604,6 +604,45 @@
     });
   }
 
+  function setOsdNotesNavigationDepth() {
+    var pathname = (window.location.pathname || "").replace(/\/index\.html$/i, "/");
+    if (!/^\/OsdNotes(?:\/|$)/i.test(pathname)) return;
+
+    var primaryNav = document.querySelector(".md-sidebar--primary .md-nav--primary");
+    if (!primaryNav) return;
+
+    var osdRootLink = Array.prototype.find.call(
+      primaryNav.querySelectorAll("a.md-nav__link[href]"),
+      function (link) {
+        try {
+          return new URL(link.getAttribute("href"), window.location.href).pathname
+            .replace(/\/index\.html$/i, "/") === "/OsdNotes/";
+        } catch (error) {
+          return false;
+        }
+      }
+    );
+    if (!osdRootLink) return;
+
+    var osdRootItem = osdRootLink.closest(".md-nav__item");
+    var osdNav = osdRootItem && Array.prototype.find.call(osdRootItem.children, function (child) {
+      return child.classList && child.classList.contains("md-nav");
+    });
+    if (!osdNav) return;
+
+    var topLevelList = Array.prototype.find.call(osdNav.children, function (child) {
+      return child.classList && child.classList.contains("md-nav__list");
+    });
+    if (!topLevelList) return;
+
+    Array.prototype.forEach.call(topLevelList.children, function (item) {
+      var toggle = Array.prototype.find.call(item.children, function (child) {
+        return child.matches && child.matches("input.md-nav__toggle");
+      });
+      if (toggle) toggle.checked = true;
+    });
+  }
+
   function openExternalContentLinksInNewTabs() {
     Array.prototype.forEach.call(document.querySelectorAll("a[href]"), function (link) {
       var href = (link.getAttribute("href") || "").trim();
@@ -629,7 +668,7 @@
   }
 
   /**
-   * Fix ordered-list numbering across admonition / blockquote breaks.
+   * Fix ordered-list numbering across callout and code-block breaks.
    *
    * When Obsidian-style notes have:
    *
@@ -643,11 +682,11 @@
    * Markdown parses this as two separate <ol> blocks (the un-indented warning
    * block ends the list). The second <ol> renumbers from 1. This routine
    * walks the content, finds <ol> blocks that are direct siblings via only
-   * .admonition / blockquote / details bridges, and sets start="N" on each
+   * callout or code-block bridges, and sets start="N" on each
    * follow-up <ol> so numbering continues seamlessly.
    *
-   * Bridge tags: any element with class .admonition, plain <blockquote>, or
-   *              <details> (collapsible callouts).
+   * Bridge tags: callouts (.admonition, blockquote, details) and fenced code
+   *              blocks (.highlight or a direct pre element).
    */
   function fixOrderedListContinuity() {
     var content = document.querySelector(".md-content__inner") || document.body;
@@ -656,14 +695,19 @@
     var BRIDGE_SELECTORS = [
       ".admonition",   // pymdownx admonition / mkdocs-callouts output
       "blockquote",    // raw blockquote (Obsidian callouts before plugin)
-      "details"        // collapsible admonitions
+      "details",       // collapsible admonitions
+      ".highlight",    // fenced code block with syntax highlighting
+      "pre"            // fenced code block without a highlight wrapper
     ];
 
     function isBridge(el) {
       if (!el || el.nodeType !== 1) return false;
       var tag = el.tagName.toLowerCase();
-      if (tag === "blockquote" || tag === "details") return true;
-      if (el.classList && el.classList.contains("admonition")) return true;
+      if (tag === "blockquote" || tag === "details" || tag === "pre") return true;
+      if (
+        el.classList &&
+        (el.classList.contains("admonition") || el.classList.contains("highlight"))
+      ) return true;
       return false;
     }
 
@@ -718,6 +762,7 @@
     updateFriendCount();
     setupSearchActivation();
     markProfileDrawerEntries();
+    setOsdNotesNavigationDepth();
     openExternalContentLinksInNewTabs();
     setupVisitorBadge();
     updateVisitorDeploymentTime();

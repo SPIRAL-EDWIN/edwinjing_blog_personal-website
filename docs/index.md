@@ -3,38 +3,57 @@ hide:
   - toc
   - navigation
   - title
-title: "Chen Jing (经宸)"
-description: "Chen Jing (经宸, Edwin Jing), undergraduate student at the ZJU-UIUC Institute, Zhejiang University; research notes on Embodied AI, legged locomotion, whole-body loco-manipulation, and a personal knowledge garden."
+description: "Official personal website of Chen Jing (经宸; name also written as Jing Chen; also known as Edwin Jing), an undergraduate student at the ZJU-UIUC Institute, Zhejiang University; research notes on Embodied AI, legged locomotion, whole-body loco-manipulation, and a personal knowledge garden."
 ---
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Person",
-  "name": "Chen Jing",
-  "alternateName": ["经宸", "Edwin Jing"],
-  "url": "https://edwinjing-blog.com/",
-  "affiliation": {
-    "@type": "CollegeOrUniversity",
-    "name": "Zhejiang University"
-  },
-  "memberOf": {
-    "@type": "Organization",
-    "name": "ZJU-UIUC Institute"
-  },
-  "email": "mailto:edwinjing2026@outlook.com",
-  "knowsAbout": [
-    "Embodied AI",
-    "Legged Locomotion",
-    "Whole-body Loco-manipulation",
-    "Sim2Real",
-    "Robotics"
-  ],
-  "sameAs": [
-    "https://github.com/SPIRAL-EDWIN",
-    "https://www.youtube.com/@EdwinJing",
-    "https://x.com/EdwinJing661",
-    "https://www.instagram.com/edwinjing2025/"
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://edwinjing-blog.com/#website",
+      "url": "https://edwinjing-blog.com/",
+      "name": "Chen Jing (经宸)",
+      "alternateName": ["Jing Chen", "Edwin Jing"]
+    },
+    {
+      "@type": "ProfilePage",
+      "@id": "https://edwinjing-blog.com/#profile",
+      "url": "https://edwinjing-blog.com/",
+      "name": "Chen Jing (经宸) | Zhejiang University",
+      "isPartOf": { "@id": "https://edwinjing-blog.com/#website" },
+      "mainEntity": { "@id": "https://edwinjing-blog.com/#person" }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://edwinjing-blog.com/#person",
+      "name": "Chen Jing",
+      "alternateName": ["经宸", "Jing Chen", "Edwin Jing"],
+      "url": "https://edwinjing-blog.com/",
+      "affiliation": {
+        "@type": "CollegeOrUniversity",
+        "name": "Zhejiang University"
+      },
+      "memberOf": {
+        "@type": "Organization",
+        "name": "ZJU-UIUC Institute"
+      },
+      "email": "mailto:edwinjing2026@outlook.com",
+      "knowsAbout": [
+        "Embodied AI",
+        "Legged Locomotion",
+        "Whole-body Loco-manipulation",
+        "Sim2Real",
+        "Robotics"
+      ],
+      "sameAs": [
+        "https://github.com/SPIRAL-EDWIN",
+        "https://www.youtube.com/@EdwinJing",
+        "https://x.com/EdwinJing661",
+        "https://www.instagram.com/edwinjing2025/"
+      ]
+    }
   ]
 }
 </script>
@@ -134,7 +153,7 @@ description: "Chen Jing (经宸, Edwin Jing), undergraduate student at the ZJU-U
   <main class="academic-content">
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.1s;">
       <h2 class="section-title"><span class="title-dash"></span>About Me</h2>
-      <p>I am a sophomore majoring in Mechanical Engineering at the ZJU-UIUC Institute (ZJUI), Zhejiang University. Currently, I am an undergraduate research assistant at the <a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a>, safely guided by <a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">Prof. Hua Chen</a> and <a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">Prof. Liangjing Yang</a>.</p>
+      <p>I am Chen Jing (经宸), a sophomore majoring in Mechanical Engineering at the ZJU-UIUC Institute (ZJUI), Zhejiang University. My name is written Jing Chen in Chinese name order and Chen Jing in English name order. Currently, I am an undergraduate research assistant at the <a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a>, safely guided by <a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">Prof. Hua Chen</a> and <a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">Prof. Liangjing Yang</a>.</p>
       <p>My research interests broadly lie in Embodied AI, Legged Locomotion, and Whole-body Loco-manipulation. Currently, I am exploring the synergy between physics-based simulation and real-world deployment. Specifically, my work focuses on:</p>
       <ul class="about-focus-list">
         <li><strong>Simulation &amp; Reinforcement Learning:</strong> Implementing whole-body control and tracking frameworks within advanced simulation platforms, e.g., Isaac Lab.</li>
