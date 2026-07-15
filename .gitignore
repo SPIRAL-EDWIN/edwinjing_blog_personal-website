@@ -5,8 +5,10 @@ nul
 ~/
 .sisyphus/
 
+# PHIL 206 课程资料暂未获得公开分享授权，仅保留本地副本
+/course-materials/PHIL/PHIL 206/
+
 # 操作系统生成的垃圾文件（跨平台）
 .DS_Store
 Thumbs.db
 desktop.ini
-
