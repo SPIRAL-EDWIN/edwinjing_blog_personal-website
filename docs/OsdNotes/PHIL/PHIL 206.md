@@ -7,13 +7,12 @@
 >
 >     - 该笔记大部分都是本人在AI对课件和录音的重组、翻译下整理，并不直接对齐PHIL 206上课的original content，但是结合[Phil 206 EXAMS sample](Phil%20206%20EXAMS%20sample.md)这个本人同时依据四次期中考试整理的原题进行学习，将会涵盖99%的课堂知识点
 >
-> 2. 若需要上课的录音及课件，请通过 [Overview 首页](../../index.md)的个人邮箱联系我获取。
-> 3. 关于该笔记的效用：
+> 2. 关于该笔记的效用：
 >
 >     - 本人在每周整理这些笔记之后并未进行按时的复习，在考前有其他assignment和pre的情况下抽空对笔记进行了浏览（这里建议如果时间是在来不及直接去看[Phil 206 EXAMS sample](Phil%20206%20EXAMS%20sample.md)然后根据题目的双向链接点对点地进行复习）
->     - 最后本人的成绩（该成绩仅用于说明该笔记及原题整理的有效性）：
+>     - 最后本人使用该笔记的成果：
 >
->         ![](images/Pasted%20image%2020260715130752.png)
+> ![](images/Pasted%20image%2020260715130752.png)
 
 ----
 ## Lecture 1: Early Modern Philosophy: Technical Definition

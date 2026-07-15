@@ -668,6 +668,87 @@
   }
 
   /**
+   * Add a readable language label to fenced code blocks.
+   *
+   * Pymdown exposes the original fence alias as a `language-*` class on the
+   * highlight wrapper. Mirroring it to a data attribute lets CSS render a
+   * quiet label without changing Markdown content or the copy-button DOM.
+   */
+  function labelCodeBlockLanguages() {
+    var LANGUAGE_LABELS = {
+      bash: "Bash",
+      c: "C",
+      cfg: "INI",
+      cpp: "C++",
+      cs: "C#",
+      csharp: "C#",
+      css: "CSS",
+      dosini: "INI",
+      go: "Go",
+      html: "HTML",
+      ini: "INI",
+      java: "Java",
+      javascript: "JavaScript",
+      js: "JavaScript",
+      json: "JSON",
+      jsx: "JSX",
+      kotlin: "Kotlin",
+      latex: "LaTeX",
+      markdown: "Markdown",
+      matlab: "MATLAB",
+      md: "Markdown",
+      openrc: "OpenRC",
+      plaintext: "Text",
+      py: "Python",
+      py3: "Python",
+      pyi: "Python",
+      python: "Python",
+      python3: "Python",
+      rust: "Rust",
+      scss: "SCSS",
+      sh: "Shell",
+      shell: "Shell",
+      sql: "SQL",
+      tex: "LaTeX",
+      text: "Text",
+      toml: "TOML",
+      ts: "TypeScript",
+      tsx: "TSX",
+      typescript: "TypeScript",
+      xml: "XML",
+      yaml: "YAML",
+      yml: "YAML",
+      zsh: "Zsh"
+    };
+
+    function humanizeLanguage(alias) {
+      if (LANGUAGE_LABELS[alias]) return LANGUAGE_LABELS[alias];
+      return alias
+        .split(/[-_]+/)
+        .filter(Boolean)
+        .map(function (word) {
+          return word.charAt(0).toUpperCase() + word.slice(1);
+        })
+        .join(" ");
+    }
+
+    document.querySelectorAll(".md-typeset .highlight").forEach(function (block) {
+      var languageClass = Array.prototype.find.call(block.classList, function (className) {
+        return className.indexOf("language-") === 0;
+      });
+
+      if (!languageClass) {
+        block.removeAttribute("data-code-language");
+        return;
+      }
+
+      var alias = languageClass.slice("language-".length).trim().toLowerCase();
+      var label = humanizeLanguage(alias);
+      if (label) block.setAttribute("data-code-language", label);
+    });
+  }
+
+  /**
    * Fix ordered-list numbering across callout and code-block breaks.
    *
    * When Obsidian-style notes have:
@@ -764,6 +845,7 @@
     markProfileDrawerEntries();
     setOsdNotesNavigationDepth();
     openExternalContentLinksInNewTabs();
+    labelCodeBlockLanguages();
     setupVisitorBadge();
     updateVisitorDeploymentTime();
     fixOrderedListContinuity();

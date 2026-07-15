@@ -246,6 +246,353 @@ body:has(.academic-home-layout) .personalities-list li {
 }
 
 /* ==========================================================================
+   Code Blocks
+   ========================================================================== */
+
+body[data-md-color-scheme="default"] {
+    --md-code-bg-color: #f2f2f2;
+    --md-code-fg-color: #2e3338;
+    --edwinos-code-border: rgba(46, 51, 56, 0.12);
+    --edwinos-code-title-bg: rgba(46, 51, 56, 0.045);
+    --edwinos-inline-code-bg: rgba(46, 51, 56, 0.075);
+    --edwinos-inline-code-fg: #9f1d35;
+    --edwinos-code-label-fg: rgba(46, 51, 56, 0.52);
+}
+
+body[data-md-color-scheme="slate"] {
+    --md-code-bg-color: #242424;
+    --md-code-fg-color: #dcddde;
+    --edwinos-code-border: rgba(255, 255, 255, 0.11);
+    --edwinos-code-title-bg: rgba(255, 255, 255, 0.045);
+    --edwinos-inline-code-bg: rgba(255, 255, 255, 0.085);
+    --edwinos-inline-code-fg: #ff7b72;
+    --edwinos-code-label-fg: rgba(220, 221, 222, 0.52);
+}
+
+/* The highlight wrapper is the only visual frame. Keeping pre/code frameless
+   prevents the doubled top and bottom rules caused by the legacy cascade. */
+.md-typeset .highlight {
+    margin: 1.15em 0;
+    overflow: hidden;
+    background: var(--md-code-bg-color);
+    border: 1px solid var(--edwinos-code-border);
+    border-radius: 0.5rem;
+    box-shadow: none;
+}
+
+.md-typeset .highlight > pre {
+    margin: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.md-typeset .highlight > pre > code {
+    display: block;
+    margin: 0;
+    padding: 0.82rem 1rem;
+    overflow: auto;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* Pymdown title support. Untitled blocks have no internal divider. */
+.md-typeset .highlight > .filename {
+    display: block;
+    margin: 0;
+    padding: 0.48rem 1rem;
+    color: var(--md-default-fg-color--light);
+    background: var(--edwinos-code-title-bg);
+    border: 0;
+    border-bottom: 1px solid var(--edwinos-code-border);
+    font-family: var(--edwinos-font-mono);
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+/* Standalone pre is uncommon with Pymdown, but receives the same single-frame
+   treatment without matching pre elements that already live in .highlight. */
+.md-typeset pre:not(.highlight > pre) {
+    margin: 1.15em 0;
+    padding: 0.82rem 1rem;
+    overflow: auto;
+    background: var(--md-code-bg-color);
+    border: 1px solid var(--edwinos-code-border);
+    border-radius: 0.5rem;
+    box-shadow: none;
+}
+
+.md-typeset pre:not(.highlight > pre) > code {
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.md-typeset :not(pre) > code {
+    padding: 0.1em 0.32em;
+    color: var(--edwinos-inline-code-fg);
+    background: var(--edwinos-inline-code-bg);
+    border: 0;
+    border-radius: 0.28rem;
+    box-shadow: none;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}
+
+.md-typeset .md-code__button {
+    border-radius: 0.32rem;
+}
+
+/* Language metadata occupies a quiet first row inside the code surface. The
+   copy control keeps the far-right position, so both remain visible. */
+.md-typeset .highlight[data-code-language] {
+    position: relative;
+}
+
+.md-typeset .highlight[data-code-language]::before {
+    position: absolute;
+    top: 0.25rem;
+    inset-inline-end: 2.55rem;
+    z-index: 1;
+    height: 1.6rem;
+    max-width: calc(100% - 5.25rem);
+    overflow: hidden;
+    color: var(--edwinos-code-label-fg);
+    font-family: var(--edwinos-font-serif);
+    font-size: 0.58rem;
+    font-weight: 400;
+    line-height: 1.6rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    content: attr(data-code-language);
+    pointer-events: none;
+    user-select: none;
+}
+
+.md-typeset .highlight[data-code-language]:not(:has(.md-code__nav))::before {
+    inset-inline-end: 0.75rem;
+}
+
+.md-typeset .highlight[data-code-language] > pre > code {
+    padding-top: 1.72rem;
+}
+
+.md-typeset .highlight[data-code-language]:has(> .filename) > .filename {
+    padding-inline-end: 7rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.md-typeset .highlight[data-code-language]:has(> .filename) > pre > code {
+    padding-top: 0.82rem;
+}
+
+@media screen and (max-width: 44.984375em) {
+    .md-typeset .highlight[data-code-language]::before {
+        inset-inline-end: 2.25rem;
+        font-size: 0.56rem;
+    }
+
+    .md-typeset .highlight[data-code-language] > pre > code {
+        padding: 1.55rem 0.75rem 0.72rem;
+    }
+
+    .md-typeset .highlight[data-code-language]:has(> .filename) > pre > code {
+        padding-top: 0.72rem;
+    }
+}
+
+@media print {
+    .md-typeset .highlight[data-code-language]::before {
+        inset-inline-end: 0.75rem;
+    }
+}
+
+/* ==========================================================================
+   Callouts
+   ========================================================================== */
+
+.md-typeset :is(.admonition, details) {
+    --edwinos-callout-rgb: 8, 109, 221;
+    --edwinos-callout-alpha: 0.1;
+    margin: 1.1em 0;
+    padding: 0.58rem 0.72rem;
+    overflow: visible;
+    color: var(--md-default-fg-color);
+    background: rgba(var(--edwinos-callout-rgb), var(--edwinos-callout-alpha));
+    border: 0;
+    border-radius: 0.48rem;
+    box-shadow: none;
+    font-size: 0.8rem;
+    line-height: 1.55;
+}
+
+.md-typeset :is(.admonition, details):focus-within {
+    box-shadow: none;
+}
+
+.md-typeset :is(.admonition, details) > :is(.admonition-title, summary) {
+    position: relative;
+    display: block;
+    min-height: 1.25rem;
+    margin: 0;
+    padding: 0 0 0 1.55rem;
+    color: rgb(var(--edwinos-callout-rgb));
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    font-size: 1em;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.md-typeset details > summary {
+    padding-right: 1.7rem;
+    cursor: pointer;
+}
+
+.md-typeset details:not([open]) {
+    padding-bottom: 0.58rem;
+}
+
+.md-typeset :is(.admonition, details) > :is(.admonition-title, summary)::before {
+    position: absolute;
+    top: 0.12em;
+    left: 0;
+    width: 1.08rem;
+    height: 1.08rem;
+    margin: 0;
+    background-color: rgb(var(--edwinos-callout-rgb));
+}
+
+.md-typeset details > summary::after {
+    top: 50%;
+    right: 0;
+    width: 1.08rem;
+    height: 1.08rem;
+    margin: 0;
+    background-color: rgb(var(--edwinos-callout-rgb));
+    transform: translateY(-50%);
+    transform-origin: center;
+}
+
+.md-typeset details[open] > summary::after {
+    transform: translateY(-50%) rotate(90deg);
+}
+
+.md-typeset details > summary:focus-visible {
+    outline: 2px solid rgba(var(--edwinos-callout-rgb), 0.42);
+    outline-offset: 0.22rem;
+    border-radius: 0.2rem;
+}
+
+.md-typeset .admonition > :not(.admonition-title),
+.md-typeset details[open] > :not(summary) {
+    margin-top: 0.52rem;
+    margin-bottom: 0;
+}
+
+.md-typeset :is(.admonition, details) > :is(ul, ol) {
+    margin-left: 1.1em !important;
+    padding-left: 0.9em !important;
+}
+
+/* Keep the PHIL 206 usage card's nested bullets compact and readable. */
+.md-typeset #phil-206-notes + p + details.tip li > :is(ul, ol) {
+    margin-inline-start: 0 !important;
+    padding-inline-start: 1.5em !important;
+}
+
+.md-typeset :is(.admonition, details) > :is(.admonition-title, summary) code {
+    padding: 0.06em 0.26em;
+    color: inherit;
+    background: rgba(var(--edwinos-callout-rgb), 0.1);
+}
+
+.md-typeset :is(.admonition, details) :is(.admonition, details) {
+    --edwinos-callout-alpha: 0.13;
+}
+
+body[data-md-color-scheme="slate"] .md-typeset :is(.admonition, details) {
+    --edwinos-callout-alpha: 0.12;
+}
+
+body[data-md-color-scheme="slate"] .md-typeset :is(.admonition, details) :is(.admonition, details) {
+    --edwinos-callout-alpha: 0.15;
+}
+
+.md-typeset :is(.admonition.note, .admonition.info, .admonition.todo, details.note, details.info, details.todo) {
+    --edwinos-callout-rgb: 8, 109, 221;
+}
+
+.md-typeset :is(.admonition.abstract, .admonition.summary, .admonition.tldr, .admonition.tip, .admonition.hint, .admonition.important, details.abstract, details.summary, details.tldr, details.tip, details.hint, details.important) {
+    --edwinos-callout-rgb: 0, 191, 188;
+}
+
+.md-typeset :is(.admonition.success, .admonition.check, .admonition.done, details.success, details.check, details.done) {
+    --edwinos-callout-rgb: 8, 185, 78;
+}
+
+.md-typeset :is(.admonition.question, .admonition.help, .admonition.faq, details.question, details.help, details.faq) {
+    --edwinos-callout-rgb: 224, 172, 0;
+}
+
+.md-typeset :is(.admonition.warning, .admonition.caution, .admonition.attention, details.warning, details.caution, details.attention) {
+    --edwinos-callout-rgb: 236, 117, 0;
+}
+
+.md-typeset :is(.admonition.failure, .admonition.fail, .admonition.missing, .admonition.danger, .admonition.error, .admonition.bug, details.failure, details.fail, details.missing, details.danger, details.error, details.bug) {
+    --edwinos-callout-rgb: 233, 49, 71;
+}
+
+.md-typeset :is(.admonition.example, details.example) {
+    --edwinos-callout-rgb: 120, 82, 238;
+}
+
+.md-typeset :is(.admonition.quote, .admonition.cite, details.quote, details.cite) {
+    --edwinos-callout-rgb: 112, 118, 125;
+}
+
+body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.note, .admonition.info, .admonition.todo, details.note, details.info, details.todo) {
+    --edwinos-callout-rgb: 2, 122, 255;
+}
+
+body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.abstract, .admonition.summary, .admonition.tldr, .admonition.tip, .admonition.hint, .admonition.important, details.abstract, details.summary, details.tldr, details.tip, details.hint, details.important) {
+    --edwinos-callout-rgb: 83, 223, 221;
+}
+
+body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.success, .admonition.check, .admonition.done, details.success, details.check, details.done) {
+    --edwinos-callout-rgb: 68, 207, 110;
+}
+
+body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.question, .admonition.help, .admonition.faq, details.question, details.help, details.faq) {
+    --edwinos-callout-rgb: 224, 222, 113;
+}
+
+body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.warning, .admonition.caution, .admonition.attention, details.warning, details.caution, details.attention) {
+    --edwinos-callout-rgb: 233, 151, 63;
+}
+
+body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.failure, .admonition.fail, .admonition.missing, .admonition.danger, .admonition.error, .admonition.bug, details.failure, details.fail, details.missing, details.danger, details.error, details.bug) {
+    --edwinos-callout-rgb: 251, 70, 76;
+}
+
+body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.example, details.example) {
+    --edwinos-callout-rgb: 168, 130, 255;
+}
+
+body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonition.cite, details.quote, details.cite) {
+    --edwinos-callout-rgb: 166, 171, 178;
+}
+
+/* ==========================================================================
    Header
    ========================================================================== */
 

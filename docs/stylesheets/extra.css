@@ -198,76 +198,6 @@ a {
     padding-top: 1.5rem;
 }
 
-/* 代码块增强 */
-.highlight {
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.highlight code {
-    font-family: "JetBrains Mono", "Fira Code", monospace !important;
-}
-
-/* 亮色模式行内代码 */
-[data-md-color-scheme="default"] .md-typeset code {
-    background: #f6f8fa;
-    color: #24292f;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 4px;
-}
-
-/* Admonition 美化 */
-.admonition {
-    border-radius: 8px !important;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-left-width: 4px !important;
-}
-
-/* 亮色模式 Admonition 配色 */
-[data-md-color-scheme="default"] .admonition.note {
-    border-left-color: #0969da;
-    background: rgba(9, 105, 218, 0.04);
-}
-
-[data-md-color-scheme="default"] .admonition.tip,
-[data-md-color-scheme="default"] .admonition.success {
-    border-left-color: #1a7f37;
-    background: rgba(26, 127, 55, 0.04);
-}
-
-[data-md-color-scheme="default"] .admonition.warning {
-    border-left-color: #9a6700;
-    background: rgba(154, 103, 0, 0.04);
-}
-
-[data-md-color-scheme="default"] .admonition.danger,
-[data-md-color-scheme="default"] .admonition.failure {
-    border-left-color: #cf222e;
-    background: rgba(207, 34, 46, 0.04);
-}
-
-[data-md-color-scheme="default"] .admonition.info,
-[data-md-color-scheme="default"] .admonition.abstract {
-    border-left-color: #8250df;
-    background: rgba(130, 80, 223, 0.04);
-}
-
-[data-md-color-scheme="default"] .admonition.question {
-    border-left-color: #0550ae;
-    background: rgba(5, 80, 174, 0.04);
-}
-
-[data-md-color-scheme="default"] .admonition.example {
-    border-left-color: #57606a;
-    background: rgba(87, 96, 106, 0.04);
-}
-
-[data-md-color-scheme="default"] .admonition.quote {
-    border-left-color: #6e7781;
-    background: rgba(110, 119, 129, 0.04);
-}
-
 /* 表格美化 */
 .md-typeset table:not([class]) {
     border-radius: 10px;
@@ -430,99 +360,6 @@ a {
     background: #0d1117;
 }
 
-/* 代码块美化 - GitHub Dark 边框 */
-[data-md-color-scheme="slate"] .highlight {
-    background: #161b22;
-    border: 1px solid #30363d;
-    box-shadow: none;
-}
-
-[data-md-color-scheme="slate"] .highlight:hover {
-    border-color: rgba(88, 166, 255, 0.45);
-    box-shadow: none;
-}
-
-/* Admonition 卡片美化 - 各类型独立配色 */
-[data-md-color-scheme="slate"] .admonition {
-    background: #161b22;
-    border: 1px solid #30363d;
-    box-shadow: none;
-}
-
-[data-md-color-scheme="slate"] .admonition.note {
-    border-left: 4px solid #388bfd;
-    background: rgba(56, 139, 253, 0.05);
-}
-
-[data-md-color-scheme="slate"] .admonition.note > .admonition-title {
-    background: rgba(56, 139, 253, 0.1);
-}
-
-[data-md-color-scheme="slate"] .admonition.tip,
-[data-md-color-scheme="slate"] .admonition.success {
-    border-left: 4px solid #3fb950;
-    background: rgba(63, 185, 80, 0.05);
-}
-
-[data-md-color-scheme="slate"] .admonition.tip > .admonition-title,
-[data-md-color-scheme="slate"] .admonition.success > .admonition-title {
-    background: rgba(63, 185, 80, 0.1);
-}
-
-[data-md-color-scheme="slate"] .admonition.warning {
-    border-left: 4px solid #d29922;
-    background: rgba(210, 153, 34, 0.05);
-}
-
-[data-md-color-scheme="slate"] .admonition.warning > .admonition-title {
-    background: rgba(210, 153, 34, 0.1);
-}
-
-[data-md-color-scheme="slate"] .admonition.danger,
-[data-md-color-scheme="slate"] .admonition.failure {
-    border-left: 4px solid #f85149;
-    background: rgba(248, 81, 73, 0.05);
-}
-
-[data-md-color-scheme="slate"] .admonition.danger > .admonition-title,
-[data-md-color-scheme="slate"] .admonition.failure > .admonition-title {
-    background: rgba(248, 81, 73, 0.1);
-}
-
-[data-md-color-scheme="slate"] .admonition.info,
-[data-md-color-scheme="slate"] .admonition.abstract {
-    border-left: 4px solid #a371f7;
-    background: rgba(163, 113, 247, 0.05);
-}
-
-[data-md-color-scheme="slate"] .admonition.info > .admonition-title,
-[data-md-color-scheme="slate"] .admonition.abstract > .admonition-title {
-    background: rgba(163, 113, 247, 0.1);
-}
-
-[data-md-color-scheme="slate"] .admonition.question {
-    border-left: 4px solid #a5d6ff;
-    background: rgba(165, 214, 255, 0.05);
-}
-
-[data-md-color-scheme="slate"] .admonition.question > .admonition-title {
-    background: rgba(165, 214, 255, 0.1);
-}
-
-[data-md-color-scheme="slate"] .admonition.example {
-    border-left: 4px solid #8b949e;
-    background: rgba(139, 148, 158, 0.05);
-}
-
-[data-md-color-scheme="slate"] .admonition.example > .admonition-title {
-    background: rgba(139, 148, 158, 0.1);
-}
-
-[data-md-color-scheme="slate"] .admonition.quote {
-    border-left: 4px solid #6e7681;
-    background: rgba(110, 118, 129, 0.05);
-}
-
 /* 表格美化 */
 [data-md-color-scheme="slate"] .md-typeset table:not([class]) {
     background: #161b22;
@@ -554,13 +391,6 @@ a {
 [data-md-color-scheme="slate"] .md-typeset a:hover {
     color: #79c0ff;
     border-bottom-color: rgba(88, 166, 255, 0.45);
-}
-
-/* 行内代码 - GitHub Dark */
-[data-md-color-scheme="slate"] .md-typeset code {
-    background: #161b22;
-    color: #c9d1d9;
-    border: 1px solid #30363d;
 }
 
 /* 页脚美化 */
