@@ -1,4 +1,5 @@
 ---
+title: "Chen Jing (经宸)"
 hide:
   - toc
   - navigation

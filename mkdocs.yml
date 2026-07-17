@@ -232,5 +232,6 @@ nav:
     - Introduction: 经验分享/index.md
     - TECH:
       - "Ubuntu 下 Codex 无法在 VS Code 中打开": "经验分享/关于Ubuntu系统下Codex无法在VS Code中打开的问题.md"
+      - "Watt Toolkit（Steam++）Mac 端 hosts 权限配置": "经验分享/Watt Toolkit (Steam++) Mac 端 hosts 权限配置指南.md"
     - 年终总结:
       - "2025年终总结": "经验分享/年终总结/2025年终总结：Be Global. Be Active..md"

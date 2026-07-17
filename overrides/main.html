@@ -7,3 +7,26 @@
     {{ super() }}
   {% endif %}
 {% endblock %}
+
+{% block scripts %}
+  <script>
+    (function () {
+      var node = document.getElementById("__config");
+      if (!node) return;
+
+      try {
+        var config = JSON.parse(node.textContent);
+        var scope = new URL(config.base || ".", document.baseURI);
+        var upstream = new URL(config.search, document.baseURI);
+        var worker = new URL("assets/javascripts/workers/search-exact-worker.js?v=20260718a", scope);
+
+        worker.searchParams.set("upstream", upstream.href);
+        config.search = worker.href;
+        node.textContent = JSON.stringify(config);
+      } catch (error) {
+        // Keep Material's bundled search worker when the config is unavailable.
+      }
+    })();
+  </script>
+  {{ super() }}
+{% endblock %}
