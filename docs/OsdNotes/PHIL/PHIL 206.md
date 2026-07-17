@@ -39,8 +39,8 @@ In the last decades of 20th centuries and the first decades of 21th centuries:
   -->Fall of Constantinople(君士坦丁堡的陷落), 1453
   -->The Renaissance (文艺复兴), Age of Discovery(大发现时代), Age of Enlightenment(启蒙时代)
 - Modern Period (roughly 1780-1914)
-  -->Kant's *First Critique* (1781 and 1787) %% 康德的《第一批判》 %%
-  -->French Revolution (1789) to WWI (1914)  %%法国大革命到第一次世界大战%%
+  -->Kant's *First Critique* (1781 and 1787)：康德的《第一批判》
+  -->French Revolution (1789) to WWI (1914)：法国大革命到第一次世界大战
 
 souled body and bodied soul
 ## What is characteristically "modern"?
@@ -1028,7 +1028,7 @@ Scripture as "Spectacles" --> the inception of worldview Christianity
 ^effa41
 
 - 利维坦：《约伯记》中的传说怪兽 -> 起源不详
-  %%可能来源于古代近东传说 ANE legend (Ancient Near Eastern legend)%%
+  可能来源：古代近东传说 ANE legend (Ancient Near Eastern legend)
 - 霍布斯的利维坦：一个身体由成千上万的人组成的巨人，矗立在秩序井然的城市上方 ^b28496
   - 头戴王冠，一手持剑（武力），一手持权杖（王权）
   - 低头俯视着教堂的尖顶

@@ -968,12 +968,14 @@ body.is-homepage .academic-content > .academic-section:first-of-type a,
 body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type a {
     color: #2563eb !important;
     text-decoration: none !important;
+    border-bottom: 0 !important;
 }
 
 body.is-homepage .academic-content > .academic-section:first-of-type a:hover,
 body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type a:hover {
     color: #1d4ed8 !important;
-    text-decoration: underline !important;
+    text-decoration: none !important;
+    border-bottom: 0 !important;
 }
 
 body[data-md-color-scheme="slate"].is-homepage .academic-content > .academic-section:first-of-type p,
@@ -1548,6 +1550,113 @@ body:has(.academic-home-layout) .cv-marker {
     width: var(--cv-marker-size) !important;
     height: var(--cv-marker-size) !important;
     z-index: 1 !important;
+}
+
+/* ==========================================================================
+   Article Headings
+   ========================================================================== */
+
+/*
+ * The legacy content layer contributes 1.5rem above every article. Keep that
+ * spacious opening on the two Introduction hubs, but remove the duplicate
+ * inset from their child articles. Canonical URLs are server-rendered in the
+ * head, so this applies before JavaScript and avoids a first-paint jump.
+ */
+html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]:not([href$="/OsdNotes/"]))
+body .md-content,
+html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]:not([href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]))
+body .md-content {
+    padding-top: 0 !important;
+}
+
+html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]:not([href$="/OsdNotes/"]))
+body .md-content__inner,
+html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]:not([href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]))
+body .md-content__inner {
+    animation: none !important;
+}
+
+/* Keep the MATLAB comparison heading stable before and after Material wraps
+   its preceding table for horizontal scrolling. */
+html:has(> head > link[rel="canonical"][href$="/OsdNotes/CS101/MATLAB/"])
+body .md-content__inner > table:not([class]) + h2#matlab-python,
+html:has(> head > link[rel="canonical"][href$="/OsdNotes/CS101/MATLAB/"])
+body .md-content__inner > .md-typeset__scrollwrap + h2#matlab-python {
+    margin-top: 2em !important;
+    transition: none !important;
+}
+
+/* ==========================================================================
+   Prose Links
+   ========================================================================== */
+
+/* Keep prose-link colors, hover highlights, and focus outlines without lines. */
+.md-content__inner.md-typeset
+:is(p, li, dd, blockquote):not(:where(.grid.cards *, [class*="card"], [class*="card"] *))
+a:not(:where(.headerlink, .md-button, [role="button"], [class*="btn-"])) {
+    text-decoration: none !important;
+    border-bottom: 0 !important;
+}
+
+/* ==========================================================================
+   Content Hubs
+   ========================================================================== */
+
+@media screen and (min-width: 76.25em) {
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+    body .md-sidebar--primary
+    .md-nav--primary > .md-nav__list
+    > .md-nav__item--active.md-nav__item--section
+    > .md-nav__container,
+    html:has(> head > link[rel="canonical"][href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+    body .md-sidebar--primary
+    .md-nav--primary > .md-nav__list
+    > .md-nav__item--active.md-nav__item--section
+    > .md-nav__container {
+        display: none !important;
+    }
+}
+
+.md-typeset .intro-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-block: 1rem 1.25rem;
+}
+
+.md-typeset .intro-card-grid > ul {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+.md-typeset .intro-card-grid > ul > li {
+    display: block !important;
+    min-width: 0;
+    margin: 0 !important;
+    list-style: none !important;
+}
+
+.md-typeset .intro-card-grid > ul > li::marker {
+    content: "";
+}
+
+@media screen and (max-width: 59.984375em) {
+    .md-typeset .intro-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .md-typeset .intro-card-grid > ul > li:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+    }
+}
+
+@media screen and (max-width: 44.984375em) {
+    .md-typeset .intro-card-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .md-typeset .intro-card-grid > ul > li:last-child:nth-child(odd) {
+        grid-column: auto;
+    }
 }
 
 /* ==========================================================================

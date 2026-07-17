@@ -15,7 +15,9 @@
   "use strict";
 
   var MATHJAX_SRC = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
-  var mathJaxRequested = false;
+  var mathJaxLoadPromise = null;
+  var navigationSequence = 0;
+  var typesetQueue = Promise.resolve();
 
   window.MathJax = {
     tex: {
@@ -27,6 +29,11 @@
     options: {
       ignoreHtmlClass: ".*|",
       processHtmlClass: "arithmatex"
+    },
+    startup: {
+      // document$ owns the first and subsequent typesets so lazy loading and
+      // instant-navigation updates follow the same lifecycle.
+      typeset: false
     }
   };
 
@@ -86,34 +93,95 @@ function pageNeedsMath() {
   return /\\\(|\\\[/.test(root.textContent || "");
 }
 
-function loadMathJax() {
-  if (mathJaxRequested) return;
-  mathJaxRequested = true;
-
-  var script = document.createElement("script");
-  script.src = MATHJAX_SRC;
-  script.async = true;
-  script.id = "mathjax-runtime";
-  document.head.appendChild(script);
+function mathJaxIsReady() {
+  return Boolean(
+    window.MathJax &&
+    typeof window.MathJax.typesetClear === "function" &&
+    typeof window.MathJax.texReset === "function" &&
+    typeof window.MathJax.typesetPromise === "function"
+  );
 }
 
-function typesetWhenNeeded() {
+function loadMathJax() {
+  if (mathJaxIsReady()) return Promise.resolve();
+  if (mathJaxLoadPromise) return mathJaxLoadPromise;
+
+  mathJaxLoadPromise = new Promise(function (resolve, reject) {
+    var script = document.getElementById("mathjax-runtime");
+
+    function handleLoad() {
+      if (mathJaxIsReady()) {
+        resolve();
+      } else {
+        reject(new Error("MathJax loaded without its typesetting API"));
+      }
+    }
+
+    function handleError() {
+      if (script && script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error("MathJax failed to load"));
+    }
+
+    var shouldAppend = !script;
+    if (shouldAppend) {
+      script = document.createElement("script");
+      script.src = MATHJAX_SRC;
+      script.async = true;
+      script.id = "mathjax-runtime";
+    }
+
+    script.addEventListener("load", handleLoad, { once: true });
+    script.addEventListener("error", handleError, { once: true });
+    if (shouldAppend) document.head.appendChild(script);
+  }).catch(function (error) {
+    mathJaxLoadPromise = null;
+    throw error;
+  });
+
+  return mathJaxLoadPromise;
+}
+
+function typesetCurrentDocument() {
+  var sequence = ++navigationSequence;
   wrapTocMath();
-  if (!pageNeedsMath()) return;
 
-  if (window.MathJax && MathJax.typesetPromise) {
-    MathJax.typesetPromise();
-    return;
-  }
+  // Preserve lazy loading: a page without math doesn't fetch MathJax. Once it
+  // has loaded, still clear its previous document state on every navigation.
+  if (!mathJaxIsReady() && !pageNeedsMath()) return;
 
-  loadMathJax();
+  var ready = mathJaxIsReady() ? Promise.resolve() : loadMathJax();
+
+  ready.then(function () {
+    typesetQueue = typesetQueue
+      .catch(function () {
+        // Keep a rejected typeset from blocking later navigations.
+      })
+      .then(function () {
+        // A faster navigation superseded this page while MathJax was loading or
+        // typesetting. Only ever touch the current Material document.
+        if (sequence !== navigationSequence) return;
+
+        wrapTocMath();
+        window.MathJax.typesetClear();
+        window.MathJax.texReset();
+        return window.MathJax.typesetPromise();
+      });
+
+    // Always attach a rejection handler: CDN and rapid-navigation failures must
+    // not surface as uncaught promise rejections.
+    typesetQueue.catch(function () {
+      // A later document$ emission can safely retry the lifecycle.
+    });
+  }).catch(function () {
+    // Keep raw TeX readable when the optional CDN dependency is unavailable.
+  });
 }
 
 // MkDocs Material 暴露 document$ Observable（基于 RxJS），
 // 每次内容变更（含 instant navigation）都会触发。
 if (window.document$ && typeof window.document$.subscribe === "function") {
-  window.document$.subscribe(typesetWhenNeeded);
+  window.document$.subscribe(typesetCurrentDocument);
 } else {
-  document.addEventListener("DOMContentLoaded", typesetWhenNeeded);
+  document.addEventListener("DOMContentLoaded", typesetCurrentDocument);
 }
 })();

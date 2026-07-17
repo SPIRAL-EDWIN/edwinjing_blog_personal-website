@@ -11,6 +11,9 @@
   var HIGHLIGHT_CLASS = "block-highlight";
   var HIGHLIGHT_ACTIVE_CLASS = "block-highlight--active";
   var CONTENT_SELECTOR = ".md-content__inner";
+  var documentSequence = 0;
+  var delayedHighlightTimers = [];
+  var removalTimers = [];
   var HIGHLIGHTABLE_SELECTOR = [
     ".admonition-title",
     "p",
@@ -96,6 +99,13 @@
     });
   }
 
+  function cancelTimers(timers) {
+    timers.forEach(function (timer) {
+      window.clearTimeout(timer);
+    });
+    timers.length = 0;
+  }
+
   function highlight(hash, options) {
     options = options || {};
 
@@ -105,6 +115,7 @@
     var highlightTarget = meaningfulTarget(target);
     if (!highlightTarget) return false;
 
+    cancelTimers(removalTimers);
     clearHighlights();
 
     if (options.scroll !== false) {
@@ -119,13 +130,13 @@
     void highlightTarget.offsetWidth;
     highlightTarget.classList.add(HIGHLIGHT_CLASS, HIGHLIGHT_ACTIVE_CLASS);
 
-    window.setTimeout(function () {
+    removalTimers.push(window.setTimeout(function () {
       highlightTarget.classList.remove(HIGHLIGHT_ACTIVE_CLASS);
-    }, 5000);
+    }, 5000));
 
-    window.setTimeout(function () {
+    removalTimers.push(window.setTimeout(function () {
       highlightTarget.classList.remove(HIGHLIGHT_CLASS);
-    }, 5200);
+    }, 5200));
 
     return true;
   }
@@ -155,28 +166,35 @@
   function handleHashLinkClick(event) {
     var link = event.target.closest ? event.target.closest("a[href*='#']") : null;
     if (!link || !isSamePageHashLink(link)) return;
-    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     if (link.target && link.target !== "_self") return;
 
     var url = new URL(link.getAttribute("href"), window.location.href);
     if (!findTarget(url.hash)) return;
 
+    // Material handles links on body before a document bubble listener. Capture
+    // the same-page case first so its pushState doesn't swallow our highlight.
     event.preventDefault();
-    history.pushState(null, "", url.hash);
+    event.stopPropagation();
+    history.pushState(null, "", url.pathname + url.search + url.hash);
     highlight(url.hash);
   }
 
   function highlightCurrentHash() {
     if (!window.location.hash) return;
+    var sequence = documentSequence;
+    var expectedLocation = window.location.pathname + window.location.search + window.location.hash;
 
     // Run twice: once quickly, once after Material/MathJax/layout plugins settle.
-    window.setTimeout(function () {
-      highlight(window.location.hash, { smooth: false });
-    }, 80);
+    delayedHighlightTimers.push(window.setTimeout(function () {
+      if (sequence !== documentSequence || expectedLocation !== window.location.pathname + window.location.search + window.location.hash) return;
+      highlight(window.location.hash, { scroll: false });
+    }, 80));
 
-    window.setTimeout(function () {
-      highlight(window.location.hash, { smooth: false });
-    }, 520);
+    delayedHighlightTimers.push(window.setTimeout(function () {
+      if (sequence !== documentSequence || expectedLocation !== window.location.pathname + window.location.search + window.location.hash) return;
+      highlight(window.location.hash, { scroll: false });
+    }, 520));
   }
 
   function upgradeLegacyBlockAnchors() {
@@ -210,12 +228,15 @@
   }
 
   function run() {
+    documentSequence += 1;
+    cancelTimers(delayedHighlightTimers);
+    cancelTimers(removalTimers);
+    clearHighlights();
     upgradeLegacyBlockAnchors();
     highlightCurrentHash();
   }
 
-  document.addEventListener("click", handleHashLinkClick);
-  document.addEventListener("DOMContentLoaded", run);
+  document.addEventListener("click", handleHashLinkClick, true);
   window.addEventListener("hashchange", function () {
     highlight(window.location.hash);
   });
@@ -223,5 +244,7 @@
   // MkDocs Material instant navigation support.
   if (window.document$ && typeof window.document$.subscribe === "function") {
     window.document$.subscribe(run);
+  } else {
+    document.addEventListener("DOMContentLoaded", run);
   }
 })();

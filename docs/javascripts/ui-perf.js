@@ -2,6 +2,112 @@
 (function () {
   "use strict";
 
+  var PRIMARY_SIDEBAR_DESKTOP_QUERY = "(min-width: 76.25em)";
+  var primarySidebarScrollPositions = Object.create(null);
+  var pendingPrimarySidebarScroll = null;
+  var lastDocumentPageKey = navigationPageKey(window.location.href);
+
+  function navigationPageKey(value) {
+    try {
+      var url = new URL(value, window.location.href);
+      var pathname = url.pathname.replace(/\/index\.html$/i, "/");
+      return pathname + url.search;
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function primarySidebarIsDesktop() {
+    return typeof window.matchMedia === "function" &&
+      window.matchMedia(PRIMARY_SIDEBAR_DESKTOP_QUERY).matches;
+  }
+
+  function primarySidebarScroller() {
+    return document.querySelector(".md-sidebar--primary .md-sidebar__scrollwrap");
+  }
+
+  function rememberPrimarySidebarScroll(event) {
+    if (!primarySidebarIsDesktop() || event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    var target = event.target && event.target.closest
+      ? event.target
+      : event.target && event.target.parentElement;
+    var link = target && target.closest ? target.closest("a[href]") : null;
+    if (!link || link.hasAttribute("download")) return;
+    if (link.target && link.target !== "_self") return;
+
+    var destination;
+    try {
+      destination = new URL(link.getAttribute("href"), window.location.href);
+    } catch (error) {
+      return;
+    }
+
+    if (!/^https?:$/.test(destination.protocol) || destination.origin !== window.location.origin) return;
+
+    var destinationKey = navigationPageKey(destination.href);
+    var currentKey = navigationPageKey(window.location.href);
+    if (!destinationKey || destinationKey === currentKey) return;
+
+    var scroller = primarySidebarScroller();
+    if (!scroller) return;
+
+    var scrollTop = scroller.scrollTop;
+    primarySidebarScrollPositions[currentKey] = scrollTop;
+    pendingPrimarySidebarScroll = {
+      pageKey: destinationKey,
+      scrollTop: scrollTop
+    };
+  }
+
+  function rememberPrimarySidebarScrollForHistory() {
+    var destinationKey = navigationPageKey(window.location.href);
+    if (!primarySidebarIsDesktop()) {
+      pendingPrimarySidebarScroll = null;
+      lastDocumentPageKey = destinationKey;
+      return;
+    }
+
+    var scroller = primarySidebarScroller();
+    if (!scroller) return;
+
+    primarySidebarScrollPositions[lastDocumentPageKey] = scroller.scrollTop;
+    pendingPrimarySidebarScroll = {
+      pageKey: destinationKey,
+      scrollTop: Object.prototype.hasOwnProperty.call(primarySidebarScrollPositions, destinationKey)
+        ? primarySidebarScrollPositions[destinationKey]
+        : scroller.scrollTop
+    };
+  }
+
+  function restorePrimarySidebarScroll() {
+    var currentKey = navigationPageKey(window.location.href);
+    lastDocumentPageKey = currentKey;
+
+    if (!primarySidebarIsDesktop()) {
+      pendingPrimarySidebarScroll = null;
+      return;
+    }
+
+    var scroller = primarySidebarScroller();
+    if (!scroller || !pendingPrimarySidebarScroll) return;
+
+    // Assignment is synchronous and intentionally bypasses smooth scrolling so
+    // the replacement sidebar is corrected in the document$ turn before paint.
+    scroller.scrollTop = pendingPrimarySidebarScroll.scrollTop;
+    primarySidebarScrollPositions[currentKey] = scroller.scrollTop;
+
+    if (pendingPrimarySidebarScroll.pageKey === currentKey) {
+      pendingPrimarySidebarScroll = null;
+    }
+  }
+
+  function setupPrimarySidebarScrollPreservation() {
+    document.addEventListener("click", rememberPrimarySidebarScroll, true);
+    window.addEventListener("popstate", rememberPrimarySidebarScrollForHistory);
+  }
+
   function updateHomepageClass() {
     if (!document.body) return;
 
@@ -405,6 +511,7 @@
   }
 
   var visitorDeploymentRequestStarted = false;
+  var latestVisitorDeployment = null;
 
   function visitorDeploymentApiUrl(container) {
     var repository = (container.getAttribute("data-deployment-repository") || "").trim();
@@ -431,11 +538,26 @@
     return formatted.replace(/^([A-Za-z]{3})\s+/, "$1. ");
   }
 
-  function updateVisitorDeploymentTime() {
-    var containers = document.querySelectorAll("[data-visitor-deployment]");
-    if (!containers.length || visitorDeploymentRequestStarted) return;
+  function applyVisitorDeploymentTime() {
+    if (!latestVisitorDeployment) return;
 
-    var apiUrl = visitorDeploymentApiUrl(containers[0]);
+    Array.prototype.forEach.call(document.querySelectorAll("[data-visitor-deployment]"), function (container) {
+      var time = container.querySelector("[data-visitor-deployment-time]");
+      if (!time) return;
+      time.dateTime = latestVisitorDeployment.updatedAt;
+      time.textContent = latestVisitorDeployment.text;
+      time.title = latestVisitorDeployment.title;
+    });
+  }
+
+  function updateVisitorDeploymentTime() {
+    var container = document.querySelector("[data-visitor-deployment]");
+    if (!container) return;
+
+    applyVisitorDeploymentTime();
+    if (latestVisitorDeployment || visitorDeploymentRequestStarted) return;
+
+    var apiUrl = visitorDeploymentApiUrl(container);
     if (!apiUrl) return;
     visitorDeploymentRequestStarted = true;
 
@@ -456,19 +578,21 @@
         var displayMonth = formatVisitorDeploymentMonth(latestSuccessfulRun.updated_at);
         if (!displayMonth) return;
 
-        containers.forEach(function (container) {
-          var time = container.querySelector("[data-visitor-deployment-time]");
-          if (!time) return;
-          time.dateTime = latestSuccessfulRun.updated_at;
-          time.textContent = "Latest updated " + displayMonth;
-          time.title = "Last successful GitHub Pages deployment: " + new Date(latestSuccessfulRun.updated_at).toLocaleString("en-US", {
+        latestVisitorDeployment = {
+          updatedAt: latestSuccessfulRun.updated_at,
+          text: "Latest updated " + displayMonth,
+          title: "Last successful GitHub Pages deployment: " + new Date(latestSuccessfulRun.updated_at).toLocaleString("en-US", {
             dateStyle: "medium",
             timeStyle: "short",
             timeZone: "Asia/Shanghai"
-          }) + " (UTC+8)";
-        });
+          }) + " (UTC+8)"
+        };
+        applyVisitorDeploymentTime();
       })
       .catch(function () {
+        // Leave the static fallback in place; a later homepage visit can retry.
+      })
+      .then(function () {
         visitorDeploymentRequestStarted = false;
       });
   }
@@ -604,14 +728,14 @@
     });
   }
 
-  function setOsdNotesNavigationDepth() {
+  function setENotesNavigationDepth() {
     var pathname = (window.location.pathname || "").replace(/\/index\.html$/i, "/");
     if (!/^\/OsdNotes(?:\/|$)/i.test(pathname)) return;
 
     var primaryNav = document.querySelector(".md-sidebar--primary .md-nav--primary");
     if (!primaryNav) return;
 
-    var osdRootLink = Array.prototype.find.call(
+    var enotesRootLink = Array.prototype.find.call(
       primaryNav.querySelectorAll("a.md-nav__link[href]"),
       function (link) {
         try {
@@ -622,15 +746,15 @@
         }
       }
     );
-    if (!osdRootLink) return;
+    if (!enotesRootLink) return;
 
-    var osdRootItem = osdRootLink.closest(".md-nav__item");
-    var osdNav = osdRootItem && Array.prototype.find.call(osdRootItem.children, function (child) {
+    var enotesRootItem = enotesRootLink.closest(".md-nav__item");
+    var enotesNav = enotesRootItem && Array.prototype.find.call(enotesRootItem.children, function (child) {
       return child.classList && child.classList.contains("md-nav");
     });
-    if (!osdNav) return;
+    if (!enotesNav) return;
 
-    var topLevelList = Array.prototype.find.call(osdNav.children, function (child) {
+    var topLevelList = Array.prototype.find.call(enotesNav.children, function (child) {
       return child.classList && child.classList.contains("md-nav__list");
     });
     if (!topLevelList) return;
@@ -843,7 +967,8 @@
     updateFriendCount();
     setupSearchActivation();
     markProfileDrawerEntries();
-    setOsdNotesNavigationDepth();
+    setENotesNavigationDepth();
+    restorePrimarySidebarScroll();
     openExternalContentLinksInNewTabs();
     labelCodeBlockLanguages();
     setupVisitorBadge();
@@ -853,6 +978,7 @@
 
   runAll();
   closeSearchWhenClickingAway();
+  setupPrimarySidebarScrollPreservation();
   setInterval(updateBeijingTime, 1000);
 
   document.addEventListener("DOMContentLoaded", runAll);

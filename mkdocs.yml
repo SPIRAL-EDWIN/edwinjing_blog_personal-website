@@ -49,6 +49,8 @@ theme:
   # 功能特性开关 (Feature Flags) [1, 16]
   features:
     - announce.dismiss #呈现可标记为由用户读取的临时公告，可以包含一个用于取消当前公告的按钮
+    - navigation.instant
+    - navigation.instant.progress
     - navigation.tracking #地址栏中的 URL 将自动更新为在目录中突出显示的活动锚点
     - navigation.tabs          # 启用顶部导航栏标签页模式 (适合大型文档)
     - navigation.tabs.sticky   # 标签页在滚动时吸顶固定
@@ -129,6 +131,7 @@ extra:
       - HOME/**
       - blog/index.md
       - OsdNotes/index.md
+      - 经验分享/index.md
   # (可选) 博客插件：如果需要独立的博客板块 [5, 19]
   # - blog
 
@@ -182,13 +185,13 @@ markdown_extensions:
 extra_javascript:
   # MathJax 3 配置：实现 LaTeX 公式的浏览器端渲染 
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
-  - javascripts/mathjax.js
-  - javascripts/block-links.js?v=20260624b  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js?v=20260715c
+  - javascripts/mathjax.js?v=20260717a
+  - javascripts/block-links.js?v=20260717a  # Obsidian 风格块引用链接支持
+  - javascripts/ui-perf.js?v=20260717f
 
 extra_css:
   - stylesheets/extra.css?v=20260715a       # Base theme and legacy UI layer
-  - stylesheets/edwinos-overrides.css?v=20260715c  # Final EdwinOS component fixes
+  - stylesheets/edwinos-overrides.css?v=20260717f  # Final EdwinOS component fixes
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。
@@ -197,7 +200,7 @@ nav:
     - index.md
     - Archive: HOME/Archive/index.md
     - Friends: HOME/friends.md
-  - OsdNotes:
+  - ENotes:
     - Introduction: OsdNotes/index.md
     - CS101:
       - OsdNotes/CS101/Python.md
@@ -226,6 +229,8 @@ nav:
         - "斯大林对马基雅维利政治的践行": "OsdNotes/PHIL/斯大林对马基雅维利政治的践行.md"
         - "纯粹的大众民主极易变成暴民政治": "OsdNotes/PHIL/纯粹的大众民主极易变成暴民政治.md"
   - More Experiences:
-    - "Ubuntu 下 Codex 无法在 VS Code 中打开": "经验分享/关于Ubuntu系统下Codex无法在VS Code中打开的问题.md"
+    - Introduction: 经验分享/index.md
+    - TECH:
+      - "Ubuntu 下 Codex 无法在 VS Code 中打开": "经验分享/关于Ubuntu系统下Codex无法在VS Code中打开的问题.md"
     - 年终总结:
       - "2025年终总结": "经验分享/年终总结/2025年终总结：Be Global. Be Active..md"

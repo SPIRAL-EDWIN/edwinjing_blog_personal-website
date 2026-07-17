@@ -106,48 +106,6 @@ description: "Official personal website of Chen Jing (经宸; name also written 
       </div>
     </div>
 
-    <script>
-      function updateBeijingTime() {
-          const timeElement = document.getElementById('beijing-time');
-          if (!timeElement) return;
-          const now = new Date();
-          const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-          const beijing = new Date(utc + (3600000 * 8));
-          const hours = String(beijing.getHours()).padStart(2, '0');
-          const minutes = String(beijing.getMinutes()).padStart(2, '0');
-          timeElement.innerHTML = `<span class="beijing-time-main">${hours}:${minutes}</span> <span class="beijing-time-zone">(UTC +08:00)</span>`;
-      }
-      setInterval(updateBeijingTime, 1000);
-      updateBeijingTime();
-
-      async function updateFriendCount() {
-          const countElement = document.getElementById('friend-count');
-          if (!countElement) return;
-
-          const countRealFriends = (markup) => {
-              const friendDoc = new DOMParser().parseFromString(markup, 'text/html');
-              return Array.from(friendDoc.querySelectorAll('.friend-card[href]')).filter((link) => {
-                  const href = link.getAttribute('href') || '';
-                  return !/^https?:\/\/example\d*\.com\/?/i.test(href);
-              }).length;
-          };
-
-          for (const source of ['./HOME/friends/']) {
-              try {
-                  const response = await fetch(source, { cache: 'no-cache' });
-                  if (!response.ok) continue;
-                  const friendCount = countRealFriends(await response.text());
-                  if (friendCount > 0) {
-                      countElement.textContent = String(friendCount);
-                      return;
-                  }
-              } catch (error) {
-                  // Keep the inline fallback when this source is not available.
-              }
-          }
-      }
-      updateFriendCount();
-    </script>
   </aside>
 
   <main class="academic-content">
