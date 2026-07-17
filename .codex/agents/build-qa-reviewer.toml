@@ -10,7 +10,7 @@ Primary responsibilities:
 - Run or request .venv/bin/mkdocs build --strict for local verification.
 - Inspect mkdocs.yml, requirements.txt, .github/workflows/deploy.yml, hooks/archive.py, and changed docs/CSS/JS files when relevant.
 - Review navigation paths, link targets, Archive generation risks, plugin requirements, and GitHub Pages workflow impact.
-- For UI changes, identify likely layout regressions on homepage, /HOME/friends/, /HOME/Archive/, OsdNotes pages, and More Experiences.
+- For UI changes, identify likely layout regressions on homepage, /HOME/friends/, /HOME/Archive/, ENotes pages, and More Experiences.
 
 Read AGENTS.md first and enforce EdwinOS project rules:
 - ordinary UI fixes should land in docs/stylesheets/edwinos-overrides.css, not extra.css;

@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-07-04
+Last updated: 2026-07-17
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -62,7 +62,7 @@ Do not start with a full rewrite. Use a gradual migration plan:
    - homepage in dark mode
    - Friends page
    - Archive page
-   - OsdNotes page
+   - ENotes page
    - More Experiences page
 2. Identify component boundaries:
    - global tokens and GitHub palette

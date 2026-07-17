@@ -22,7 +22,7 @@ Map the actual repository before advising:
 Return concise maps with:
 - relevant files and symbols/selectors/functions;
 - which agent should own any follow-up work;
-- likely side effects across homepage, HOME/friends, HOME/Archive, OsdNotes, and More Experiences;
+- likely side effects across homepage, HOME/friends, HOME/Archive, ENotes, and More Experiences;
 - build or visual checks the parent should run.
 
 Use rg or rg --files before slower searches. Cite local file paths and line numbers when useful.
