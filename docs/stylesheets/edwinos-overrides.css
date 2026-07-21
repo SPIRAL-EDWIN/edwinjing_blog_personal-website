@@ -600,6 +600,12 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
     :root {
         --edwinos-mobile-header-height: 3.5rem;
         --edwinos-mobile-header-control-space: 5.25rem;
+        --edwinos-mobile-drawer-space: 0rem;
+    }
+
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]),
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]) {
+        --edwinos-mobile-drawer-space: 2.75rem;
     }
 
     .md-header {
@@ -626,6 +632,13 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         overflow: visible !important;
         position: relative !important;
         z-index: 24 !important;
+        pointer-events: none !important;
+    }
+
+    .md-header__button,
+    .md-header__option,
+    .md-header .md-search {
+        pointer-events: auto !important;
     }
 
     .md-header__button.md-logo,
@@ -695,8 +708,8 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         position: fixed !important;
         top: 0 !important;
         right: calc(var(--edwinos-mobile-header-control-space) + 0.8rem) !important;
-        left: 0.72rem !important;
-        z-index: 25 !important;
+        left: calc(0.72rem + var(--edwinos-mobile-drawer-space)) !important;
+        z-index: 21 !important;
         display: flex !important;
         width: auto !important;
         height: var(--edwinos-mobile-header-height) !important;
@@ -708,8 +721,16 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         opacity: 1 !important;
         visibility: visible !important;
         background: transparent !important;
+        background-color: transparent !important;
         border-bottom: 0 !important;
         box-shadow: none !important;
+    }
+
+    body[data-md-color-scheme] .md-tabs.md-tabs,
+    body[data-md-color-scheme] .md-tabs.md-tabs[data-md-state="hidden"],
+    body[data-md-color-scheme] .md-tabs.md-tabs[data-md-state="lock"] {
+        background: transparent !important;
+        background-color: transparent !important;
     }
 
     .md-tabs .md-grid {
@@ -788,6 +809,25 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         width: auto !important;
         max-width: none !important;
     }
+
+    [data-md-toggle="search"]:checked ~ .md-tabs {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+}
+
+/* Material keeps its full search field from 60rem upward, before the primary
+   navigation reaches its desktop breakpoint. Reserve the field's real width
+   and remove the redundant search icon in that overlap range. */
+@media screen and (min-width: 60em) and (max-width: 76.1875em) {
+    :root {
+        --edwinos-mobile-header-control-space: 14.75rem;
+    }
+
+    .md-header__button[for="__search"] {
+        display: none !important;
+    }
 }
 
 @media screen and (max-width: 34rem) {
@@ -810,7 +850,7 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
 
     .md-tabs {
         right: calc(var(--edwinos-mobile-header-control-space) + 0.55rem) !important;
-        left: 0.58rem !important;
+        left: calc(0.58rem + var(--edwinos-mobile-drawer-space)) !important;
     }
 
     .md-tabs__list {
@@ -845,7 +885,7 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
 
     .md-tabs {
         right: calc(var(--edwinos-mobile-header-control-space) + 0.42rem) !important;
-        left: 0.52rem !important;
+        left: calc(0.52rem + var(--edwinos-mobile-drawer-space)) !important;
     }
 
     .md-tabs__list {
@@ -878,11 +918,42 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
 }
 
 @media screen and (max-width: 76.1875em) {
+    html:not(:has(> head > link[rel="canonical"][href*="/OsdNotes/"])):not(:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]))
     [data-md-toggle="drawer"]:checked ~ .md-container .md-sidebar--primary,
+    html:not(:has(> head > link[rel="canonical"][href*="/OsdNotes/"])):not(:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]))
     [data-md-toggle="drawer"]:checked ~ .md-overlay {
         display: none !important;
         opacity: 0 !important;
         pointer-events: none !important;
+    }
+
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+    body .md-header__button[for="__drawer"],
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+    body .md-header__button[for="__drawer"] {
+        position: absolute !important;
+        top: 50% !important;
+        left: 0.6rem !important;
+        z-index: 2 !important;
+        display: inline-flex !important;
+        width: 2.2rem !important;
+        height: 2.2rem !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: translateY(-50%) !important;
+    }
+}
+
+@media screen and (max-width: 34rem) {
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+    body .md-header__button[for="__drawer"],
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+    body .md-header__button[for="__drawer"] {
+        left: 0.5rem !important;
+        width: 2rem !important;
+        height: 2rem !important;
     }
 }
 
@@ -1049,8 +1120,6 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
     body:has(.academic-home-layout) .md-typeset .profile-meta a,
     body:has(.academic-home-layout) .md-typeset .profile-meta .meta-text {
         min-width: 0 !important;
-        font-size: 0.72rem !important;
-        line-height: 1.25 !important;
         white-space: nowrap !important;
     }
 
@@ -1158,8 +1227,6 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
     body:has(.academic-home-layout) .md-typeset .profile-meta a,
     body:has(.academic-home-layout) .md-typeset .profile-meta .meta-text {
         min-width: 0 !important;
-        font-size: 0.68rem !important;
-        line-height: 1.22 !important;
         white-space: nowrap !important;
     }
 
@@ -1274,8 +1341,6 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
     body:has(.academic-home-layout) .md-typeset .profile-meta a,
     body:has(.academic-home-layout) .md-typeset .profile-meta .meta-text {
         min-width: 0 !important;
-        font-size: 0.64rem !important;
-        line-height: 1.18 !important;
         white-space: nowrap !important;
     }
 
@@ -1296,42 +1361,6 @@ body.is-home-profile-page .md-typeset .profile-meta :is(li, a, .meta-text),
 body:has(.academic-home-layout) .md-typeset .profile-meta :is(li, a, .meta-text) {
     font-size: 0.78rem !important;
     line-height: 1.38 !important;
-}
-
-@media screen and (min-width: 46em) and (max-width: 63.25em) {
-    body.is-homepage .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
-    body.is-home-profile-page .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
-    body:has(.academic-home-layout) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
-    body.is-homepage .md-typeset .profile-meta :is(li, a, .meta-text),
-    body.is-home-profile-page .md-typeset .profile-meta :is(li, a, .meta-text),
-    body:has(.academic-home-layout) .md-typeset .profile-meta :is(li, a, .meta-text) {
-        font-size: 0.72rem !important;
-        line-height: 1.25 !important;
-    }
-}
-
-@media screen and (min-width: 43em) and (max-width: 45.9375em) {
-    body.is-homepage .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
-    body.is-home-profile-page .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
-    body:has(.academic-home-layout) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
-    body.is-homepage .md-typeset .profile-meta :is(li, a, .meta-text),
-    body.is-home-profile-page .md-typeset .profile-meta :is(li, a, .meta-text),
-    body:has(.academic-home-layout) .md-typeset .profile-meta :is(li, a, .meta-text) {
-        font-size: 0.68rem !important;
-        line-height: 1.22 !important;
-    }
-}
-
-@media screen and (min-width: 40em) and (max-width: 42.9375em) {
-    body.is-homepage .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
-    body.is-home-profile-page .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
-    body:has(.academic-home-layout) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
-    body.is-homepage .md-typeset .profile-meta :is(li, a, .meta-text),
-    body.is-home-profile-page .md-typeset .profile-meta :is(li, a, .meta-text),
-    body:has(.academic-home-layout) .md-typeset .profile-meta :is(li, a, .meta-text) {
-        font-size: 0.64rem !important;
-        line-height: 1.18 !important;
-    }
 }
 
 body.is-homepage .md-typeset .profile-meta,
@@ -1382,6 +1411,7 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         flex-wrap: nowrap !important;
         align-items: flex-start !important;
         gap: 0.32rem !important;
+        margin-top: 0 !important;
     }
 }
 
@@ -1407,6 +1437,7 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         flex-wrap: nowrap !important;
         align-items: flex-start !important;
         gap: 0.32rem !important;
+        margin-top: 0 !important;
     }
 }
 
@@ -1557,23 +1588,39 @@ body:has(.academic-home-layout) .cv-marker {
    ========================================================================== */
 
 /*
- * The legacy content layer contributes 1.5rem above every article. Keep that
- * spacious opening on the two Introduction hubs, but remove the duplicate
- * inset from their child articles. Canonical URLs are server-rendered in the
- * head, so this applies before JavaScript and avoids a first-paint jump.
+ * Give both Introduction hubs and every child note the same compact opening
+ * rhythm. Reset each contributing layout layer explicitly so the first H1 sits
+ * about 0.625 of its 2.6rem line-height below the fixed header. Canonical URLs
+ * are server-rendered, so there is no JavaScript-dependent first-paint jump.
  */
-html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]:not([href$="/OsdNotes/"]))
+html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+body .md-main__inner,
+html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+body .md-main__inner {
+    margin-top: clamp(1.25rem, calc(1.05rem + 0.45vw), 1.5rem) !important;
+}
+
+html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
 body .md-content,
-html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]:not([href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]))
+html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
 body .md-content {
     padding-top: 0 !important;
 }
 
-html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]:not([href$="/OsdNotes/"]))
+html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
 body .md-content__inner,
-html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]:not([href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]))
+html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
 body .md-content__inner {
+    padding-top: 0 !important;
     animation: none !important;
+}
+
+html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+body .md-content__inner::before,
+html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+body .md-content__inner::before {
+    display: none !important;
+    content: none !important;
 }
 
 /* Keep the MATLAB comparison heading stable before and after Material wraps

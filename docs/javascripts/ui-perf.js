@@ -763,8 +763,27 @@
       var toggle = Array.prototype.find.call(item.children, function (child) {
         return child.matches && child.matches("input.md-nav__toggle");
       });
-      if (toggle) toggle.checked = true;
+      if (!toggle) return;
+
+      var nativeChecked = toggle.getAttribute("data-edwinos-native-checked");
+      if (nativeChecked === null) {
+        nativeChecked = toggle.checked ? "true" : "false";
+        toggle.setAttribute("data-edwinos-native-checked", nativeChecked);
+      }
+
+      toggle.checked = primarySidebarIsDesktop() || nativeChecked === "true";
     });
+  }
+
+  function setupENotesNavigationDepthSync() {
+    if (typeof window.matchMedia !== "function") return;
+
+    var media = window.matchMedia(PRIMARY_SIDEBAR_DESKTOP_QUERY);
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", setENotesNavigationDepth);
+    } else if (typeof media.addListener === "function") {
+      media.addListener(setENotesNavigationDepth);
+    }
   }
 
   function openExternalContentLinksInNewTabs() {
@@ -979,6 +998,7 @@
   runAll();
   closeSearchWhenClickingAway();
   setupPrimarySidebarScrollPreservation();
+  setupENotesNavigationDepthSync();
   setInterval(updateBeijingTime, 1000);
 
   document.addEventListener("DOMContentLoaded", runAll);
