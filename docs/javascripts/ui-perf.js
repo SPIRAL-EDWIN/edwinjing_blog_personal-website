@@ -3,9 +3,14 @@
   "use strict";
 
   var PRIMARY_SIDEBAR_DESKTOP_QUERY = "(min-width: 76.25em)";
+  var SEARCH_QUERY_STORAGE_KEY = "edwinos.search-query.v1";
   var primarySidebarScrollPositions = Object.create(null);
   var pendingPrimarySidebarScroll = null;
   var lastDocumentPageKey = navigationPageKey(window.location.href);
+  var searchReloadBudgetProcessed = false;
+  var headerGeometryFrame = null;
+  var headerGeometryObserver = null;
+  var headerSearchTransitionTimer = null;
 
   function navigationPageKey(value) {
     try {
@@ -128,29 +133,246 @@
     }
   }
 
+  function writeHeaderGeometry() {
+    headerGeometryFrame = null;
+
+    var header = document.querySelector(".md-header");
+    var tabList = document.querySelector(".md-tabs__list");
+    if (!header || !tabList) return;
+
+    var headerRect = header.getBoundingClientRect();
+    var tabRect = tabList.getBoundingClientRect();
+    var searchGap = 16;
+    var measuredSearchLeft = Math.max(
+      tabRect.right - headerRect.left + searchGap,
+      0
+    );
+    var pathname = window.location.pathname || "";
+    try {
+      pathname = decodeURIComponent(pathname);
+    } catch (error) {
+      // Keep the encoded pathname when a malformed escape sequence is present.
+    }
+    var hasCompactDrawer = !primarySidebarIsDesktop() &&
+      /\/(?:OsdNotes|经验分享)(?:\/|$)/i.test(pathname);
+    var compressionAnchor = 420 + (hasCompactDrawer ? 44 : 0);
+    var searchLeft = Math.max(measuredSearchLeft, compressionAnchor);
+
+    document.documentElement.style.setProperty(
+      "--edwinos-header-search-left",
+      searchLeft.toFixed(2) + "px"
+    );
+  }
+
+  function syncHeaderGeometry() {
+    if (headerGeometryFrame !== null) {
+      window.cancelAnimationFrame(headerGeometryFrame);
+    }
+
+    headerGeometryFrame = window.requestAnimationFrame(writeHeaderGeometry);
+  }
+
+  function setupHeaderGeometrySync() {
+    if (headerGeometryObserver) {
+      headerGeometryObserver.disconnect();
+      headerGeometryObserver = null;
+    }
+
+    if (typeof window.ResizeObserver === "function") {
+      var header = document.querySelector(".md-header");
+      var tabList = document.querySelector(".md-tabs__list");
+
+      if (header && tabList) {
+        headerGeometryObserver = new window.ResizeObserver(syncHeaderGeometry);
+        headerGeometryObserver.observe(header);
+        headerGeometryObserver.observe(tabList);
+      }
+    }
+
+    if (!document.body || document.body.dataset.edwinosHeaderGeometryReady === "1") {
+      writeHeaderGeometry();
+      return;
+    }
+
+    document.body.dataset.edwinosHeaderGeometryReady = "1";
+    window.addEventListener("resize", syncHeaderGeometry, { passive: true });
+    window.addEventListener("orientationchange", syncHeaderGeometry, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", syncHeaderGeometry, { passive: true });
+    }
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(syncHeaderGeometry);
+    }
+
+    writeHeaderGeometry();
+    window.setTimeout(syncHeaderGeometry, 120);
+    window.setTimeout(syncHeaderGeometry, 420);
+  }
+
+  function beginHeaderSearchTransition() {
+    document.documentElement.classList.add("edwinos-search-transitioning");
+    // Commit the resting geometry before the checkbox changes its coordinates.
+    document.documentElement.getBoundingClientRect();
+    window.clearTimeout(headerSearchTransitionTimer);
+    headerSearchTransitionTimer = window.setTimeout(function () {
+      document.documentElement.classList.remove("edwinos-search-transitioning");
+    }, 320);
+  }
+
+  function setupHeaderSearchTransition() {
+    var searchToggle = document.querySelector('[data-md-toggle="search"]');
+    if (!searchToggle || searchToggle.dataset.edwinosTransitionReady === "1") return;
+
+    searchToggle.dataset.edwinosTransitionReady = "1";
+    searchToggle.addEventListener("change", function () {
+      if (!document.documentElement.classList.contains("edwinos-search-transitioning")) {
+        beginHeaderSearchTransition();
+      }
+    });
+  }
+
   function closeSearchWhenClickingAway() {
     document.addEventListener("click", function (event) {
       var searchToggle = document.querySelector('[data-md-toggle="search"]');
       if (!searchToggle || !searchToggle.checked) return;
 
-      var target = event.target;
-      var search = document.querySelector(".md-search");
-      if (search && search.contains(target)) return;
-      if (target.closest && target.closest('[for="__search"]')) return;
+      var target = event.target && event.target.nodeType === 1
+        ? event.target
+        : event.target && event.target.parentElement;
+      if (!target) return;
 
+      var search = document.querySelector(".md-search");
+      var searchControl = target.closest ? target.closest('[for="__search"]') : null;
+      if (searchControl && !searchControl.classList.contains("md-search__overlay")) return;
+      if (searchControl && searchControl.classList.contains("md-search__overlay")) {
+        event.preventDefault();
+      }
+
+      if (search && search.contains(target)) {
+        var interactiveSearchContent = target.closest(
+          ".md-search__form, .md-search__options, .md-search-result__item, .md-search-result__link"
+        );
+        if (interactiveSearchContent) return;
+      }
+
+      beginHeaderSearchTransition();
       searchToggle.checked = false;
       searchToggle.dispatchEvent(new Event("change", { bubbles: true }));
     });
+  }
+
+  function searchNavigationIsReload() {
+    if (window.performance && typeof window.performance.getEntriesByType === "function") {
+      var entries = window.performance.getEntriesByType("navigation");
+      if (entries.length) return entries[0].type === "reload";
+    }
+
+    return Boolean(
+      window.performance &&
+      window.performance.navigation &&
+      window.performance.navigation.type === 1
+    );
+  }
+
+  function readRememberedSearchQuery() {
+    var raw;
+    try {
+      raw = window.sessionStorage.getItem(SEARCH_QUERY_STORAGE_KEY);
+    } catch (error) {
+      return null;
+    }
+    if (!raw) return null;
+
+    try {
+      var state = JSON.parse(raw);
+      var query = typeof state.query === "string" ? state.query.trim() : "";
+      var remainingReloads = Number(state.remainingReloads);
+      if (!query || !Number.isFinite(remainingReloads) || remainingReloads <= 0) {
+        window.sessionStorage.removeItem(SEARCH_QUERY_STORAGE_KEY);
+        return null;
+      }
+      return {
+        query: query,
+        remainingReloads: remainingReloads
+      };
+    } catch (error) {
+      try {
+        window.sessionStorage.removeItem(SEARCH_QUERY_STORAGE_KEY);
+      } catch (storageError) {
+        // Storage may be unavailable in privacy-restricted browser contexts.
+      }
+      return null;
+    }
+  }
+
+  function writeRememberedSearchQuery(query) {
+    var normalized = (query || "").trim();
+
+    try {
+      if (!normalized) {
+        window.sessionStorage.removeItem(SEARCH_QUERY_STORAGE_KEY);
+        return;
+      }
+
+      window.sessionStorage.setItem(SEARCH_QUERY_STORAGE_KEY, JSON.stringify({
+        query: normalized,
+        remainingReloads: 2
+      }));
+    } catch (error) {
+      // Search remains fully usable when session storage is unavailable.
+    }
+  }
+
+  function rememberedSearchQueryForThisLoad() {
+    var state = readRememberedSearchQuery();
+    if (!state) return "";
+
+    if (!searchReloadBudgetProcessed && searchNavigationIsReload()) {
+      searchReloadBudgetProcessed = true;
+      state.remainingReloads -= 1;
+
+      try {
+        if (state.remainingReloads <= 0) {
+          window.sessionStorage.removeItem(SEARCH_QUERY_STORAGE_KEY);
+        } else {
+          window.sessionStorage.setItem(SEARCH_QUERY_STORAGE_KEY, JSON.stringify(state));
+        }
+      } catch (error) {
+        // The in-memory query below can still restore the current view.
+      }
+    }
+
+    return state.query;
   }
 
   function setupSearchActivation() {
     var search = document.querySelector(".md-search");
     var input = search ? search.querySelector(".md-search__input") : null;
     var form = search ? search.querySelector(".md-search__form") : null;
+    var output = search ? search.querySelector(".md-search__output") : null;
     var searchToggle = document.querySelector('[data-md-toggle="search"]');
 
-    if (!search || !input || !form || !searchToggle || search.dataset.edwinosSearchReady === "1") return;
+    if (!search || !input || !form || !output || !searchToggle || search.dataset.edwinosSearchReady === "1") return;
     search.dataset.edwinosSearchReady = "1";
+    input.placeholder = "Search";
+    input.setAttribute("aria-label", "Search");
+
+    var searchTrigger = document.querySelector('.md-header__button[for="__search"]');
+    if (searchTrigger) {
+      searchTrigger.setAttribute("title", "Search");
+      searchTrigger.setAttribute("aria-label", "Search");
+    }
+
+    var params = new URLSearchParams(window.location.search);
+    var sharedQuery = params.get("q") || params.get("query");
+    var rememberedQuery = sharedQuery || rememberedSearchQueryForThisLoad();
+
+    var syncQueryState = function () {
+      var hasQuery = Boolean(input.value.trim());
+      search.classList.toggle("edwinos-search-has-query", hasQuery);
+      output.hidden = !hasQuery;
+    };
 
     var emitQuery = function () {
       input.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, key: "Unidentified" }));
@@ -165,13 +387,51 @@
     };
 
     var openSearch = function () {
+      if (!input.value && rememberedQuery) {
+        input.value = rememberedQuery;
+      }
+
       if (!searchToggle.checked) {
+        beginHeaderSearchTransition();
         searchToggle.checked = true;
         searchToggle.dispatchEvent(new Event("change", { bubbles: true }));
       }
 
       scheduleQueryEmit();
     };
+
+    if (searchTrigger && searchTrigger.dataset.edwinosSearchTriggerReady !== "1") {
+      searchTrigger.dataset.edwinosSearchTriggerReady = "1";
+      searchTrigger.addEventListener("click", function (event) {
+        // The compact control is a label for Material's search checkbox.
+        // Own the state change so the native label action cannot toggle it
+        // back off after the input's focus handler opens the search surface.
+        event.preventDefault();
+        event.stopPropagation();
+        openSearch();
+        window.requestAnimationFrame(function () {
+          input.focus();
+        });
+      });
+    }
+
+    if (form.dataset.edwinosSearchFormReady !== "1") {
+      form.dataset.edwinosSearchFormReady = "1";
+      form.addEventListener("click", function (event) {
+        if (searchToggle.checked) return;
+
+        var target = event.target && event.target.nodeType === 1
+          ? event.target
+          : event.target && event.target.parentElement;
+        if (target && target.closest && target.closest(".md-search__options")) return;
+
+        event.preventDefault();
+        openSearch();
+        window.requestAnimationFrame(function () {
+          input.focus();
+        });
+      });
+    }
 
     var updateSharedQuery = function () {
       var query = input.value.trim();
@@ -187,10 +447,28 @@
       window.history.replaceState(null, "", url);
     };
 
-    input.addEventListener("focus", openSearch);
+    input.addEventListener("focus", function () {
+      // A header search label focuses the input before its native checkbox
+      // toggle completes. Defer activation so we do not turn the toggle on
+      // early and let the label's default action immediately turn it off.
+      window.requestAnimationFrame(openSearch);
+    });
     input.addEventListener("click", openSearch);
-    input.addEventListener("input", openSearch);
+    input.addEventListener("input", function () {
+      rememberedQuery = input.value.trim();
+      syncQueryState();
+      writeRememberedSearchQuery(rememberedQuery);
+      openSearch();
+    });
     input.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        beginHeaderSearchTransition();
+        searchToggle.checked = false;
+        searchToggle.dispatchEvent(new Event("change", { bubbles: true }));
+        input.blur();
+        return;
+      }
+
       if (event.key !== "Enter") return;
 
       event.preventDefault();
@@ -212,10 +490,30 @@
       input.focus();
     }, true);
 
-    var params = new URLSearchParams(window.location.search);
-    var sharedQuery = params.get("q") || params.get("query");
-    if (sharedQuery && !input.value) {
-      input.value = sharedQuery;
+    form.addEventListener("reset", function () {
+      rememberedQuery = "";
+      writeRememberedSearchQuery("");
+      window.requestAnimationFrame(syncQueryState);
+    });
+
+    searchToggle.addEventListener("change", function () {
+      if (!searchToggle.checked) {
+        input.blur();
+        return;
+      }
+
+      window.requestAnimationFrame(function () {
+        input.focus();
+        scheduleQueryEmit();
+      });
+    });
+
+    if (rememberedQuery && !input.value) {
+      input.value = rememberedQuery;
+    }
+    syncQueryState();
+
+    if (sharedQuery) {
       window.requestAnimationFrame(function () {
         openSearch();
         scheduleQueryEmit();
@@ -402,6 +700,7 @@
       '  <div class="profile-avatar">',
       '    <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Edwin&backgroundColor=f0f4f8" alt="Chen Jing (经宸)">',
       '  </div>',
+      '  <div class="profile-details">',
       '  <div class="profile-name-wrap">',
       '    <h1 class="profile-name">Chen Jing <span class="profile-cn-name">(经宸)</span></h1>',
       '    <p class="profile-pronouns">Edwin &middot; he/him</p>',
@@ -436,6 +735,7 @@
       '    <a href="https://www.instagram.com/edwinjing2025/" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram"><svg class="social-icon" aria-hidden="true" viewBox="0 0 448 512"><path d="M224.3 141a115 115 0 1 0-.6 230 115 115 0 1 0 .6-230m-.6 40.4a74.6 74.6 0 1 1 .6 149.2 74.6 74.6 0 1 1-.6-149.2m93.4-45.1a26.8 26.8 0 1 1 53.6 0 26.8 26.8 0 1 1-53.6 0m129.7 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8M399 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1"></path></svg></a>',
       '    <a href="https://www.youtube.com/@EdwinJing" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube"><svg class="social-icon" aria-hidden="true" viewBox="0 0 576 512"><path d="M549.7 124.1c-6.2-23.7-24.8-42.3-48.3-48.6C458.9 64 288.1 64 288.1 64S117.3 64 74.7 75.5c-23.5 6.3-42 24.9-48.3 48.6C15 167 15 256.4 15 256.4s0 89.4 11.4 132.3c6.3 23.6 24.8 41.5 48.3 47.8C117.3 448 288.1 448 288.1 448s170.8 0 213.4-11.5c23.5-6.3 42-24.2 48.3-47.8 11.4-42.9 11.4-132.3 11.4-132.3s0-89.4-11.4-132.3zM232.2 337.6V175.2l142.7 81.2z"></path></svg></a>',
       '    <a href="https://x.com/EdwinJing661" target="_blank" rel="noopener" title="Twitter/X" aria-label="Twitter/X"><svg class="social-icon" aria-hidden="true" viewBox="0 0 448 512"><path d="M357.2 48h70.6L273.6 224.2 455 464H313L201.7 318.6 74.5 464H3.8l164.9-188.5L-5.2 48h145.6l100.5 132.9zm-24.8 373.8h39.1L119.1 88h-42z"></path></svg></a>',
+      '  </div>',
       '  </div>',
       '</div>'
     ].join("");
@@ -728,36 +1028,148 @@
     });
   }
 
-  function setENotesNavigationDepth() {
-    var pathname = (window.location.pathname || "").replace(/\/index\.html$/i, "/");
-    if (!/^\/OsdNotes(?:\/|$)/i.test(pathname)) return;
+  function normalizedDrawerPath(value) {
+    var pathname = value || "";
+
+    try {
+      pathname = new URL(value, window.location.href).pathname;
+    } catch (error) {
+      // A pathname passed directly is already sufficient.
+    }
+
+    try {
+      pathname = decodeURIComponent(pathname);
+    } catch (error) {
+      // Preserve malformed encoded paths so route detection fails safely.
+    }
+
+    return pathname.replace(/\/index\.html$/i, "/");
+  }
+
+  function currentDrawerSection() {
+    var pathname = normalizedDrawerPath(window.location.pathname || "");
+
+    if (/^\/OsdNotes(?:\/|$)/i.test(pathname)) {
+      return {
+        key: "enotes",
+        label: "ENotes",
+        rootPath: "/OsdNotes/"
+      };
+    }
+
+    if (/^\/经验分享(?:\/|$)/.test(pathname)) {
+      return {
+        key: "experiences",
+        label: "More Experiences",
+        rootPath: "/经验分享/"
+      };
+    }
+
+    return null;
+  }
+
+  function setSectionNavigationDepth(restoreMobileNativeDepth) {
+    var section = currentDrawerSection();
+    if (!section) return;
 
     var primaryNav = document.querySelector(".md-sidebar--primary .md-nav--primary");
     if (!primaryNav) return;
 
-    var enotesRootLink = Array.prototype.find.call(
+    var sectionRootLink = Array.prototype.find.call(
       primaryNav.querySelectorAll("a.md-nav__link[href]"),
       function (link) {
-        try {
-          return new URL(link.getAttribute("href"), window.location.href).pathname
-            .replace(/\/index\.html$/i, "/") === "/OsdNotes/";
-        } catch (error) {
-          return false;
+        return normalizedDrawerPath(link.getAttribute("href")) === section.rootPath;
+      }
+    );
+    if (!sectionRootLink) return;
+
+    var sectionRootItem = sectionRootLink.closest(".md-nav__item");
+    var sectionRootToggle = sectionRootItem && Array.prototype.find.call(sectionRootItem.children, function (child) {
+      return child.matches && child.matches("input.md-nav__toggle");
+    });
+    var sectionNav = sectionRootItem && Array.prototype.find.call(sectionRootItem.children, function (child) {
+      return child.classList && child.classList.contains("md-nav");
+    });
+    if (!sectionRootItem || !sectionRootToggle || !sectionNav) return;
+
+    primaryNav.setAttribute("data-edwinos-drawer-section", section.key);
+    sectionRootItem.classList.add("edwinos-drawer-section-root");
+    sectionNav.classList.add("edwinos-drawer-section-nav");
+
+    var sectionTitle = Array.prototype.find.call(sectionNav.children, function (child) {
+      return child.classList && child.classList.contains("md-nav__title");
+    });
+    if (sectionTitle) {
+      sectionTitle.classList.add("edwinos-drawer-section-title");
+      sectionTitle.classList.remove("edwinos-drawer-back-title");
+      sectionTitle.setAttribute("aria-label", section.label);
+      sectionTitle.removeAttribute("role");
+      sectionTitle.removeAttribute("tabindex");
+
+      if (!sectionTitle.dataset.edwinosNativeFor) {
+        sectionTitle.dataset.edwinosNativeFor = sectionTitle.getAttribute("for") || "";
+      }
+
+      if (primarySidebarIsDesktop()) {
+        if (sectionTitle.dataset.edwinosNativeFor) {
+          sectionTitle.setAttribute("for", sectionTitle.dataset.edwinosNativeFor);
+        }
+      } else {
+        sectionTitle.removeAttribute("for");
+      }
+    }
+
+    Array.prototype.forEach.call(
+      sectionNav.querySelectorAll(
+        'nav.md-nav:not(.md-nav--secondary) > label.md-nav__title[for^="__nav_"]'
+      ),
+      function (title) {
+        if (title === sectionTitle) return;
+
+        if (!title.dataset.edwinosDrawerBackFor) {
+          title.dataset.edwinosDrawerBackFor = title.getAttribute("for") || "";
+        }
+
+        title.classList.add("edwinos-drawer-back-title");
+        title.setAttribute("aria-label", "返回上一级导航");
+        title.removeAttribute("for");
+        title.removeAttribute("title");
+        title.setAttribute("role", "button");
+        title.setAttribute("tabindex", "0");
+
+        if (title.dataset.edwinosDrawerBackReady !== "1") {
+          title.dataset.edwinosDrawerBackReady = "1";
+
+          var returnToParentNavigation = function (event) {
+            if (event.type === "keydown" && event.key !== "Enter" && event.key !== " ") return;
+
+            var toggle = document.getElementById(title.dataset.edwinosDrawerBackFor || "");
+            if (!toggle) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            toggle.checked = false;
+            toggle.dispatchEvent(new Event("change", { bubbles: true }));
+          };
+
+          title.addEventListener("click", returnToParentNavigation);
+          title.addEventListener("keydown", returnToParentNavigation);
         }
       }
     );
-    if (!enotesRootLink) return;
 
-    var enotesRootItem = enotesRootLink.closest(".md-nav__item");
-    var enotesNav = enotesRootItem && Array.prototype.find.call(enotesRootItem.children, function (child) {
-      return child.classList && child.classList.contains("md-nav");
-    });
-    if (!enotesNav) return;
+    if (primarySidebarIsDesktop()) {
+      sectionRootToggle.disabled = false;
+    } else {
+      sectionRootToggle.checked = true;
+      sectionRootToggle.disabled = true;
+      sectionNav.setAttribute("aria-expanded", "true");
+    }
 
-    var topLevelList = Array.prototype.find.call(enotesNav.children, function (child) {
+    var topLevelList = Array.prototype.find.call(sectionNav.children, function (child) {
       return child.classList && child.classList.contains("md-nav__list");
     });
-    if (!topLevelList) return;
+    if (!topLevelList || section.key !== "enotes") return;
 
     Array.prototype.forEach.call(topLevelList.children, function (item) {
       var toggle = Array.prototype.find.call(item.children, function (child) {
@@ -771,18 +1183,25 @@
         toggle.setAttribute("data-edwinos-native-checked", nativeChecked);
       }
 
-      toggle.checked = primarySidebarIsDesktop() || nativeChecked === "true";
+      if (primarySidebarIsDesktop()) {
+        toggle.checked = true;
+      } else if (restoreMobileNativeDepth === true) {
+        toggle.checked = nativeChecked === "true";
+      }
     });
   }
 
-  function setupENotesNavigationDepthSync() {
+  function setupSectionNavigationDepthSync() {
     if (typeof window.matchMedia !== "function") return;
 
     var media = window.matchMedia(PRIMARY_SIDEBAR_DESKTOP_QUERY);
+    var syncNavigationDepth = function () {
+      setSectionNavigationDepth(true);
+    };
     if (typeof media.addEventListener === "function") {
-      media.addEventListener("change", setENotesNavigationDepth);
+      media.addEventListener("change", syncNavigationDepth);
     } else if (typeof media.addListener === "function") {
-      media.addListener(setENotesNavigationDepth);
+      media.addListener(syncNavigationDepth);
     }
   }
 
@@ -978,6 +1397,8 @@
 
   function runAll() {
     updateHomepageClass();
+    setupHeaderGeometrySync();
+    setupHeaderSearchTransition();
     normalizePaletteButtons();
     updateSourceFactsFromGitHub();
     watchSourceFacts();
@@ -986,7 +1407,7 @@
     updateFriendCount();
     setupSearchActivation();
     markProfileDrawerEntries();
-    setENotesNavigationDepth();
+    setSectionNavigationDepth();
     restorePrimarySidebarScroll();
     openExternalContentLinksInNewTabs();
     labelCodeBlockLanguages();
@@ -998,7 +1419,7 @@
   runAll();
   closeSearchWhenClickingAway();
   setupPrimarySidebarScrollPreservation();
-  setupENotesNavigationDepthSync();
+  setupSectionNavigationDepthSync();
   setInterval(updateBeijingTime, 1000);
 
   document.addEventListener("DOMContentLoaded", runAll);

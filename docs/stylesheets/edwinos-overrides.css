@@ -619,6 +619,17 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         box-shadow: none !important;
     }
 
+    /*
+     * Keep drawer-route tabs in the sticky header's coordinate system during
+     * iOS elastic overscroll without changing the header's normal geometry.
+     */
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+    body .md-header > .md-tabs,
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+    body .md-header > .md-tabs {
+        position: absolute !important;
+    }
+
     .md-header__inner {
         display: flex !important;
         width: 100% !important;
@@ -656,7 +667,7 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         align-items: center !important;
         justify-content: center !important;
         margin: 0 !important;
-        order: 1;
+        order: 2;
     }
 
     .md-header__option,
@@ -699,7 +710,7 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
     }
 
     .md-header__button[for="__search"] {
-        order: 2;
+        order: 1;
     }
 
     .md-tabs,
@@ -800,37 +811,41 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         border-bottom: 1px solid var(--github-frame-dark-border, #30363d) !important;
     }
 
-    [data-md-toggle="search"]:checked ~ .md-header .md-search {
+    [data-md-toggle="search"]:checked ~ .md-header .md-search__overlay {
         position: fixed !important;
-        top: 0.55rem !important;
-        right: 0.72rem !important;
-        left: 0.72rem !important;
-        z-index: 30 !important;
-        width: auto !important;
-        max-width: none !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        opacity: 1 !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
 
-    [data-md-toggle="search"]:checked ~ .md-tabs {
-        opacity: 0 !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
+    [data-md-toggle="search"]:checked ~ .md-header .md-search__scrollwrap {
+        background-image: none !important;
+        backdrop-filter: blur(4px) saturate(0.95) !important;
+        -webkit-backdrop-filter: blur(4px) saturate(0.95) !important;
+        box-shadow: inset 0 1px 0 rgba(139, 148, 158, 0.18) !important;
+    }
+
+    [data-md-color-scheme="default"] [data-md-toggle="search"]:checked ~ .md-header .md-search__overlay {
+        background: rgba(246, 248, 250, 0.08) !important;
+    }
+
+    [data-md-color-scheme="default"] [data-md-toggle="search"]:checked ~ .md-header .md-search__scrollwrap {
+        background: rgba(255, 255, 255, 0.48) !important;
+    }
+
+    [data-md-color-scheme="slate"] [data-md-toggle="search"]:checked ~ .md-header .md-search__overlay {
+        background: rgba(1, 4, 9, 0.08) !important;
+    }
+
+    [data-md-color-scheme="slate"] [data-md-toggle="search"]:checked ~ .md-header .md-search__scrollwrap {
+        background: rgba(13, 17, 23, 0.38) !important;
     }
 }
 
-/* Material keeps its full search field from 60rem upward, before the primary
-   navigation reaches its desktop breakpoint. Reserve the field's real width
-   and remove the redundant search icon in that overlap range. */
-@media screen and (min-width: 60em) and (max-width: 76.1875em) {
-    :root {
-        --edwinos-mobile-header-control-space: 14.75rem;
-    }
-
-    .md-header__button[for="__search"] {
-        display: none !important;
-    }
-}
-
-@media screen and (max-width: 34rem) {
+@media screen and (max-width: 35rem) {
     :root {
         --edwinos-mobile-header-control-space: 4.65rem;
     }
@@ -863,24 +878,22 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         padding: 0 0.32rem !important;
         font-size: 0.84rem !important;
     }
+
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]) .md-tabs__list,
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]) .md-tabs__list {
+        gap: 0.02rem !important;
+    }
+
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]) .md-tabs__link,
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]) .md-tabs__link {
+        padding: 0 0.16rem !important;
+        font-size: 0.8rem !important;
+    }
 }
 
 @media screen and (max-width: 27rem) {
     :root {
         --edwinos-mobile-header-control-space: 2.55rem;
-    }
-
-    .md-header .md-search,
-    .md-header__button[for="__search"] {
-        display: none !important;
-        width: 0 !important;
-        max-width: 0 !important;
-        height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
     }
 
     .md-tabs {
@@ -898,11 +911,1006 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
     }
 }
 
-@media screen and (max-width: 24rem) {
+@media screen and (max-width: 25rem) {
     .md-tabs__link {
         padding: 0 0.16rem !important;
         font-size: 0.8rem !important;
     }
+}
+
+@media screen and (max-width: 34rem) {
+    .md-tabs .md-tabs__list {
+        gap: 2px !important;
+    }
+
+    .md-tabs .md-tabs__link {
+        padding-inline: 1px !important;
+        font-size: 13.5px !important;
+    }
+
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+    .md-tabs .md-tabs__list,
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+    .md-tabs .md-tabs__list {
+        gap: 3px !important;
+    }
+
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+    .md-tabs .md-tabs__link,
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+    .md-tabs .md-tabs__link {
+        padding-inline: 0 !important;
+        font-size: 10.75px !important;
+    }
+}
+
+@media screen and (max-width: 23rem) {
+    .md-tabs__link {
+        padding: 0 0.08rem !important;
+        font-size: 0.76rem !important;
+    }
+}
+
+@media screen and (max-width: 22rem) {
+    .md-tabs__link {
+        padding-inline: 0 !important;
+        font-size: 0.7rem !important;
+    }
+}
+
+/*
+ * Full search-field states use an iOS-like translucent capsule. The compact
+ * mobile search trigger is intentionally untouched.
+ */
+.md-header .md-search__form {
+    overflow: hidden !important;
+    border-radius: 999px !important;
+    -webkit-backdrop-filter: blur(14px) saturate(1.16);
+    backdrop-filter: blur(14px) saturate(1.16);
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        box-shadow 160ms ease !important;
+}
+
+.md-header .md-search__input {
+    padding-right: 1rem !important;
+    padding-left: 2.25rem !important;
+    border-radius: inherit !important;
+    box-shadow: none !important;
+}
+
+.md-header .md-search__form .md-search__icon[for="__search"] {
+    left: 0.68rem !important;
+    width: 1rem !important;
+    height: 1rem !important;
+}
+
+.md-header .md-search__options {
+    display: none !important;
+}
+
+[data-md-color-scheme="default"] .md-header .md-search__form {
+    background: rgba(118, 118, 128, 0.12) !important;
+    border: 1px solid rgba(60, 60, 67, 0.14) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.58),
+        0 1px 2px rgba(31, 35, 40, 0.06),
+        0 4px 14px rgba(31, 35, 40, 0.04) !important;
+}
+
+[data-md-color-scheme="default"] .md-header .md-search:hover .md-search__form {
+    background: rgba(118, 118, 128, 0.2) !important;
+    border-color: rgba(60, 60, 67, 0.28) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 2px 8px rgba(31, 35, 40, 0.08) !important;
+}
+
+[data-md-toggle="search"]:checked
+~ .md-header[data-md-color-scheme="default"]
+.md-search__form:focus-within,
+[data-md-color-scheme="default"]
+[data-md-toggle="search"]:checked
+~ .md-header
+.md-search__form:focus-within {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(0, 122, 255, 0.58) !important;
+    box-shadow:
+        0 0 0 3px rgba(0, 122, 255, 0.13),
+        0 2px 10px rgba(31, 35, 40, 0.09) !important;
+}
+
+[data-md-color-scheme="default"] .md-header .md-search__input {
+    color: #1c1c1e !important;
+}
+
+[data-md-color-scheme="default"] .md-header .md-search__input::placeholder,
+[data-md-color-scheme="default"] .md-header .md-search__form .md-search__icon {
+    color: #51515a !important;
+}
+
+[data-md-toggle="search"]:checked
+~ .md-header[data-md-color-scheme="default"]
+.md-search__form:focus-within
+.md-search__icon,
+[data-md-color-scheme="default"]
+[data-md-toggle="search"]:checked
+~ .md-header
+.md-search__form:focus-within
+.md-search__icon {
+    color: #007aff !important;
+}
+
+[data-md-color-scheme="slate"] .md-header .md-search__form {
+    background: rgba(22, 27, 34, 0.74) !important;
+    border: 1px solid rgba(240, 246, 252, 0.14) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(240, 246, 252, 0.05),
+        0 2px 10px rgba(1, 4, 9, 0.18) !important;
+}
+
+[data-md-color-scheme="slate"] .md-header .md-search:hover .md-search__form {
+    background: rgba(33, 38, 45, 0.9) !important;
+    border-color: rgba(139, 148, 158, 0.46) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(240, 246, 252, 0.07),
+        0 3px 12px rgba(1, 4, 9, 0.24) !important;
+}
+
+[data-md-toggle="search"]:checked
+~ .md-header[data-md-color-scheme="slate"]
+.md-search__form:focus-within,
+[data-md-color-scheme="slate"]
+[data-md-toggle="search"]:checked
+~ .md-header
+.md-search__form:focus-within {
+    background: rgba(22, 27, 34, 0.96) !important;
+    border-color: rgba(88, 166, 255, 0.68) !important;
+    box-shadow:
+        0 0 0 3px rgba(88, 166, 255, 0.14),
+        0 3px 14px rgba(1, 4, 9, 0.3) !important;
+}
+
+[data-md-color-scheme="slate"] .md-header .md-search__input {
+    color: #f0f6fc !important;
+}
+
+[data-md-color-scheme="slate"] .md-header .md-search__input::placeholder,
+[data-md-color-scheme="slate"] .md-header .md-search__form .md-search__icon {
+    color: #8b949e !important;
+}
+
+[data-md-toggle="search"]:checked
+~ .md-header[data-md-color-scheme="slate"]
+.md-search__form:focus-within
+.md-search__icon,
+[data-md-color-scheme="slate"]
+[data-md-toggle="search"]:checked
+~ .md-header
+.md-search__form:focus-within
+.md-search__icon {
+    color: #58a6ff !important;
+}
+
+[data-md-color-scheme="default"] .md-header .md-search__overlay {
+    background: rgba(246, 248, 250, 0.08) !important;
+}
+
+[data-md-color-scheme="slate"] .md-header .md-search__overlay {
+    background: rgba(1, 4, 9, 0.08) !important;
+}
+
+/*
+ * Keep the search field in one header coordinate system so opening and
+ * closing can animate between its resting width and the full notch.
+ */
+.md-header .md-search {
+    transition: opacity 180ms ease !important;
+}
+
+html.edwinos-search-transitioning .md-header .md-search {
+    transition:
+        left 260ms cubic-bezier(0.22, 1, 0.36, 1),
+        right 260ms cubic-bezier(0.22, 1, 0.36, 1),
+        width 260ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms ease !important;
+}
+
+@media screen {
+    [data-md-toggle="search"]:checked ~ .md-header .md-search {
+        position: fixed !important;
+        top: calc(
+            (
+                var(--edwinos-header-height)
+                - var(--edwinos-header-control-size)
+            )
+            / 2
+        ) !important;
+        right: var(--edwinos-header-edge) !important;
+        left: var(--edwinos-header-edge) !important;
+        z-index: 30 !important;
+        display: block !important;
+        width: auto !important;
+        max-width: none !important;
+        height: var(--edwinos-header-control-size) !important;
+        margin: 0 !important;
+        padding: 1px 0 !important;
+        overflow: visible !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+
+    [data-md-toggle="search"]:checked ~ .md-header .md-search__inner {
+        position: relative !important;
+        inset: auto !important;
+        width: 100% !important;
+        height: calc(var(--edwinos-header-control-size) - 2px) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    [data-md-toggle="search"]:checked ~ .md-header .md-search__form {
+        position: relative !important;
+        width: 100% !important;
+        height: calc(var(--edwinos-header-control-size) - 2px) !important;
+        min-height: calc(var(--edwinos-header-control-size) - 2px) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    [data-md-toggle="search"]:checked ~ .md-header .md-search__input {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        line-height: 1.25 !important;
+    }
+
+    [data-md-toggle="search"]:checked ~ .md-header :is(
+        .md-header__source,
+        .md-header__option
+    ),
+    [data-md-toggle="search"]:checked ~ .md-header .md-tabs {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+}
+
+.md-header .md-search__output {
+    top: calc(2.1rem + 0.55rem) !important;
+    right: 0 !important;
+    bottom: auto !important;
+    left: 0 !important;
+    height: 0 !important;
+    max-height: min(68vh, 32rem) !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transform: translateY(-0.35rem);
+    transition:
+        opacity 160ms ease,
+        transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0s linear 220ms !important;
+}
+
+.md-header .md-search__output[hidden] {
+    display: none !important;
+}
+
+.md-header .md-search__scrollwrap {
+    width: 100% !important;
+    height: auto !important;
+    max-height: min(68vh, 32rem) !important;
+    overflow-y: auto !important;
+    background: transparent !important;
+}
+
+.md-header .md-search-result {
+    width: 100% !important;
+}
+
+[data-md-toggle="search"]:checked
+~ .md-header
+.md-search.edwinos-search-has-query
+.md-search__output {
+    position: absolute !important;
+    z-index: 31 !important;
+    height: min(68vh, 32rem) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transform: translateY(0);
+    transition-delay: 0s !important;
+}
+
+[data-md-toggle="search"]:checked
+~ .md-header
+.md-search__inner {
+    overflow: visible !important;
+}
+
+[data-md-toggle="search"]:not(:checked)
+~ .md-header
+.md-search
+.md-search__output,
+[data-md-toggle="search"]:checked
+~ .md-header
+.md-search:not(.edwinos-search-has-query)
+.md-search__output {
+    height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transform: translateY(-0.35rem) !important;
+}
+
+[data-md-color-scheme="default"]
+[data-md-toggle="search"]:checked
+~ .md-header
+.md-search.edwinos-search-has-query
+.md-search__output {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(60, 60, 67, 0.16) !important;
+    box-shadow: 0 16px 36px rgba(31, 35, 40, 0.16) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(1.08);
+    backdrop-filter: blur(18px) saturate(1.08);
+}
+
+[data-md-color-scheme="slate"]
+[data-md-toggle="search"]:checked
+~ .md-header
+.md-search.edwinos-search-has-query
+.md-search__output {
+    background: rgba(13, 17, 23, 0.9) !important;
+    border: 1px solid rgba(240, 246, 252, 0.14) !important;
+    box-shadow: 0 18px 40px rgba(1, 4, 9, 0.34) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(1.08);
+    backdrop-filter: blur(18px) saturate(1.08);
+}
+
+/*
+ * Header controls share one coordinate system and collapse in two ordered
+ * stages. The GitHub icon first wipes a stationary repository label, then the
+ * search capsule contracts. Once the capsule is circular it cannot re-expand.
+ */
+:root {
+    --edwinos-header-edge: clamp(8px, 2vw, 32px);
+    --edwinos-header-height: var(
+        --edwinos-mobile-header-height,
+        var(--compact-header-height, 3.5rem)
+    );
+    --edwinos-header-control-size: 44px;
+    --edwinos-header-control-gap: clamp(
+        0px,
+        calc((100vw - 420px) / 39),
+        4px
+    );
+    --edwinos-header-tabs-search-gap: clamp(
+        2px,
+        calc((100vw - 360px) / 20),
+        4px
+    );
+    --edwinos-header-source-icon-size: 28px;
+    --edwinos-header-source-icon-inset: calc(
+        (
+            var(--edwinos-header-control-size)
+            - var(--edwinos-header-source-icon-size)
+        )
+        / 2
+    );
+    --edwinos-header-search-source-gap: clamp(
+        7px,
+        calc(3.75vw - 5.75px),
+        16px
+    );
+    --edwinos-header-search-left: 420px;
+    --edwinos-header-search-stage-width: 190px;
+    --edwinos-header-source-max-width: 204px;
+    --edwinos-header-source-right: calc(
+        var(--edwinos-header-edge)
+        + var(--edwinos-header-control-size)
+        + var(--edwinos-header-control-gap)
+    );
+    --edwinos-header-compression-budget: calc(
+        100vw
+        - var(--edwinos-header-search-left)
+        - var(--edwinos-header-source-right)
+        + var(--edwinos-header-source-icon-inset)
+        - var(--edwinos-header-search-source-gap)
+    );
+    --edwinos-header-source-width: clamp(
+        var(--edwinos-header-control-size),
+        calc(
+            var(--edwinos-header-compression-budget)
+            - var(--edwinos-header-search-stage-width)
+        ),
+        var(--edwinos-header-source-max-width)
+    );
+    --edwinos-header-search-width: max(
+        var(--edwinos-header-control-size),
+        calc(
+            var(--edwinos-header-compression-budget)
+            - var(--edwinos-header-source-width)
+        )
+    );
+    --edwinos-header-search-right: calc(
+        var(--edwinos-header-source-right)
+        + var(--edwinos-header-source-width)
+        - var(--edwinos-header-source-icon-inset)
+        + var(--edwinos-header-search-source-gap)
+    );
+    --edwinos-header-search-rest-left: calc(
+        100vw
+        - var(--edwinos-header-search-right)
+        - var(--edwinos-header-search-width)
+    );
+}
+
+.md-header .md-search,
+.md-header .md-header__source,
+.md-header .md-header__option {
+    animation: none !important;
+    will-change: auto !important;
+}
+
+.md-header .md-search,
+.md-header .md-search__inner,
+.md-header .md-header__button[for="__search"] {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+.md-tabs__list {
+    flex: 0 0 max-content !important;
+    min-width: max-content !important;
+}
+
+.md-tabs__link {
+    transition:
+        color 160ms ease,
+        background-color 160ms ease,
+        transform 160ms ease !important;
+}
+
+.md-header .md-header__option {
+    position: fixed !important;
+    top: calc(
+        (
+            var(--edwinos-header-height)
+            - var(--edwinos-header-control-size)
+        )
+        / 2
+    ) !important;
+    right: var(--edwinos-header-edge) !important;
+    z-index: 28 !important;
+    display: inline-flex !important;
+    width: var(--edwinos-header-control-size) !important;
+    min-width: var(--edwinos-header-control-size) !important;
+    max-width: var(--edwinos-header-control-size) !important;
+    height: var(--edwinos-header-control-size) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    opacity: 1 !important;
+}
+
+.md-header .md-header__option .md-header__button {
+    width: var(--edwinos-header-control-size) !important;
+    min-width: var(--edwinos-header-control-size) !important;
+    max-width: var(--edwinos-header-control-size) !important;
+    height: var(--edwinos-header-control-size) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.md-header .md-header__source {
+    position: fixed !important;
+    top: calc(
+        (
+            var(--edwinos-header-height)
+            - var(--edwinos-header-control-size)
+        )
+        / 2
+    ) !important;
+    right: var(--edwinos-header-source-right) !important;
+    z-index: 26 !important;
+    display: block !important;
+    width: var(--edwinos-header-source-width) !important;
+    min-width: var(--edwinos-header-control-size) !important;
+    max-width: var(--edwinos-header-source-width) !important;
+    height: var(--edwinos-header-control-size) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transition:
+        background-color 160ms ease !important;
+}
+
+.md-header .md-source {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: var(--edwinos-header-control-size) !important;
+    height: var(--edwinos-header-control-size) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 999px !important;
+    isolation: isolate !important;
+    transform: none !important;
+    pointer-events: auto !important;
+    transition:
+        background-color 160ms ease !important;
+}
+
+[data-md-color-scheme="default"] .md-header .md-source__icon {
+    background: var(--github-frame-light-bg, #f6f8fa) !important;
+}
+
+[data-md-color-scheme="slate"] .md-header .md-source__icon {
+    background: var(--github-frame-dark-bg, #0d1117) !important;
+}
+
+.md-header .md-source__icon {
+    position: absolute !important;
+    top: -1px !important;
+    left: -1px !important;
+    z-index: 3 !important;
+    display: inline-flex !important;
+    width: calc(var(--edwinos-header-control-size) + 2px) !important;
+    min-width: calc(var(--edwinos-header-control-size) + 2px) !important;
+    height: calc(var(--edwinos-header-control-size) + 2px) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    border-radius: 50% !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+.md-header .md-source__icon svg {
+    display: block !important;
+    width: var(--edwinos-header-source-icon-size) !important;
+    height: var(--edwinos-header-source-icon-size) !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    transform: none !important;
+    transform-origin: center center !important;
+}
+
+.md-header .md-source__repository {
+    position: absolute !important;
+    top: 50% !important;
+    right: 0 !important;
+    left: auto !important;
+    z-index: 1 !important;
+    display: block !important;
+    width: calc(
+        var(--edwinos-header-source-max-width)
+        - var(--edwinos-header-control-size)
+        - 8px
+    ) !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    color: currentColor !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.08 !important;
+    white-space: nowrap !important;
+    text-overflow: clip !important;
+    transform: translateY(-50%) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transition: none !important;
+}
+
+.md-header .md-source__facts {
+    margin-top: 0.12rem !important;
+    overflow: hidden !important;
+    font-size: 11px !important;
+    opacity: 0.78 !important;
+}
+
+@media screen and (min-width: 76.25em) {
+    .md-tabs__list {
+        gap: 6px !important;
+    }
+
+    .md-tabs__link {
+        height: 42px !important;
+        min-height: 42px !important;
+        padding: 0 11px !important;
+        font-size: 17.2px !important;
+    }
+}
+
+@media screen {
+    .md-header .md-search {
+        position: fixed !important;
+        top: calc(
+            (
+                var(--edwinos-header-height)
+                - var(--edwinos-header-control-size)
+            )
+            / 2
+        ) !important;
+        right: var(--edwinos-header-search-right) !important;
+        left: var(--edwinos-header-search-rest-left) !important;
+        z-index: 27 !important;
+        display: block !important;
+        width: auto !important;
+        max-width: none !important;
+        height: var(--edwinos-header-control-size) !important;
+        margin: 0 !important;
+        padding: 1px 0 !important;
+        overflow: visible !important;
+        container: edwinos-header-search / inline-size;
+        transform: none !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+
+    .md-header .md-search__inner,
+    .md-header .md-search__form {
+        position: relative !important;
+        inset: auto !important;
+        width: 100% !important;
+        max-width: none !important;
+        height: calc(var(--edwinos-header-control-size) - 2px) !important;
+        min-height: calc(var(--edwinos-header-control-size) - 2px) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+        opacity: 1 !important;
+    }
+
+    .md-header .md-search__form {
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .md-header .md-search__input {
+        width: 100% !important;
+        max-width: none !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 0.9rem 0 2.5rem !important;
+        line-height: 1.25 !important;
+        white-space: nowrap !important;
+        text-overflow: clip !important;
+        opacity: 1 !important;
+        transition:
+            color 140ms ease,
+            opacity 140ms ease !important;
+    }
+
+    .md-header .md-header__button[for="__search"] {
+        display: none !important;
+    }
+
+    .md-header .md-search__form .md-search__icon[for="__search"] {
+        top: 50% !important;
+        left: calc(
+            (
+                var(--edwinos-header-control-size)
+                - 1.15rem
+            )
+            / 2
+            - 2px
+        ) !important;
+        display: inline-flex !important;
+        width: 1.15rem !important;
+        height: 1.15rem !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: translateY(-50%) !important;
+        transform-origin: center center !important;
+        transition: none !important;
+    }
+
+    .md-header .md-search__form .md-search__icon[for="__search"] svg {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .md-header .md-search__form .md-search__icon[for="__search"] svg:nth-of-type(2) {
+        display: none !important;
+    }
+}
+
+@media screen and (max-width: 76.1875em) {
+    .md-tabs {
+        right: calc(
+            var(--edwinos-header-search-right)
+            + var(--edwinos-header-control-size)
+            + var(--edwinos-header-tabs-search-gap)
+        ) !important;
+    }
+}
+
+@container edwinos-header-search (max-width: 6.75rem) {
+    .md-header .md-search__form {
+        width: calc(100% - 2px) !important;
+        margin-inline: auto !important;
+    }
+
+    .md-header .md-search__input {
+        padding-inline: 0 !important;
+        color: transparent !important;
+        opacity: 0 !important;
+        cursor: pointer !important;
+        transition: none !important;
+    }
+
+    .md-header .md-search__input::placeholder {
+        color: transparent !important;
+        opacity: 0 !important;
+    }
+
+}
+
+@media screen and (max-width: 34rem) {
+    :root {
+        --edwinos-header-edge: max(5px, 2vw);
+        --edwinos-header-control-size: 44px;
+    }
+
+    .md-header .md-header__source,
+    .md-header .md-header__option,
+    .md-header .md-header__button[for="__search"] {
+        top: calc(
+            (
+                var(
+                    --edwinos-mobile-header-height,
+                    var(--compact-header-height, 3.5rem)
+                )
+                - var(--edwinos-header-control-size)
+            )
+            / 2
+        ) !important;
+    }
+
+    .md-header .md-header__option .md-header__button,
+    .md-header .md-header__button[for="__search"] {
+        width: var(--edwinos-header-control-size) !important;
+        min-width: var(--edwinos-header-control-size) !important;
+        max-width: var(--edwinos-header-control-size) !important;
+        height: var(--edwinos-header-control-size) !important;
+    }
+
+    .md-header .md-source {
+        min-height: var(--edwinos-header-control-size) !important;
+        height: var(--edwinos-header-control-size) !important;
+    }
+
+    .md-header .md-source__icon {
+        width: calc(var(--edwinos-header-control-size) + 2px) !important;
+        min-width: calc(var(--edwinos-header-control-size) + 2px) !important;
+        height: calc(var(--edwinos-header-control-size) + 2px) !important;
+    }
+
+    .md-header .md-source__icon svg {
+        width: var(--edwinos-header-source-icon-size) !important;
+        min-width: var(--edwinos-header-source-icon-size) !important;
+        height: var(--edwinos-header-source-icon-size) !important;
+    }
+
+    .md-tabs {
+        left: calc(
+            max(7px, 2vw)
+            + var(--edwinos-mobile-drawer-space)
+        ) !important;
+        right: calc(
+            var(--edwinos-header-search-right)
+            + var(--edwinos-header-control-size)
+            + var(--edwinos-header-tabs-search-gap)
+        ) !important;
+    }
+
+    .md-tabs .md-tabs__list {
+        gap: clamp(
+            3.5px,
+            calc(1.25vw - 0.5px),
+            4px
+        ) !important;
+    }
+
+    .md-tabs .md-tabs__link {
+        padding-inline: clamp(
+            0px,
+            max(
+                calc((100vw - 460px) / 12.89),
+                calc(14.97vw - 70.97px)
+            ),
+            10.47px
+        ) !important;
+        font-size: clamp(
+            10.8px,
+            max(
+                calc(4.6vw - 5.16px),
+                calc(1.475vw + 6.09px)
+            ),
+            16px
+        ) !important;
+    }
+
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]),
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]) {
+        --edwinos-mobile-drawer-control-size: clamp(
+            26px,
+            calc(8.036vw + 0.286px),
+            44px
+        );
+        --edwinos-mobile-drawer-space: calc(
+            var(--edwinos-mobile-drawer-control-size)
+            + 8px
+        );
+    }
+}
+
+@media screen and (min-width: 34.0625rem) and (max-width: 36rem) {
+    .md-tabs {
+        left: clamp(
+            10.88px,
+            calc(11vw - 48.96px),
+            14.4px
+        ) !important;
+    }
+
+    .md-tabs .md-tabs__list {
+        gap: clamp(
+            3.6px,
+            calc(10.8px - 1.25vw),
+            4px
+        ) !important;
+    }
+
+    .md-tabs .md-tabs__link {
+        padding-inline: clamp(
+            10.62px,
+            calc(1.88vw + 0.37px),
+            11.2px
+        ) !important;
+        font-size: clamp(
+            16px,
+            calc(3.75vw - 4.4px),
+            17.2px
+        ) !important;
+    }
+
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+    .md-tabs,
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+    .md-tabs {
+        left: calc(max(10px, 2vw) + 52px) !important;
+    }
+}
+
+@media screen and (max-width: 40rem) {
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+    .md-tabs .md-tabs__list,
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+    .md-tabs .md-tabs__list {
+        gap: clamp(
+            3px,
+            calc(0.9375vw - 2.4px),
+            3.6px
+        ) !important;
+    }
+
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+    .md-tabs .md-tabs__link,
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+    .md-tabs .md-tabs__link {
+        padding-inline: clamp(
+            0px,
+            max(
+                calc((100vw - 460px) / 17.1),
+                calc(6.9vw - 32.96px)
+            ),
+            11.2px
+        ) !important;
+        font-size: clamp(
+            9px,
+            max(
+                calc(3.634vw - 3.73px),
+                calc(0.88vw + 6.184px)
+            ),
+            17.2px
+        ) !important;
+    }
+}
+
+@media screen and (max-width: 22.5rem) {
+    :root {
+        --edwinos-header-control-size: clamp(
+            34px,
+            calc(25vw - 46px),
+            44px
+        );
+        --edwinos-header-source-icon-size: clamp(
+            24px,
+            calc(10vw - 8px),
+            28px
+        );
+    }
+}
+
+[data-md-toggle="search"]:checked
+~ .md-header
+.md-header__button[for="__search"] {
+    transform: scale(0.88) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: none !important;
+}
+
+.md-header .md-search__input {
+    height: 100% !important;
+    min-height: 0 !important;
+    margin-block: 0 !important;
+    padding-block: 0 !important;
+    line-height: normal !important;
+}
+
+/*
+ * The header and tab layer used to draw separate borders during elastic
+ * overscroll. A single viewport-fixed rule keeps the notch edge stationary.
+ */
+[data-md-color-scheme] .md-header.md-header,
+[data-md-color-scheme] .md-tabs.md-tabs {
+    border-bottom: 0 !important;
+}
+
+.md-header::after {
+    content: "" !important;
+    position: fixed !important;
+    top: calc(
+        var(
+            --edwinos-mobile-header-height,
+            var(--compact-header-height, 3.5rem)
+        )
+        - 1px
+    ) !important;
+    right: 0 !important;
+    left: 0 !important;
+    z-index: 24 !important;
+    display: block !important;
+    width: 100vw !important;
+    height: 1px !important;
+    border: 0 !important;
+    background: #d0d7de !important;
+    pointer-events: none !important;
+}
+
+[data-md-color-scheme="slate"] .md-header::after {
+    background: #30363d !important;
 }
 
 /* ==========================================================================
@@ -944,6 +1952,107 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         padding: 0 !important;
         transform: translateY(-50%) !important;
     }
+
+    /* The runtime marks only the active ENotes/Experiences drawer branch. */
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    > .edwinos-drawer-section-title {
+        display: flex !important;
+        width: 100% !important;
+        height: 5.6rem !important;
+        min-height: 5.6rem !important;
+        align-items: center !important;
+        margin: 0 !important;
+        padding: 3.5rem 0.8rem 0 !important;
+        overflow: hidden !important;
+        color: var(--md-default-fg-color) !important;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        cursor: default !important;
+        pointer-events: none !important;
+    }
+
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    > .edwinos-drawer-section-title
+    > .md-nav__icon {
+        display: none !important;
+    }
+
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    > .edwinos-drawer-section-title::before,
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    > .edwinos-drawer-section-title::after {
+        display: none !important;
+        content: none !important;
+    }
+
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    .edwinos-drawer-back-title {
+        position: relative !important;
+        display: flex !important;
+        width: 100% !important;
+        height: 5.6rem !important;
+        min-height: 5.6rem !important;
+        align-items: center !important;
+        margin: 0 !important;
+        padding: 3.5rem 0.8rem 0 2.75rem !important;
+        overflow: hidden !important;
+        color: var(--md-default-fg-color) !important;
+        font-size: 0.86rem !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        cursor: pointer !important;
+    }
+
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    .edwinos-drawer-back-title
+    > .md-nav__icon {
+        display: none !important;
+    }
+
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    .edwinos-drawer-back-title::before {
+        position: absolute !important;
+        top: auto !important;
+        bottom: 0.12rem !important;
+        left: 0.55rem !important;
+        content: "" !important;
+        display: block !important;
+        width: 1.8rem !important;
+        height: 1.8rem !important;
+        background-color: currentColor !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z'/%3E%3C/svg%3E") !important;
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z'/%3E%3C/svg%3E") !important;
+        -webkit-mask-position: 52% 50% !important;
+        mask-position: 52% 50% !important;
+        -webkit-mask-repeat: no-repeat !important;
+        mask-repeat: no-repeat !important;
+        -webkit-mask-size: 1.08rem 1.08rem !important;
+        mask-size: 1.08rem 1.08rem !important;
+        transform: none !important;
+        pointer-events: none !important;
+    }
+
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    .edwinos-drawer-back-title:is(:hover, :focus-visible)::before {
+        color: var(--md-accent-fg-color) !important;
+        background-color: currentColor !important;
+    }
 }
 
 @media screen and (max-width: 34rem) {
@@ -954,6 +2063,57 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         left: 0.5rem !important;
         width: 2rem !important;
         height: 2rem !important;
+    }
+}
+
+@media screen and (min-width: 34.0625rem) and (max-width: 76.1875rem) {
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]),
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]) {
+        --edwinos-mobile-drawer-space: calc(
+            max(10px, 2vw)
+            + 44px
+            + 8px
+            - 0.72rem
+        );
+    }
+}
+
+@media screen and (max-width: 34rem) {
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+    body .md-header__button[for="__drawer"],
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+    body .md-header__button[for="__drawer"] {
+        box-sizing: border-box !important;
+        top: calc(
+            (
+                var(
+                    --edwinos-mobile-header-height,
+                    var(--compact-header-height, 3.5rem)
+                )
+                - var(--edwinos-mobile-drawer-control-size)
+            )
+            / 2
+        ) !important;
+        left: max(5px, 2vw) !important;
+        width: var(--edwinos-mobile-drawer-control-size) !important;
+        height: var(--edwinos-mobile-drawer-control-size) !important;
+        padding: 0 !important;
+        transform: none !important;
+    }
+}
+
+@media screen and (min-width: 34.0625rem) and (max-width: 76.1875rem) {
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+    body .md-header__button[for="__drawer"],
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+    body .md-header__button[for="__drawer"] {
+        box-sizing: border-box !important;
+        top: 13px !important;
+        left: max(10px, 2vw) !important;
+        width: 44px !important;
+        height: 44px !important;
+        padding: 0 !important;
+        transform: none !important;
     }
 }
 
@@ -1067,18 +2227,10 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
 }
 
 @media screen and (min-width: 46em) and (max-width: 63.25em) {
-    body.is-homepage .academic-home-layout .profile-card,
-    body.is-home-profile-page .academic-home-layout .profile-card,
-    body:has(.academic-home-layout) .academic-home-layout .profile-card {
-        grid-template-columns: 9rem minmax(0, 1fr) !important;
-        column-gap: 1.15rem !important;
-    }
-
     body.is-homepage .profile-avatar,
     body.is-home-profile-page .profile-avatar,
     body:has(.academic-home-layout) .profile-avatar {
         grid-row: 1 / span 5 !important;
-        max-width: 9rem !important;
     }
 
     body.is-homepage .md-typeset .profile-meta,
@@ -1139,8 +2291,6 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
     body.is-home-profile-page .academic-home-layout .profile-card,
     body:has(.academic-home-layout) .academic-home-layout .profile-card {
         display: grid !important;
-        grid-template-columns: 7.6rem minmax(0, 1fr) !important;
-        column-gap: 1rem !important;
         row-gap: 0.32rem !important;
         align-items: start !important;
         width: 100% !important;
@@ -1152,7 +2302,6 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
     body:has(.academic-home-layout) .profile-avatar {
         grid-column: 1 !important;
         grid-row: 1 / span 5 !important;
-        max-width: 7.6rem !important;
         margin: 0 !important;
     }
 
@@ -1244,8 +2393,6 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
     body.is-home-profile-page .academic-home-layout .profile-card,
     body:has(.academic-home-layout) .academic-home-layout .profile-card {
         display: grid !important;
-        grid-template-columns: 6.5rem minmax(0, 1fr) !important;
-        column-gap: 0.82rem !important;
         row-gap: 0.26rem !important;
         align-items: start !important;
         width: 100% !important;
@@ -1257,7 +2404,6 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
     body:has(.academic-home-layout) .profile-avatar {
         grid-column: 1 !important;
         grid-row: 1 / span 5 !important;
-        max-width: 6.5rem !important;
         margin: 0 !important;
     }
 
@@ -1353,6 +2499,41 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
     }
 }
 
+/*
+ * The top-profile layout has enough horizontal room to retain the desktop
+ * avatar through tablet widths. Use one deliberate phone breakpoint instead
+ * of the previous 180/152/130/108px staircase.
+ */
+@media screen and (min-width: 36em) and (max-width: 63.25em) {
+    body.is-homepage .academic-home-layout .profile-card,
+    body.is-home-profile-page .academic-home-layout .profile-card,
+    body:has(.academic-home-layout) .academic-home-layout .profile-card {
+        grid-template-columns: 13rem minmax(0, 1fr) !important;
+        column-gap: 1.15rem !important;
+    }
+
+    body.is-homepage .profile-avatar,
+    body.is-home-profile-page .profile-avatar,
+    body:has(.academic-home-layout) .profile-avatar {
+        max-width: 13rem !important;
+    }
+}
+
+@media screen and (max-width: 35.9375em) {
+    body.is-homepage .academic-home-layout .profile-card,
+    body.is-home-profile-page .academic-home-layout .profile-card,
+    body:has(.academic-home-layout) .academic-home-layout .profile-card {
+        grid-template-columns: 5.4rem minmax(0, 1fr) !important;
+        column-gap: 0.85rem !important;
+    }
+
+    body.is-homepage .profile-avatar,
+    body.is-home-profile-page .profile-avatar,
+    body:has(.academic-home-layout) .profile-avatar {
+        max-width: 5.4rem !important;
+    }
+}
+
 body.is-homepage .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
 body.is-home-profile-page .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
 body:has(.academic-home-layout) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
@@ -1367,8 +2548,9 @@ body.is-homepage .md-typeset .profile-meta,
 body.is-home-profile-page .md-typeset .profile-meta,
 body:has(.academic-home-layout) .md-typeset .profile-meta {
     display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: flex-start !important;
     gap: 0.36rem 0.88rem !important;
     overflow: visible !important;
 }
@@ -1398,7 +2580,7 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
     text-overflow: clip !important;
 }
 
-@media screen and (min-width: 26.0625rem) and (max-width: 56.5625rem) {
+@media screen and (min-width: 26.0625rem) and (max-width: 59.9375rem) {
     body.is-homepage .md-typeset .profile-meta,
     body.is-home-profile-page .md-typeset .profile-meta,
     body:has(.academic-home-layout) .md-typeset .profile-meta {
@@ -1412,6 +2594,16 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         align-items: flex-start !important;
         gap: 0.32rem !important;
         margin-top: 0 !important;
+    }
+}
+
+@media screen and (min-width: 60rem) and (max-width: 63.25em) {
+    body.is-homepage .md-typeset .profile-meta {
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        gap: 0.32rem !important;
     }
 }
 
@@ -1438,6 +2630,89 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         align-items: flex-start !important;
         gap: 0.32rem !important;
         margin-top: 0 !important;
+    }
+}
+
+/*
+ * Keep the tablet avatar at its intended size without making it span several
+ * independent grid rows. The details column now owns its natural rhythm.
+ */
+.academic-home-layout .profile-details {
+    display: contents;
+}
+
+@media screen and (min-width: 36rem) and (max-width: 63.25rem) {
+    body.is-homepage .academic-home-layout .profile-card,
+    body.is-home-profile-page .academic-home-layout .profile-card,
+    body:has(.academic-home-layout) .academic-home-layout .profile-card {
+        grid-template-columns: 13rem minmax(0, 1fr) !important;
+        grid-template-rows: auto !important;
+        column-gap: 1.15rem !important;
+        align-items: start !important;
+    }
+
+    body.is-homepage .profile-avatar,
+    body.is-home-profile-page .profile-avatar,
+    body:has(.academic-home-layout) .profile-avatar {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        width: 13rem !important;
+        max-width: 13rem !important;
+        margin: 0 !important;
+    }
+
+    body.is-homepage .profile-details,
+    body.is-home-profile-page .profile-details,
+    body:has(.academic-home-layout) .profile-details {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        display: flex !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.46rem !important;
+        text-align: left !important;
+    }
+
+    body.is-homepage .profile-details > *,
+    body.is-home-profile-page .profile-details > *,
+    body:has(.academic-home-layout) .profile-details > * {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    body.is-homepage .profile-details .profile-actions,
+    body.is-home-profile-page .profile-details .profile-actions,
+    body:has(.academic-home-layout) .profile-details .profile-actions {
+        max-width: 14rem !important;
+    }
+
+    body.is-homepage .profile-details .profile-followers,
+    body.is-home-profile-page .profile-details .profile-followers,
+    body:has(.academic-home-layout) .profile-details .profile-followers,
+    body.is-homepage .profile-details .profile-social-left,
+    body.is-home-profile-page .profile-details .profile-social-left,
+    body:has(.academic-home-layout) .profile-details .profile-social-left {
+        justify-self: auto !important;
+        text-align: left !important;
+    }
+
+    body.is-homepage .md-typeset .profile-details .profile-meta,
+    body.is-home-profile-page .md-typeset .profile-details .profile-meta,
+    body:has(.academic-home-layout) .md-typeset .profile-details .profile-meta {
+        display: flex !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.32rem !important;
+    }
+
+    body.is-homepage .profile-details .profile-social-left,
+    body.is-home-profile-page .profile-details .profile-social-left,
+    body:has(.academic-home-layout) .profile-details .profile-social-left {
+        margin-top: 0.06rem !important;
     }
 }
 
@@ -1621,6 +2896,71 @@ html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%B
 body .md-content__inner::before {
     display: none !important;
     content: none !important;
+}
+
+/*
+ * Match the two Introduction hubs to the handwritten Overview section title
+ * without changing article headings or navigation typography.
+ */
+html:has(> head > link[rel="canonical"][href$="/OsdNotes/"])
+body .md-content__inner.md-typeset
+:is(
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    .intro-card-grid > ul > li > p:first-child strong,
+    .admonition-title
+),
+html:has(> head > link[rel="canonical"][href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+body .md-content__inner.md-typeset
+:is(
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    .intro-card-grid > ul > li > p:first-child strong,
+    .admonition-title
+) {
+    font-family: var(--edwinos-font-hand) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+
+html:has(> head > link[rel="canonical"][href$="/OsdNotes/"])
+body .md-content__inner.md-typeset h1,
+html:has(> head > link[rel="canonical"][href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+body .md-content__inner.md-typeset h1 {
+    line-height: 1.12 !important;
+}
+
+html:has(> head > link[rel="canonical"][href$="/OsdNotes/"])
+body .md-content__inner.md-typeset h2,
+html:has(> head > link[rel="canonical"][href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+body .md-content__inner.md-typeset h2 {
+    line-height: 1.16 !important;
+}
+
+html:has(> head > link[rel="canonical"][href$="/OsdNotes/"])
+body .md-content__inner.md-typeset :is(h3, h4, h5, h6),
+html:has(> head > link[rel="canonical"][href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+body .md-content__inner.md-typeset :is(h3, h4, h5, h6) {
+    line-height: 1.2 !important;
+}
+
+html:has(> head > link[rel="canonical"][href$="/OsdNotes/"])
+body .md-content__inner.md-typeset
+:is(.intro-card-grid > ul > li > p:first-child strong, .admonition-title),
+html:has(> head > link[rel="canonical"][href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+body .md-content__inner.md-typeset
+:is(.intro-card-grid > ul > li > p:first-child strong, .admonition-title) {
+    font-size: 1.05rem !important;
+    line-height: 1.15 !important;
 }
 
 /* Keep the MATLAB comparison heading stable before and after Material wraps
