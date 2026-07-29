@@ -127,6 +127,10 @@ description: "Official personal website of Chen Jing (经宸; name also written 
       <h2 class="section-title"><span class="title-dash"></span>Recent News</h2>
       <ul class="news-list">
         <li>
+          <span class="news-date">JUL 29</span>
+          <span class="news-text">Refined EdwinOS across desktop, tablet, and mobile window widths, improving responsive usability and polishing the header, search, and profile animations.</span>
+        </li>
+        <li>
           <span class="news-date">JUL 13</span>
           <span class="news-text">Released EdwinOS 2.1.2 on July 13, 2026, further refining the GitHub-inspired experience for the personal website.</span>
         </li>

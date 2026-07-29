@@ -8,6 +8,11 @@
   {% endif %}
 {% endblock %}
 
+{% block extrahead %}
+  <link rel="preload" href="{{ 'assets/fonts/caveat/caveat-latin.woff2' | url }}" as="font" type="font/woff2" crossorigin>
+  {{ super() }}
+{% endblock %}
+
 {% block scripts %}
   <script>
     (function () {

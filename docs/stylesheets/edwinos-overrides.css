@@ -6,7 +6,15 @@
  * extra.css; put new pixel-level fixes here so the cascade stays traceable.
  */
 
-@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap");
+
+@font-face {
+    font-family: "Caveat";
+    src: url("../assets/fonts/caveat/caveat-latin.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+}
 
 /* ==========================================================================
    Typography
@@ -1531,6 +1539,10 @@ html.edwinos-search-transitioning .md-header .md-search {
     opacity: 0.78 !important;
 }
 
+.md-header .md-source__fact::before {
+    transform: translateY(-0.5px);
+}
+
 @media screen and (min-width: 76.25em) {
     .md-tabs__list {
         gap: 6px !important;
@@ -2595,6 +2607,15 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         gap: 0.32rem !important;
         margin-top: 0 !important;
     }
+
+    body.is-homepage .profile-social-left,
+    body.is-home-profile-page .profile-social-left,
+    body:has(.academic-home-layout) .profile-social-left {
+        grid-column: 2 !important;
+        grid-row: 5 !important;
+        justify-self: start !important;
+        width: 100% !important;
+    }
 }
 
 @media screen and (min-width: 60rem) and (max-width: 63.25em) {
@@ -2630,6 +2651,15 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         align-items: flex-start !important;
         gap: 0.32rem !important;
         margin-top: 0 !important;
+    }
+
+    body.is-homepage .profile-social-left,
+    body.is-home-profile-page .profile-social-left,
+    body:has(.academic-home-layout) .profile-social-left {
+        grid-column: 1 / -1 !important;
+        grid-row: 5 !important;
+        justify-self: start !important;
+        width: 100% !important;
     }
 }
 
