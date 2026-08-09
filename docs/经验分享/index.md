@@ -22,7 +22,7 @@ More Experiences is where I keep the lessons that do not fit neatly into convent
 
     Hands-on logs from my work in embodied AI, including model training, hyperparameter tuning, environment setup, experimental failures, and the decisions behind each iteration.
 
-    [Browse Phi Lab notes →](Phi%20Lab/补充插件：Tensorboard%20%26%20WandB.md)
+    [Browse Phi Lab notes →](Phi%20Lab/WBC/补充插件：Tensorboard%20%26%20WandB.md)
 
 -   :material-calendar-refresh: **Annual Reviews**
 

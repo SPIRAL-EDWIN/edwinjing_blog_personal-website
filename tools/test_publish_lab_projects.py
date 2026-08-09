@@ -307,6 +307,36 @@ class PublisherTest(unittest.TestCase):
         output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
         self.assertIn("| `|` | pipe |\n\nThis paragraph", output)
 
+    def test_injects_public_only_reading_bridge_fail_closed(self):
+        anchor, paragraph = publisher.PUBLIC_NOTE_INSERTIONS["rfm-introduction"]
+        source = "---\ntitle: RFM\n---\n\n" + anchor + "\n# Body\n"
+        self.write_note("RFM.md", source)
+        manifest = self.manifest([
+            self.entry(
+                "rfm-introduction",
+                "RFM.md",
+                "docs/OsdNotes/Embodied AI/RFM.md",
+                source,
+            ),
+        ])
+        output = self.plan(manifest).outputs[
+            Path("docs/OsdNotes/Embodied AI/RFM.md")
+        ].decode()
+        self.assertEqual(output.count(paragraph.strip()), 1)
+
+        changed = source.replace(anchor, "anchor changed\n")
+        self.write_note("RFM.md", changed)
+        manifest = self.manifest([
+            self.entry(
+                "rfm-introduction",
+                "RFM.md",
+                "docs/OsdNotes/Embodied AI/RFM.md",
+                changed,
+            ),
+        ])
+        with self.assertRaisesRegex(publisher.PublishError, "insertion anchor changed"):
+            self.plan(manifest)
+
     def test_does_not_normalize_inside_fenced_code(self):
         source = (
             "# Source\n\n```markdown\n"

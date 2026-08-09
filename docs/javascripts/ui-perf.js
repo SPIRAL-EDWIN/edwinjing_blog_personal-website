@@ -11,6 +11,9 @@
   var headerGeometryFrame = null;
   var headerGeometryObserver = null;
   var headerSearchTransitionTimer = null;
+  var archiveNavigationFeedbackReady = false;
+  var archiveNavigationFallbackTimer = null;
+  var warmedArchiveTargets = Object.create(null);
 
   function navigationPageKey(value) {
     try {
@@ -111,6 +114,106 @@
   function setupPrimarySidebarScrollPreservation() {
     document.addEventListener("click", rememberPrimarySidebarScroll, true);
     window.addEventListener("popstate", rememberPrimarySidebarScrollForHistory);
+  }
+
+  function archiveDestination(link) {
+    if (!link || link.hasAttribute("download")) return null;
+    if (link.target && link.target !== "_self") return null;
+
+    try {
+      var destination = new URL(link.getAttribute("href"), window.location.href);
+      if (!/^https?:$/.test(destination.protocol) || destination.origin !== window.location.origin) {
+        return null;
+      }
+      if (navigationPageKey(destination.href) === navigationPageKey(window.location.href)) {
+        return null;
+      }
+      return destination;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function clearArchiveNavigationFeedback() {
+    if (archiveNavigationFallbackTimer !== null) {
+      window.clearTimeout(archiveNavigationFallbackTimer);
+      archiveNavigationFallbackTimer = null;
+    }
+    if (!document.body) return;
+    document.body.classList.remove("is-archive-navigating");
+    document.querySelectorAll(".archive-card__link.is-opening").forEach(function (link) {
+      link.classList.remove("is-opening");
+      link.removeAttribute("aria-busy");
+    });
+  }
+
+  function beginArchiveNavigationFeedback(event) {
+    if (event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    var target = event.target && event.target.closest
+      ? event.target
+      : event.target && event.target.parentElement;
+    var link = target && target.closest
+      ? target.closest(".archive-card__link[href]")
+      : null;
+    if (!archiveDestination(link) || !document.body) return;
+
+    clearArchiveNavigationFeedback();
+    link.classList.add("is-opening");
+    link.setAttribute("aria-busy", "true");
+    document.body.classList.add("is-archive-navigating");
+    archiveNavigationFallbackTimer = window.setTimeout(clearArchiveNavigationFeedback, 10000);
+  }
+
+  function warmArchiveDestination(link) {
+    var destination = archiveDestination(link);
+    if (!destination || warmedArchiveTargets[destination.href] || !document.head) return;
+
+    warmedArchiveTargets[destination.href] = true;
+    var hint = document.createElement("link");
+    hint.rel = "prefetch";
+    hint.href = destination.href;
+    hint.setAttribute("data-edwinos-archive-prefetch", "");
+    document.head.appendChild(hint);
+  }
+
+  function warmLatestArchiveEntries() {
+    var links = Array.prototype.slice.call(
+      document.querySelectorAll(".archive-grid .archive-card__link[href]"),
+      0,
+      3
+    );
+    if (!links.length) return;
+
+    var warm = function () {
+      links.forEach(warmArchiveDestination);
+    };
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(warm, { timeout: 1200 });
+    } else {
+      window.setTimeout(warm, 500);
+    }
+  }
+
+  function setupArchiveNavigationFeedback() {
+    if (archiveNavigationFeedbackReady) return;
+    archiveNavigationFeedbackReady = true;
+
+    document.addEventListener("click", beginArchiveNavigationFeedback, true);
+    document.addEventListener("pointerover", function (event) {
+      var target = event.target && event.target.closest
+        ? event.target.closest(".archive-card__link[href]")
+        : null;
+      warmArchiveDestination(target);
+    }, { passive: true });
+    document.addEventListener("focusin", function (event) {
+      var target = event.target && event.target.closest
+        ? event.target.closest(".archive-card__link[href]")
+        : null;
+      warmArchiveDestination(target);
+    });
+    window.addEventListener("pageshow", clearArchiveNavigationFeedback);
   }
 
   function updateHomepageClass() {
@@ -1435,6 +1538,7 @@
   }
 
   function runAll() {
+    clearArchiveNavigationFeedback();
     updateHomepageClass();
     setupHeaderGeometrySync();
     setupHeaderSearchTransition();
@@ -1453,11 +1557,13 @@
     setupVisitorBadge();
     updateVisitorDeploymentTime();
     fixOrderedListContinuity();
+    warmLatestArchiveEntries();
   }
 
   runAll();
   closeSearchWhenClickingAway();
   setupPrimarySidebarScrollPreservation();
+  setupArchiveNavigationFeedback();
   setupSectionNavigationDepthSync();
   setInterval(updateBeijingTime, 1000);
 

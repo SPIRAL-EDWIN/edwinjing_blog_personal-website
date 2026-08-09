@@ -28,7 +28,7 @@ EXPECTED_PAGES = {
     "docs/经验分享/Phi Lab/WBC/如何确定__init__.py中特定task选取的robot asset.md",
     "docs/经验分享/Phi Lab/Diffusion Policy/Diffusion-policy-training中global steps和epoch的区分实例.md",
     "docs/OsdNotes/Embodied AI/Bash命令与服务器训练操作查表指南.md",
-    "docs/经验分享/Phi Lab/补充插件：Tensorboard & WandB.md",
+    "docs/经验分享/Phi Lab/WBC/补充插件：Tensorboard & WandB.md",
     "docs/经验分享/Phi Lab/Diffusion Policy/Diffusion Policy checkpoint 数值与可视化评估流程.md",
     "docs/经验分享/Phi Lab/Diffusion Policy/Diffusion Policy 真机部署概念架构.md",
     "docs/经验分享/Phi Lab/Diffusion Policy/Diffusion Policy数据训练流程.md",

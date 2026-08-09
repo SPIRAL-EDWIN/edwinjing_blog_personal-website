@@ -93,9 +93,9 @@
     {
       "id": "tensorboard-wandb",
       "source": "配置｜训练｜数据处理/补充插件：Tensorboard & WandB.md",
-      "destination": "docs/经验分享/Phi Lab/补充插件：Tensorboard & WandB.md",
+      "destination": "docs/经验分享/Phi Lab/WBC/补充插件：Tensorboard & WandB.md",
       "title": "补充插件：Tensorboard & WandB",
-      "section": "More Experiences / Phi Lab",
+      "section": "More Experiences / Phi Lab / WBC",
       "state": "publish",
       "source_sha256": "13505025cbbb2437aeea62a566fb7807278200ad537439095dc93178e2680f3d",
       "source_size": 2043,

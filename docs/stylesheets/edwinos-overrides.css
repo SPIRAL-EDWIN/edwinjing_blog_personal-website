@@ -3168,13 +3168,80 @@ table :is(th, td):first-child code {
    ========================================================================== */
 
 .md-typeset .pdf-viewer-shell {
+    position: relative;
     width: 100%;
     margin-block: 1rem 0.75rem;
     overflow: hidden;
     border: 1px solid var(--md-default-fg-color--lightest);
     border-radius: 0.75rem;
-    background: var(--md-default-bg-color);
+    background: #e6e8eb;
     box-shadow: var(--md-shadow-z1);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .pdf-viewer-shell {
+    background: #161b22;
+}
+
+/* Paint a small first-page preview immediately while the browser's native PDF
+   reader downloads and initializes. The actual PDF is requested eagerly; the
+   preview simply removes the otherwise blank, ambiguous waiting period. */
+.md-typeset .pdf-viewer-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: inherit;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
+}
+
+.md-typeset .pdf-viewer-preview {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: clamp(0.4rem, 1.4vw, 0.9rem);
+    object-fit: contain;
+    background: transparent;
+}
+
+.md-typeset .pdf-viewer-loading-status {
+    position: absolute;
+    inset-block-start: 0.8rem;
+    inset-inline-start: 50%;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    max-width: calc(100% - 1.6rem);
+    padding: 0.38rem 0.7rem;
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: 999px;
+    color: #f0f6fc;
+    background: rgb(13 17 23 / 88%);
+    box-shadow: 0 0.35rem 1rem rgb(0 0 0 / 20%);
+    font-size: 0.72rem;
+    line-height: 1.25;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    backdrop-filter: blur(8px);
+}
+
+.md-typeset .pdf-viewer-spinner {
+    width: 0.75rem;
+    height: 0.75rem;
+    flex: 0 0 auto;
+    border: 2px solid rgb(240 246 252 / 30%);
+    border-top-color: #f0f6fc;
+    border-radius: 50%;
+    animation: edwinos-pdf-spinner 720ms linear infinite;
+}
+
+@keyframes edwinos-pdf-spinner {
+    to {
+        transform: rotate(1turn);
+    }
 }
 
 /* A PDF reader is the page's primary content, so reclaim the desktop TOC
@@ -3196,6 +3263,18 @@ html:has(body .pdf-viewer-shell) body .md-content__inner {
     min-height: 560px;
     border: 0;
     background: #fff;
+    opacity: 0;
+    transition: opacity 180ms ease;
+}
+
+.md-typeset .pdf-viewer-shell.is-pdf-ready .pdf-viewer-loading {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.md-typeset .pdf-viewer-shell.is-pdf-ready .pdf-viewer-frame {
+    opacity: 1;
 }
 
 .md-typeset .pdf-viewer-actions {
@@ -3211,6 +3290,22 @@ html:has(body .pdf-viewer-shell) body .md-content__inner {
     .md-typeset .pdf-viewer-frame {
         height: 68vh;
         min-height: 440px;
+    }
+
+    .md-typeset .pdf-viewer-loading-status {
+        inset-block-start: 0.6rem;
+        font-size: 0.66rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .md-typeset .pdf-viewer-loading,
+    .md-typeset .pdf-viewer-frame {
+        transition: none;
+    }
+
+    .md-typeset .pdf-viewer-spinner {
+        animation-duration: 1.5s;
     }
 }
 
@@ -3259,6 +3354,130 @@ a:not(:where(.headerlink, .md-button, [role="button"], [class*="btn-"])) {
 }
 
 /* ==========================================================================
+   Friends Page
+   ========================================================================== */
+
+/* The HOME subpage shell is a flex column with a generous global gap. Friends
+   already defines its own heading, prose, list, and card spacing, so remove
+   only the duplicated inter-element gap on this page. */
+body:has(.friend-links) .academic-content--subpage {
+    gap: 0 !important;
+}
+
+/* Keep the YAML example visually attached to its short "Link format:" label
+   instead of inheriting the combined paragraph and code-block margins. */
+body:has(.friend-links)
+.academic-content--subpage
+> p:has(> strong:only-child) {
+    margin-bottom: 0 !important;
+}
+
+body:has(.friend-links)
+.academic-content--subpage
+> p:has(> strong:only-child)
++ .language-yaml.highlight {
+    margin-top: 0.35rem !important;
+}
+
+/* ==========================================================================
+   Archive
+   ========================================================================== */
+
+/* Keep every entry on one stable grid rhythm. The cover is taken out of the
+   intrinsic-size calculation so portrait and panoramic source images cannot
+   stretch the card; object-fit then crops each source to the cover viewport. */
+body.is-home-profile-page:has(.archive-grid) .archive-card {
+    block-size: 10.75rem;
+}
+
+body.is-home-profile-page:has(.archive-grid) .archive-card__link,
+body.is-home-profile-page:has(.archive-grid) .archive-card__link:hover {
+    height: 100% !important;
+    min-height: 0 !important;
+}
+
+body.is-home-profile-page:has(.archive-grid) .archive-card__cover {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+}
+
+body.is-home-profile-page:has(.archive-grid) .archive-card__image {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center;
+}
+
+/* Material's instant-navigation progress bar defaults to y=0 underneath the
+   EdwinOS header. Move it to the visible header edge on the Archive route. */
+body.is-home-profile-page:has(.archive-grid) .md-progress {
+    top: calc(
+        var(--edwinos-mobile-header-height, var(--compact-header-height, 3.5rem))
+        - 0.15rem
+    ) !important;
+    z-index: 10005 !important;
+    height: 0.15rem !important;
+    background: #58a6ff !important;
+    box-shadow: 0 0 0.45rem rgba(88, 166, 255, 0.72);
+}
+
+/* Archive links can take a moment on a cold Pages cache. Give the click an
+   immediate, unmistakable state while Material fetches the next document. */
+body.is-archive-navigating {
+    overflow: hidden;
+}
+
+body.is-archive-navigating::before,
+body.is-archive-navigating::after {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: auto;
+}
+
+body.is-archive-navigating::before {
+    content: "";
+    inset: 0;
+    background: rgba(5, 9, 14, 0.96);
+}
+
+body.is-archive-navigating::after {
+    content: "Opening note\2026";
+    top: 50%;
+    left: 50%;
+    padding-top: 2.4rem;
+    color: #f0f6fc;
+    font-family: var(--edwinos-font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    background:
+        radial-gradient(circle, transparent 52%, #58a6ff 54% 64%, transparent 66%)
+        top center / 1.6rem 1.6rem no-repeat;
+    transform: translate(-50%, -50%);
+    animation: edwinos-archive-loading 900ms linear infinite;
+}
+
+@keyframes edwinos-archive-loading {
+    to {
+        filter: hue-rotate(360deg);
+    }
+}
+
+@media screen and (max-width: 30rem) {
+    body.is-home-profile-page:has(.archive-grid) .archive-card {
+        block-size: 9.75rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.is-archive-navigating::after {
+        animation: none;
+    }
+}
+
+/* ==========================================================================
    Content Hubs
    ========================================================================== */
 
@@ -3299,6 +3518,32 @@ a:not(:where(.headerlink, .md-button, [role="button"], [class*="btn-"])) {
 
 .md-typeset .intro-card-grid > ul > li::marker {
     content: "";
+}
+
+/* In dark mode, preserve the card boundary and replace Material's elevated
+   drop shadow with a centered, low-intensity white edge glow. Light mode keeps
+   the existing Material hover treatment. */
+:is(
+    html:has(> head > link[rel="canonical"][href$="/OsdNotes/"]),
+    html:has(> head > link[rel="canonical"][href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+)
+body[data-md-color-scheme="slate"]
+.md-typeset .intro-card-grid > ul > li {
+    border-color: rgba(240, 246, 252, 0.2) !important;
+    box-shadow: none !important;
+    transition: border-color 160ms ease, box-shadow 160ms ease !important;
+}
+
+:is(
+    html:has(> head > link[rel="canonical"][href$="/OsdNotes/"]),
+    html:has(> head > link[rel="canonical"][href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+)
+body[data-md-color-scheme="slate"]
+.md-typeset .intro-card-grid > ul > li:is(:hover, :focus-within) {
+    border-color: rgba(240, 246, 252, 0.68) !important;
+    box-shadow:
+        0 0 0 1px rgba(240, 246, 252, 0.14),
+        0 0 0.7rem rgba(240, 246, 252, 0.13) !important;
 }
 
 @media screen and (max-width: 59.984375em) {

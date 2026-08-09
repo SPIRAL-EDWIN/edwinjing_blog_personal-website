@@ -47,6 +47,21 @@ IMAGE_PRESENTATION_CLASSES: Dict[str, Tuple[str, ...]] = {
         "trim-white-padding--npz-transfer",
     ),
 }
+# Public-only reading bridges that connect a source note to a page which does
+# not exist in the Obsidian publishing manifest (for example, a PDF viewer
+# page).  Each insertion is anchored fail-closed so a later source rewrite
+# cannot silently place the bridge in the wrong paragraph.
+PUBLIC_NOTE_INSERTIONS: Dict[str, Tuple[str, str]] = {
+    "rfm-introduction": (
+        "该笔记中所有代码详例均基于：\n",
+        "本文从宏观层面梳理 RFM 的概念框架、主要文件职责与强化学习流程。"
+        "如果希望继续下钻到仓库和工程实现层面，可对照阅读 "
+        "[【组会分享】RFM/调参](../../%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/Phi%20Lab/WBC/"
+        "RFM%20%26%20%E5%AE%9E%E9%99%85%E8%B0%83%E5%8F%82%E7%BB%8F%E9%AA%8C%E7%BB%84%E4%BC%9A%E5%88%86%E4%BA%AB.md)"
+        "；后者通过更微观的仓库结构、框图、公式与实际调参经验，"
+        "展示这些概念如何落到具体实现中。\n",
+    ),
+}
 WIKILINK_RE = re.compile(r"(!?)\[\[([^\]]+)\]\]")
 HEADING_RE = re.compile(r"^ {0,3}(#{1,6})[ \t]+(.+?)[ \t]*#*[ \t]*$", re.M)
 BLOCK_ID_RE = re.compile(r"(?<!\S)\^([A-Za-z0-9_-]+)[ \t]*$")
@@ -815,6 +830,19 @@ def convert_unprotected_highlights(
     return text, len(matches)
 
 
+def inject_public_note_insertion(text: str, note_id: str) -> str:
+    insertion = PUBLIC_NOTE_INSERTIONS.get(note_id)
+    if insertion is None:
+        return text
+
+    anchor, paragraph = insertion
+    if paragraph.strip() in text:
+        return text
+    if text.count(anchor) != 1:
+        raise PublishError("public note insertion anchor changed")
+    return text.replace(anchor, paragraph + "\n" + anchor, 1)
+
+
 def inject_anchors(
     text: str,
     headings: Set[str],
@@ -957,6 +985,7 @@ def convert_note(
     # which is prohibited by occurrences_for().
     spans = protected_spans(text, planned.manifest.protected_spans)
     text, highlight_count = convert_unprotected_highlights(text, spans)
+    text = inject_public_note_insertion(text, planned.manifest.note_id)
     spans = protected_spans(text, planned.manifest.protected_spans)
     text = inject_anchors(text, headings, blocks, spans)
     text, format_fix_count = normalize_obsidian_blocks(text)

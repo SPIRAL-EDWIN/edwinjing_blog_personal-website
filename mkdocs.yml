@@ -187,11 +187,11 @@ extra_javascript:
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
   - javascripts/mathjax.js?v=20260805a
   - javascripts/block-links.js?v=20260717a  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js?v=20260809a
+  - javascripts/ui-perf.js?v=20260809b
 
 extra_css:
   - stylesheets/extra.css?v=20260715a       # Base theme and legacy UI layer
-  - stylesheets/edwinos-overrides.css?v=20260809b  # Final EdwinOS component fixes
+  - stylesheets/edwinos-overrides.css?v=20260809d  # Final EdwinOS component fixes
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。
@@ -238,7 +238,6 @@ nav:
       - "Ubuntu 下 Codex 无法在 VS Code 中打开": "经验分享/关于Ubuntu系统下Codex无法在VS Code中打开的问题.md"
       - "Watt Toolkit（Steam++）Mac 端 hosts 权限配置": "经验分享/Watt Toolkit (Steam++) Mac 端 hosts 权限配置指南.md"
     - Phi Lab:
-      - "TensorBoard 与 W&B": "经验分享/Phi Lab/补充插件：Tensorboard & WandB.md"
       - Diffusion Policy:
         - "global steps 与 epoch": "经验分享/Phi Lab/Diffusion Policy/Diffusion-policy-training中global steps和epoch的区分实例.md"
         - "Checkpoint 数值与可视化评估": "经验分享/Phi Lab/Diffusion Policy/Diffusion Policy checkpoint 数值与可视化评估流程.md"
@@ -248,6 +247,7 @@ nav:
         - "Ubuntu + RTX 50：UMI Diffusion Training 搭建": "经验分享/Phi Lab/Diffusion Policy/基于Ubuntu+RTX50系列的UMI-diffusion-training框架搭建指南.md"
         - "UMI Matrix Studio 配置架构": "经验分享/Phi Lab/Diffusion Policy/🦾UMI_Matrix-Studio配置架构.md"
       - WBC:
+        - "TensorBoard 与 W&B": "经验分享/Phi Lab/WBC/补充插件：Tensorboard & WandB.md"
         - "【组会分享】RFM/调参": "经验分享/Phi Lab/WBC/RFM & 实际调参经验组会分享.md"
         - "如何确定 __init__.py 中特定 task 选取的 robot asset": "经验分享/Phi Lab/WBC/如何确定__init__.py中特定task选取的robot asset.md"
         - "Sim2Sim 配置与训练": "经验分享/Phi Lab/WBC/Sim2Sim配置与训练.md"
