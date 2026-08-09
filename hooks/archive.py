@@ -143,6 +143,8 @@ def _category_details(src_uri: str, override: Optional[str] = None) -> Tuple[str
         return "Computer Science", "💻", "code"
     if "github" in path:
         return "GitHub Notes", "🛠️", "code"
+    if src_uri.startswith("经验分享/Phi Lab/"):
+        return "Phi Lab", "🤖", "robotics"
     if src_uri.startswith("经验分享/"):
         return "Experiences", "✍️", "writing"
     if src_uri.startswith("AboutMe/"):

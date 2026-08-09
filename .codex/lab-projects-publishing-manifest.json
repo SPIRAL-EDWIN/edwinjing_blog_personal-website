@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "description": "Approved Lab Projects source-to-isolated-staging publication map. Concrete redaction values must never be stored here.",
+  "vault_root": "/Users/edwin/Documents/Obsidian/ZJU Notes",
+  "source_root": "学术科研/raw/notes/Lab_Projects",
+  "staging_root": ".codex/staging/lab-projects",
+  "asset_root": "docs/assets/lab-projects",
+  "materialization_ready": false,
+  "notes": [
+    {
+      "id": "hand-eye-calibration",
+      "source": "学习理解/【Hand-Eye Calibration】 手眼标定理论与实践.md",
+      "destination": "docs/OsdNotes/Embodied AI/【Hand-Eye Calibration】 手眼标定理论与实践.md",
+      "title": "【Hand-Eye Calibration】 手眼标定理论与实践",
+      "section": "ENotes / Embodied AI",
+      "state": "publish",
+      "source_sha256": "578a72f5b573e4c7ba405b13a2a19dec61bba3bbcb1212c67588616cc050991c",
+      "source_size": 8478,
+      "protected_spans": [],
+      "protected_policy": [
+        "Preserve the user's coordinate-transform convention and corrected line 33.",
+        "Do not semantically rewrite the derivation previously identified as lines 58 and 71–74."
+      ],
+      "redaction_profile": "enotes-source-dependent"
+    },
+    {
+      "id": "mdp-reward-analysis",
+      "source": "学习理解/【MDP】奖励函数解构学习.md",
+      "destination": "docs/OsdNotes/Embodied AI/【MDP】奖励函数解构学习.md",
+      "title": "【MDP】奖励函数解构学习",
+      "section": "ENotes / Embodied AI",
+      "state": "publish",
+      "source_sha256": "0a78782594ea8fcbc7c455b75e7bd30e25ac21bba0eb3631408296b06d397c00",
+      "source_size": 9072,
+      "protected_spans": [],
+      "protected_policy": [
+        "Preserve the user's revised _loco_mani_scale explanation.",
+        "Preserve the step-order body; only add the approved version-dependent warning in the staged editorial pass."
+      ],
+      "redaction_profile": "enotes-source-dependent"
+    },
+    {
+      "id": "rfm-introduction",
+      "source": "学习理解/仿真框架RFM的初步学习.md",
+      "destination": "docs/OsdNotes/Embodied AI/仿真框架RFM的初步学习.md",
+      "title": "仿真框架RFM的初步学习",
+      "section": "ENotes / Embodied AI",
+      "state": "publish",
+      "source_sha256": "950372604471c35d4324cd5a216793e695d74634dcb5aa1867e09c85fed23419",
+      "source_size": 20405,
+      "protected_spans": [],
+      "redaction_profile": "enotes-source-dependent"
+    },
+    {
+      "id": "robot-asset-selection",
+      "source": "学习理解/如何确定`__init__.py`中特定task选取的robot asset.md",
+      "source_aliases": [
+        "学习理解/如何确定`_init_.py`中特定task选取的robot asset.md"
+      ],
+      "destination": "docs/经验分享/Phi Lab/WBC/如何确定__init__.py中特定task选取的robot asset.md",
+      "title": "如何确定__init__.py中特定task选取的robot asset",
+      "section": "More Experiences / Phi Lab / WBC",
+      "state": "publish",
+      "source_sha256": "d7bd688b27b10b990aeb3f9c5bb4f4aa483598951a5c0b1989b1c1030f1456d6",
+      "source_size": 2012,
+      "protected_spans": [],
+      "redaction_profile": "enotes-source-dependent"
+    },
+    {
+      "id": "diffusion-global-steps-epoch",
+      "source": "学习理解/Diffusion-policy-training中global steps和epoch的区分实例.md",
+      "destination": "docs/经验分享/Phi Lab/Diffusion Policy/Diffusion-policy-training中global steps和epoch的区分实例.md",
+      "title": "Diffusion-policy-training中global steps和epoch的区分实例",
+      "section": "More Experiences / Phi Lab / Diffusion Policy",
+      "state": "publish",
+      "source_sha256": "7f54346912e0eace924909e3397467f0d7261952d70c560faa0503f0a2209959",
+      "source_size": 635,
+      "protected_spans": [],
+      "redaction_profile": "enotes-source-dependent"
+    },
+    {
+      "id": "bash-server-operations",
+      "source": "学习理解/Bash命令与服务器训练操作查表指南.md",
+      "destination": "docs/OsdNotes/Embodied AI/Bash命令与服务器训练操作查表指南.md",
+      "title": "Bash命令与服务器训练操作查表指南",
+      "section": "ENotes / Embodied AI",
+      "state": "publish",
+      "source_sha256": "1bccccd5d8aef63cf2dcb3f1cedb75437a2dc8aeba6799463ac7ef8888d1921d",
+      "source_size": 21532,
+      "protected_spans": [],
+      "redaction_profile": "phi-lab-public"
+    },
+    {
+      "id": "tensorboard-wandb",
+      "source": "配置｜训练｜数据处理/补充插件：Tensorboard & WandB.md",
+      "destination": "docs/经验分享/Phi Lab/补充插件：Tensorboard & WandB.md",
+      "title": "补充插件：Tensorboard & WandB",
+      "section": "More Experiences / Phi Lab",
+      "state": "publish",
+      "source_sha256": "13505025cbbb2437aeea62a566fb7807278200ad537439095dc93178e2680f3d",
+      "source_size": 2043,
+      "protected_spans": [],
+      "redaction_profile": "phi-lab-credentials-and-infrastructure"
+    },
+    {
+      "id": "diffusion-checkpoint-evaluation",
+      "source": "配置｜训练｜数据处理/Diffusion Policy/Diffusion Policy checkpoint 数值与可视化评估流程.md",
+      "destination": "docs/经验分享/Phi Lab/Diffusion Policy/Diffusion Policy checkpoint 数值与可视化评估流程.md",
+      "title": "Diffusion Policy checkpoint 数值与可视化评估流程",
+      "section": "More Experiences / Phi Lab / Diffusion Policy",
+      "state": "publish",
+      "source_sha256": "bb9eeb37d952d78d00e328f3aafa39b1a7d47bdcc07fc9d5ef8ca09a160b4d40",
+      "source_size": 10764,
+      "protected_spans": [],
+      "redaction_profile": "phi-lab-experiment-results"
+    },
+    {
+      "id": "diffusion-deployment-concept",
+      "source": "配置｜训练｜数据处理/Diffusion Policy/Diffusion Policy 真机部署流程.md",
+      "destination": "docs/经验分享/Phi Lab/Diffusion Policy/Diffusion Policy 真机部署概念架构.md",
+      "title": "Diffusion Policy 真机部署概念架构",
+      "section": "More Experiences / Phi Lab / Diffusion Policy",
+      "state": "publish",
+      "source_sha256": "eaa273eb67a785c24e65ccf3b575130cd21723c36158b32466d93e53534ab289",
+      "source_size": 2602,
+      "protected_spans": [],
+      "redaction_profile": "phi-lab-robot-safety"
+    },
+    {
+      "id": "diffusion-training-flow",
+      "source": "配置｜训练｜数据处理/Diffusion Policy/Diffusion Policy数据训练流程.md",
+      "destination": "docs/经验分享/Phi Lab/Diffusion Policy/Diffusion Policy数据训练流程.md",
+      "title": "Diffusion Policy数据训练流程",
+      "section": "More Experiences / Phi Lab / Diffusion Policy",
+      "state": "publish",
+      "source_sha256": "5a2d580086d6eada58aaa33965539b340000173f51b38c6af7d23452c0c739ad",
+      "source_size": 25168,
+      "protected_spans": [],
+      "redaction_profile": "phi-lab-experiment-results"
+    },
+    {
+      "id": "umi-diffusion-4090",
+      "source": "配置｜训练｜数据处理/Diffusion Policy/基于Ubuntu+4090GPU服务器的UMI-diffusion-training框架搭建指南.md",
+      "destination": "docs/经验分享/Phi Lab/Diffusion Policy/基于Ubuntu+4090GPU服务器的UMI-diffusion-training框架搭建指南.md",
+      "title": "基于Ubuntu+4090GPU服务器的UMI-diffusion-training框架搭建指南",
+      "section": "More Experiences / Phi Lab / Diffusion Policy",
+      "state": "publish",
+      "source_sha256": "5d6fb1097375ea9886b5072d9d47255aa7059c15b67123ccf85e7d2c2a03a822",
+      "source_size": 9068,
+      "protected_spans": [],
+      "redaction_profile": "phi-lab-infrastructure"
+    },
+    {
+      "id": "umi-diffusion-rtx50",
+      "source": "配置｜训练｜数据处理/Diffusion Policy/基于Ubuntu+RTX50系列的UMI-diffusion-training框架搭建指南.md",
+      "destination": "docs/经验分享/Phi Lab/Diffusion Policy/基于Ubuntu+RTX50系列的UMI-diffusion-training框架搭建指南.md",
+      "title": "基于Ubuntu+RTX50系列的UMI-diffusion-training框架搭建指南",
+      "section": "More Experiences / Phi Lab / Diffusion Policy",
+      "state": "publish",
+      "source_sha256": "26684f06fed14feac83463246aa483969eafe0c3b1853b041aeeade6a7288268",
+      "source_size": 11375,
+      "protected_spans": [],
+      "redaction_profile": "phi-lab-infrastructure"
+    },
+    {
+      "id": "matrix-studio",
+      "source": "配置｜训练｜数据处理/Diffusion Policy/🦾UMI_Matrix-Studio配置架构.md",
+      "destination": "docs/经验分享/Phi Lab/Diffusion Policy/🦾UMI_Matrix-Studio配置架构.md",
+      "title": "🦾UMI_Matrix-Studio配置架构",
+      "section": "More Experiences / Phi Lab / Diffusion Policy",
+      "state": "publish",
+      "source_sha256": "b7de70b2ee48d2231936d2f5c7d5cbc99da4e9b6c299866563ba0d393b4f3fdf",
+      "source_size": 10334,
+      "protected_spans": [],
+      "redaction_profile": "phi-lab-credentials-supply-chain-and-infrastructure"
+    },
+    {
+      "id": "sim2sim",
+      "source": "配置｜训练｜数据处理/WBC/Sim2Sim配置与训练.md",
+      "destination": "docs/经验分享/Phi Lab/WBC/Sim2Sim配置与训练.md",
+      "title": "Sim2Sim配置与训练",
+      "section": "More Experiences / Phi Lab / WBC",
+      "state": "publish",
+      "source_sha256": "68bb691364e348530854251d23e877285b4021f3aefb8451abc5b78a690ae458",
+      "source_size": 6407,
+      "protected_spans": [],
+      "redaction_profile": "phi-lab-infrastructure"
+    },
+    {
+      "id": "umi-on-tron",
+      "source": "配置｜训练｜数据处理/WBC/UMI-on-Tron 仿真训练流程.md",
+      "destination": "docs/经验分享/Phi Lab/WBC/UMI-on-Tron 仿真训练流程.md",
+      "title": "UMI-on-Tron 仿真训练流程",
+      "section": "More Experiences / Phi Lab / WBC",
+      "state": "publish",
+      "source_sha256": "8f306cbbaa9436ef1ee5ea03bc606f00d9d84a10d03d4891313ffeedb6a46f0f",
+      "source_size": 12911,
+      "protected_spans": [],
+      "redaction_profile": "phi-lab-destructive-commands-and-infrastructure"
+    },
+    {
+      "id": "isaac-lab-rtx50",
+      "source": "配置｜训练｜数据处理/WBC/基于Ubuntu+RTX50系列的Isaac Lab仿真框架搭建指南.md",
+      "destination": "docs/经验分享/Phi Lab/WBC/基于Ubuntu+RTX50系列的Isaac Lab仿真框架搭建指南.md",
+      "title": "基于Ubuntu+RTX50系列的Isaac Lab仿真框架搭建指南",
+      "section": "More Experiences / Phi Lab / WBC",
+      "state": "publish",
+      "source_sha256": "4ae0ec076957295d9093d2e05497f8c6479bbc069b68d0585398e6c722612817",
+      "source_size": 29549,
+      "protected_spans": [],
+      "redaction_profile": "phi-lab-experiment-results-and-infrastructure"
+    },
+    {
+      "id": "handwriting-recognition-empty",
+      "source": "学习理解/Project：Handwriting Recognition来初步学习神经网络.md",
+      "title": "Project：Handwriting Recognition来初步学习神经网络",
+      "section": "skip",
+      "state": "skip",
+      "skip_reason": "zero-byte source; explicitly excluded from page, navigation, search and Archive",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_size": 0,
+      "protected_spans": [],
+      "redaction_profile": "none"
+    }
+  ]
+}

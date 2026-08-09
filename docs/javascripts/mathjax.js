@@ -21,6 +21,9 @@
 
   window.MathJax = {
     tex: {
+      macros: {
+        prescript: ["{}^{#1}_{#2}\\!#3", 3]
+      },
       inlineMath: [["\\(", "\\)"]],
       displayMath: [["\\[", "\\]"]],
       processEscapes: true,

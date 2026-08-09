@@ -18,9 +18,11 @@ More Experiences is where I keep the lessons that do not fit neatly into convent
 
     [Read the first TECH guide →](关于Ubuntu系统下Codex无法在VS%20Code中打开的问题.md)
 
--   :material-robot-industrial: **Phi Lab** · _Coming soon_
+-   :material-robot-industrial: **Phi Lab**
 
     Hands-on logs from my work in embodied AI, including model training, hyperparameter tuning, environment setup, experimental failures, and the decisions behind each iteration.
+
+    [Browse Phi Lab notes →](Phi%20Lab/补充插件：Tensorboard%20%26%20WandB.md)
 
 -   :material-calendar-refresh: **Annual Reviews**
 
@@ -35,3 +37,7 @@ More Experiences is where I keep the lessons that do not fit neatly into convent
 Solutions are easier to reuse when the reasoning behind them is preserved. Experiments become more valuable when failed attempts are documented alongside successful ones. Reflections gain meaning when they can be revisited with the perspective of another year.
 
 This section is therefore both a practical logbook and a record of growth—written for my future self, and shared in case it helps someone facing a similar problem.
+
+!!! tip "Find it helpful and thought-provoking?"
+
+    If these experiences resonated with you or helped you in some way—and you would like to keep following along or simply stop by from time to time—please consider giving the GitHub repository in the upper-right corner a [Star 🌟](https://github.com/SPIRAL-EDWIN/edwinjing_blog_personal-website){ target="_blank" rel="noopener" }. Your Star would be the greatest encouragement for me to keep documenting, sharing, and updating this collection.

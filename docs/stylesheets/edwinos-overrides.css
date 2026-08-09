@@ -1567,11 +1567,13 @@ html.edwinos-search-transitioning .md-header .md-search {
             / 2
         ) !important;
         right: var(--edwinos-header-search-right) !important;
-        left: var(--edwinos-header-search-rest-left) !important;
+        left: auto !important;
         z-index: 27 !important;
         display: block !important;
-        width: auto !important;
-        max-width: none !important;
+        box-sizing: border-box !important;
+        width: var(--edwinos-header-search-width) !important;
+        min-width: var(--edwinos-header-control-size) !important;
+        max-width: var(--edwinos-header-search-width) !important;
         height: var(--edwinos-header-control-size) !important;
         margin: 0 !important;
         padding: 1px 0 !important;
@@ -1587,7 +1589,9 @@ html.edwinos-search-transitioning .md-header .md-search {
     .md-header .md-search__form {
         position: relative !important;
         inset: auto !important;
+        box-sizing: border-box !important;
         width: 100% !important;
+        min-width: 0 !important;
         max-width: none !important;
         height: calc(var(--edwinos-header-control-size) - 2px) !important;
         min-height: calc(var(--edwinos-header-control-size) - 2px) !important;
@@ -1603,7 +1607,9 @@ html.edwinos-search-transitioning .md-header .md-search {
     }
 
     .md-header .md-search__input {
+        box-sizing: border-box !important;
         width: 100% !important;
+        min-width: 0 !important;
         max-width: none !important;
         height: 100% !important;
         min-height: 0 !important;
@@ -1613,6 +1619,8 @@ html.edwinos-search-transitioning .md-header .md-search {
         white-space: nowrap !important;
         text-overflow: clip !important;
         opacity: 1 !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
         transition:
             color 140ms ease,
             opacity 140ms ease !important;
@@ -1825,36 +1833,31 @@ html.edwinos-search-transitioning .md-header .md-search {
 
 @media screen and (max-width: 40rem) {
     html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
+    .md-tabs .md-grid,
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+    .md-tabs .md-grid {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        overscroll-behavior-inline: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
     .md-tabs .md-tabs__list,
     html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
     .md-tabs .md-tabs__list {
-        gap: clamp(
-            3px,
-            calc(0.9375vw - 2.4px),
-            3.6px
-        ) !important;
+        flex: 0 0 max-content !important;
+        min-width: max-content !important;
+        gap: 4px !important;
     }
 
     html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
     .md-tabs .md-tabs__link,
     html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
     .md-tabs .md-tabs__link {
-        padding-inline: clamp(
-            0px,
-            max(
-                calc((100vw - 460px) / 17.1),
-                calc(6.9vw - 32.96px)
-            ),
-            11.2px
-        ) !important;
-        font-size: clamp(
-            9px,
-            max(
-                calc(3.634vw - 3.73px),
-                calc(0.88vw + 6.184px)
-            ),
-            17.2px
-        ) !important;
+        flex: 0 0 auto !important;
+        padding-inline: 5px !important;
+        font-size: 13px !important;
     }
 }
 
@@ -2127,6 +2130,49 @@ html.edwinos-search-transitioning .md-header .md-search {
         padding: 0 !important;
         transform: none !important;
     }
+}
+
+/* Keep article navigation geometry stable. The legacy base layer adds left
+   padding on hover; that moves long active titles just far enough to reflow.
+   Preserve hierarchy through the nested lists and communicate interaction
+   with color alone. */
+.md-sidebar--primary .md-nav__list
+.md-nav__link:not(.md-nav__title):not(.edwinos-drawer-back-title):not(.edwinos-drawer-section-title),
+.md-sidebar--secondary [data-md-component="toc"] .md-nav__link {
+    box-sizing: border-box;
+    transition-property: color, background-color, opacity !important;
+}
+
+.md-sidebar--primary .md-nav__list
+.md-nav__link:not(.md-nav__title):not(.edwinos-drawer-back-title):not(.edwinos-drawer-section-title):is(:hover, :focus-visible, .md-nav__link--active),
+.md-sidebar--secondary [data-md-component="toc"]
+.md-nav__link:is(:hover, :focus-visible, .md-nav__link--active) {
+    padding-left: 0 !important;
+    transform: none !important;
+}
+
+body[data-md-color-scheme="default"]
+.md-sidebar--primary .md-nav__link--active {
+    color: #0969da !important;
+}
+
+body[data-md-color-scheme="slate"]
+.md-sidebar--primary .md-nav__link--active {
+    color: #58a6ff !important;
+}
+
+/* Deep TOC entries need a brighter active color than the inherited navy on
+   both palettes, especially against EdwinOS's dark article background. */
+body[data-md-color-scheme="default"]
+.md-sidebar--secondary [data-md-component="toc"]
+li li > .md-nav__link--active {
+    color: #0550ae !important;
+}
+
+body[data-md-color-scheme="slate"]
+.md-sidebar--secondary [data-md-component="toc"]
+li li > .md-nav__link--active {
+    color: #79c0ff !important;
 }
 
 /* ==========================================================================
@@ -3004,6 +3050,203 @@ body .md-content__inner > .md-typeset__scrollwrap + h2#matlab-python {
 }
 
 /* ==========================================================================
+   Math
+   ========================================================================== */
+
+/* Long inline formulas remain readable on narrow screens without expanding
+   the entire document beyond the viewport. */
+.md-typeset span.arithmatex {
+    display: inline-block;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    vertical-align: middle;
+}
+
+.md-typeset div.arithmatex {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* MathJax glyph overhang can make an otherwise complete inline expression
+   report a few pixels of overflow. On regular article widths, keep inline
+   math in normal text flow so that false-positive scrollbars are not drawn.
+   Narrow screens retain the scroll container for genuinely long formulas. */
+@media screen and (min-width: 45em) {
+    .md-typeset span.arithmatex {
+        display: inline;
+        max-width: none;
+        overflow: visible;
+        vertical-align: baseline;
+    }
+}
+
+@media screen and (max-width: 44.984375em) {
+    .md-typeset span.arithmatex {
+        scrollbar-width: none;
+    }
+
+    .md-typeset span.arithmatex::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+
+/* Keep the Bash syntax comparison readable instead of letting the longest
+   command force the remaining columns into narrow slivers. */
+.md-typeset .bash-option-table table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.md-typeset .bash-option-table :is(th, td):nth-child(1) {
+    width: 24%;
+}
+
+.md-typeset .bash-option-table :is(th, td):nth-child(2) {
+    width: 18%;
+}
+
+.md-typeset .bash-option-table :is(th, td):nth-child(3) {
+    width: 20%;
+}
+
+.md-typeset .bash-option-table :is(th, td):nth-child(4) {
+    width: 38%;
+}
+
+.md-typeset .bash-option-table :is(th, td, code) {
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.md-typeset .bash-symbol-table table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.md-typeset .bash-symbol-table :is(th, td):nth-child(1) {
+    width: 16%;
+}
+
+.md-typeset .bash-symbol-table :is(th, td):nth-child(2) {
+    width: 46%;
+}
+
+.md-typeset .bash-symbol-table :is(th, td):nth-child(3) {
+    width: 38%;
+}
+
+.md-typeset .bash-symbol-table :is(th, td, code) {
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+/* Keep the two script names intact in the Checkpoint guide's opening tool
+   table. The table's existing Material scroll wrapper owns narrow-screen
+   overflow; later tables and all other notes retain their normal wrapping. */
+html:has(> head > link[rel="canonical"][href*="/Diffusion%20Policy%20checkpoint%20"])
+body .md-content__inner.md-typeset
+> h2[id="0"] + .highlight + table
+:is(th, td):first-child code,
+html:has(> head > link[rel="canonical"][href*="/Diffusion%20Policy%20checkpoint%20"])
+body .md-content__inner.md-typeset
+> h2[id="0"] + .highlight + .md-typeset__scrollwrap
+table :is(th, td):first-child code {
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+    hyphens: none !important;
+}
+
+/* ==========================================================================
+   PDF Viewer
+   ========================================================================== */
+
+.md-typeset .pdf-viewer-shell {
+    width: 100%;
+    margin-block: 1rem 0.75rem;
+    overflow: hidden;
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.75rem;
+    background: var(--md-default-bg-color);
+    box-shadow: var(--md-shadow-z1);
+}
+
+/* A PDF reader is the page's primary content, so reclaim the desktop TOC
+   column for the document canvas. This remains compatible with front matter
+   that also hides the TOC and needs no route-specific filename selector. */
+html:has(body .pdf-viewer-shell) body .md-sidebar--secondary {
+    display: none !important;
+}
+
+html:has(body .pdf-viewer-shell) body .md-content,
+html:has(body .pdf-viewer-shell) body .md-content__inner {
+    max-width: none !important;
+}
+
+.md-typeset .pdf-viewer-frame {
+    display: block;
+    width: 100%;
+    height: min(82vh, 900px);
+    min-height: 560px;
+    border: 0;
+    background: #fff;
+}
+
+.md-typeset .pdf-viewer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+}
+
+@media screen and (max-width: 44.984375em) {
+    .md-typeset .pdf-viewer-frame {
+        height: 68vh;
+        min-height: 440px;
+    }
+}
+
+/* Three anonymized editor screenshots include solid black padding in their
+   raster files. Crop only their on-page presentation; other article images
+   and the source Obsidian assets remain untouched. */
+.md-typeset img.trim-black-padding,
+.md-typeset img.trim-white-padding {
+    display: block;
+    object-fit: cover;
+}
+
+.md-typeset img.trim-black-padding--register {
+    aspect-ratio: 2171 / 526;
+    object-position: 50% 52.7%;
+}
+
+.md-typeset img.trim-black-padding--scene {
+    aspect-ratio: 2117 / 390;
+    object-position: 50% 47%;
+}
+
+.md-typeset img.trim-black-padding--asset {
+    aspect-ratio: 2163 / 391;
+    object-position: 50% 50%;
+}
+
+/* The anonymized transfer screenshot contains 107 px / 108 px of white
+   canvas above and below the terminal capture. Crop only its presentation so
+   the source asset remains byte-for-byte unchanged. */
+.md-typeset img.trim-white-padding--npz-transfer {
+    aspect-ratio: 2123 / 526;
+    object-position: 50% 49.9%;
+}
+
+/* ==========================================================================
    Prose Links
    ========================================================================== */
 
@@ -3050,6 +3293,8 @@ a:not(:where(.headerlink, .md-button, [role="button"], [class*="btn-"])) {
     min-width: 0;
     margin: 0 !important;
     list-style: none !important;
+    overflow: hidden;
+    border-radius: 1.25rem !important;
 }
 
 .md-typeset .intro-card-grid > ul > li::marker {

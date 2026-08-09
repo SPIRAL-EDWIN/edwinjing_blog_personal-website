@@ -556,7 +556,8 @@
     return new URL(relativePath, homeUrl).pathname;
   }
 
-  var sourceFactsObserverStarted = false;
+  var sourceFactsObserver = null;
+  var sourceFactsObserverTarget = null;
   var sourceFactsRequestStarted = false;
   var latestSourceFacts = null;
 
@@ -681,17 +682,55 @@
   }
 
   function watchSourceFacts() {
-    if (sourceFactsObserverStarted || !document.body) return;
-    sourceFactsObserverStarted = true;
+    var body = document.body;
 
-    var observer = new MutationObserver(function () {
+    if (
+      sourceFactsObserver &&
+      (
+        !sourceFactsObserverTarget ||
+        sourceFactsObserverTarget !== body ||
+        !sourceFactsObserverTarget.isConnected
+      )
+    ) {
+      sourceFactsObserver.disconnect();
+      sourceFactsObserver = null;
+      sourceFactsObserverTarget = null;
+    }
+
+    var canObserveBody = body &&
+      typeof window.Node === "function" &&
+      body instanceof window.Node &&
+      body.nodeType === window.Node.ELEMENT_NODE &&
+      body.isConnected;
+
+    if (!canObserveBody || typeof window.MutationObserver !== "function") return;
+    if (sourceFactsObserver && sourceFactsObserverTarget === body) return;
+
+    var observer = new window.MutationObserver(function () {
+      if (
+        !sourceFactsObserverTarget ||
+        sourceFactsObserverTarget !== document.body ||
+        !sourceFactsObserverTarget.isConnected
+      ) {
+        watchSourceFacts();
+        return;
+      }
       normalizeSourceFacts();
       applySourceFacts();
     });
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+
+    try {
+      observer.observe(body, {
+        childList: true,
+        subtree: true
+      });
+      sourceFactsObserver = observer;
+      sourceFactsObserverTarget = body;
+    } catch (error) {
+      observer.disconnect();
+      sourceFactsObserver = null;
+      sourceFactsObserverTarget = null;
+    }
   }
 
   function profileSidebarHtml() {
