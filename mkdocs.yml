@@ -187,7 +187,7 @@ extra_javascript:
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
   - javascripts/mathjax.js?v=20260805a
   - javascripts/block-links.js?v=20260717a  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js?v=20260809b
+  - javascripts/ui-perf.js?v=20260809d
 
 extra_css:
   - stylesheets/extra.css?v=20260715a       # Base theme and legacy UI layer

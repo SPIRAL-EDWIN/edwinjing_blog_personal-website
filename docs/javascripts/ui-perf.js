@@ -663,19 +663,20 @@
   var sourceFactsObserverTarget = null;
   var sourceFactsRequestStarted = false;
   var latestSourceFacts = null;
+  var sourceFactsStorageKey = "edwinos-github-repo-facts-v1";
 
   function sourceFactMarkup() {
     return [
       '<ul class="md-source__facts" data-edwinos-source-facts="true">',
-      '  <li class="md-source__fact" data-source-fact="stars">0</li>',
-      '  <li class="md-source__fact" data-source-fact="forks">0</li>',
+      '  <li class="md-source__fact" data-source-fact="stars">&mdash;</li>',
+      '  <li class="md-source__fact" data-source-fact="forks">&mdash;</li>',
       '</ul>'
     ].join("");
   }
 
   function formatSourceFactCount(value) {
     var count = Number(value);
-    if (!Number.isFinite(count) || count < 0) return "0";
+    if (!Number.isFinite(count) || count < 0) return "—";
     if (count < 1000) return String(count);
     if (count < 1000000) return (count / 1000).toFixed(count < 10000 ? 1 : 0).replace(/\.0$/, "") + "k";
     return (count / 1000000).toFixed(count < 10000000 ? 1 : 0).replace(/\.0$/, "") + "m";
@@ -694,7 +695,7 @@
     });
   }
 
-  function sourceApiUrl() {
+  function sourceRepositoryName() {
     var source = document.querySelector(".md-header__source .md-source");
     var href = source ? source.getAttribute("href") : "";
     if (!href) return "";
@@ -703,41 +704,118 @@
       var url = new URL(href, window.location.href);
       if (url.hostname !== "github.com") return "";
       var parts = url.pathname.replace(/^\/+|\/+$/g, "").split("/");
-      if (parts.length < 2) return "";
-      return "https://api.github.com/repos/" + encodeURIComponent(parts[0]) + "/" + encodeURIComponent(parts[1]);
+      return parts.length >= 2 ? parts[0] + "/" + parts[1] : "";
     } catch (error) {
       return "";
     }
   }
 
-  function updateSourceFactsFromGitHub() {
-    normalizeSourceFacts();
+  function normalizeSourceFactPayload(data) {
+    if (!data || typeof data !== "object") return null;
+    if (!sourceRepositoryName() || data.repository !== sourceRepositoryName()) return null;
+    if (!Number.isInteger(data.stars) || data.stars < 0) return null;
+    if (!Number.isInteger(data.forks) || data.forks < 0) return null;
+    var observedAt = Date.parse(data.observed_at || data.generated_at || "");
+    return {
+      repository: data.repository,
+      stars: data.stars,
+      forks: data.forks,
+      observedAt: Number.isFinite(observedAt) ? observedAt : 0
+    };
+  }
+
+  function restoreStoredSourceFacts() {
+    try {
+      var cached = normalizeSourceFactPayload(JSON.parse(window.localStorage.getItem(sourceFactsStorageKey) || "null"));
+      if (cached) latestSourceFacts = cached;
+    } catch (error) {
+      // Storage can be unavailable in privacy-restricted contexts.
+    }
+  }
+
+  function storeSourceFacts(facts) {
+    try {
+      window.localStorage.setItem(sourceFactsStorageKey, JSON.stringify({
+        repository: facts.repository,
+        stars: facts.stars,
+        forks: facts.forks,
+        observed_at: facts.observedAt > 0 ? new Date(facts.observedAt).toISOString() : ""
+      }));
+    } catch (error) {
+      // The same-origin build artifact remains the primary source of truth.
+    }
+  }
+
+  function acceptSourceFacts(facts) {
+    if (!facts) return false;
+    if (latestSourceFacts && facts.observedAt < latestSourceFacts.observedAt) return false;
+    latestSourceFacts = facts;
+    storeSourceFacts(facts);
     applySourceFacts();
+    return true;
+  }
 
-    if (sourceFactsRequestStarted) return;
+  function sourceRepositoryApiUrl() {
+    var repository = sourceRepositoryName();
+    if (!repository) return "";
+    var parts = repository.split("/");
+    if (parts.length !== 2) return "";
+    return "https://api.github.com/repos/" + encodeURIComponent(parts[0]) + "/" + encodeURIComponent(parts[1]);
+  }
 
-    var apiUrl = sourceApiUrl();
-    if (!apiUrl) return;
-    sourceFactsRequestStarted = true;
+  function refreshSourceFactsFromGitHub() {
+    var apiUrl = sourceRepositoryApiUrl();
+    if (!apiUrl) return Promise.resolve();
 
-    fetch(apiUrl, {
+    return fetch(apiUrl, {
       cache: "no-cache",
       headers: { "Accept": "application/vnd.github+json" }
     })
       .then(function (response) {
-        if (!response.ok) throw new Error("GitHub API unavailable");
+        if (!response.ok) throw new Error("GitHub repository facts unavailable");
         return response.json();
       })
       .then(function (data) {
-        latestSourceFacts = {
+        var facts = normalizeSourceFactPayload({
+          repository: data.full_name,
           stars: data.stargazers_count,
-          forks: data.forks_count
-        };
-        applySourceFacts();
+          forks: data.forks_count,
+          observed_at: new Date().toISOString()
+        });
+        if (!facts) throw new Error("Invalid GitHub repository facts");
+        acceptSourceFacts(facts);
       })
       .catch(function () {
-        sourceFactsRequestStarted = false;
+        // Keep the same-origin snapshot or the last successful cached value.
+        applySourceFacts();
       });
+  }
+
+  function updateSourceFacts() {
+    normalizeSourceFacts();
+    if (!latestSourceFacts) restoreStoredSourceFacts();
+    applySourceFacts();
+
+    if (sourceFactsRequestStarted) return;
+    sourceFactsRequestStarted = true;
+
+    fetch(siteHref("assets/data/github-repo.json"), {
+      cache: "no-cache",
+      headers: { "Accept": "application/json" }
+    })
+      .then(function (response) {
+        if (!response.ok) throw new Error("Repository facts unavailable");
+        return response.json();
+      })
+      .then(function (data) {
+        var facts = normalizeSourceFactPayload(data);
+        if (!facts) throw new Error("Invalid repository facts");
+        acceptSourceFacts(facts);
+      })
+      .catch(function () {
+        applySourceFacts();
+      })
+      .then(refreshSourceFactsFromGitHub);
   }
 
   function normalizeSourceFacts() {
@@ -1543,7 +1621,7 @@
     setupHeaderGeometrySync();
     setupHeaderSearchTransition();
     normalizePaletteButtons();
-    updateSourceFactsFromGitHub();
+    updateSourceFacts();
     watchSourceFacts();
     ensureHomeProfileLayout();
     updateBeijingTime();
