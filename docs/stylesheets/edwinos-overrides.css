@@ -627,17 +627,6 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         box-shadow: none !important;
     }
 
-    /*
-     * Keep drawer-route tabs in the sticky header's coordinate system during
-     * iOS elastic overscroll without changing the header's normal geometry.
-     */
-    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
-    body .md-header > .md-tabs,
-    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
-    body .md-header > .md-tabs {
-        position: absolute !important;
-    }
-
     .md-header__inner {
         display: flex !important;
         width: 100% !important;
@@ -724,7 +713,7 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
     .md-tabs,
     .md-tabs[data-md-state="hidden"],
     .md-tabs[data-md-state="lock"] {
-        position: fixed !important;
+        position: absolute !important;
         top: 0 !important;
         right: calc(var(--edwinos-mobile-header-control-space) + 0.8rem) !important;
         left: calc(0.72rem + var(--edwinos-mobile-drawer-space)) !important;
@@ -1911,7 +1900,7 @@ html.edwinos-search-transitioning .md-header .md-search {
 
 /*
  * The header and tab layer used to draw separate borders during elastic
- * overscroll. A single viewport-fixed rule keeps the notch edge stationary.
+ * overscroll. A single header-relative rule keeps the notch edge unified.
  */
 [data-md-color-scheme] .md-header.md-header,
 [data-md-color-scheme] .md-tabs.md-tabs {
@@ -1920,7 +1909,7 @@ html.edwinos-search-transitioning .md-header .md-search {
 
 .md-header::after {
     content: "" !important;
-    position: fixed !important;
+    position: absolute !important;
     top: calc(
         var(
             --edwinos-mobile-header-height,
@@ -1941,6 +1930,52 @@ html.edwinos-search-transitioning .md-header .md-search {
 
 [data-md-color-scheme="slate"] .md-header::after {
     background: #30363d !important;
+}
+
+/* Safari keeps a tapped link in :hover after Material's instant navigation.
+   On touch screens that stale hover must not compete with the new active tab. */
+@media (hover: none), (pointer: coarse) {
+    [data-md-color-scheme="default"] .md-tabs__link:hover {
+        color: #57606a !important;
+        background: transparent !important;
+        font-weight: 500 !important;
+        transform: none !important;
+    }
+
+    [data-md-color-scheme="slate"] .md-tabs__link:hover {
+        color: #8b949e !important;
+        background: transparent !important;
+        font-weight: 500 !important;
+        transform: none !important;
+    }
+
+    [data-md-color-scheme="default"]
+    .md-tabs__item--active
+    .md-tabs__link {
+        color: #1f2328 !important;
+        background: rgba(31, 35, 40, 0.1) !important;
+        font-weight: 600 !important;
+    }
+
+    [data-md-color-scheme="slate"]
+    .md-tabs__item--active
+    .md-tabs__link {
+        color: #f0f6fc !important;
+        background: rgba(240, 246, 252, 0.12) !important;
+        font-weight: 600 !important;
+    }
+}
+
+/* Keep the complete mobile notch in the sticky header's coordinate system.
+   iOS otherwise composites fixed controls and absolute tabs separately while
+   recovering from elastic overscroll. The expanded search remains viewport
+   fixed through its more specific checked-state rule above. */
+@media screen and (max-width: 76.1875em) {
+    .md-header .md-search,
+    .md-header .md-header__source,
+    .md-header .md-header__option {
+        position: absolute !important;
+    }
 }
 
 /* ==========================================================================
@@ -3477,6 +3512,27 @@ body.is-archive-navigating::after {
 @keyframes edwinos-archive-loading {
     to {
         filter: hue-rotate(360deg);
+    }
+}
+
+@media screen and (max-width: 36rem) {
+    body.is-home-profile-page:has(.archive-grid) .archive-card__title-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+        gap: 0.28rem;
+        margin: 0 0 0.5rem;
+    }
+
+    body.is-home-profile-page:has(.archive-grid) .archive-card__status {
+        justify-self: start;
+        padding: 0.22rem 0.4rem;
+        font-size: 0.46rem;
+        letter-spacing: 0.07em;
+    }
+
+    body.is-home-profile-page:has(.archive-grid) .archive-card__title {
+        width: 100%;
     }
 }
 
