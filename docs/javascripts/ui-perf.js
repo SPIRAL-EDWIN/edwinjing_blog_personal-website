@@ -668,8 +668,8 @@
   function sourceFactMarkup() {
     return [
       '<ul class="md-source__facts" data-edwinos-source-facts="true">',
-      '  <li class="md-source__fact" data-source-fact="stars">&mdash;</li>',
-      '  <li class="md-source__fact" data-source-fact="forks">&mdash;</li>',
+      '  <li class="md-source__fact md-source__fact--stars" data-source-fact="stars">&mdash;</li>',
+      '  <li class="md-source__fact md-source__fact--forks" data-source-fact="forks">&mdash;</li>',
       '</ul>'
     ].join("");
   }
@@ -855,7 +855,10 @@
       repo.classList.add("md-source__repository--active");
       facts.forEach(function (factList) {
         Array.prototype.forEach.call(factList.querySelectorAll(".md-source__fact"), function (fact, index) {
-          fact.setAttribute("data-source-fact", index === 0 ? "stars" : "forks");
+          var factType = index === 0 ? "stars" : "forks";
+          fact.setAttribute("data-source-fact", factType);
+          fact.classList.toggle("md-source__fact--stars", factType === "stars");
+          fact.classList.toggle("md-source__fact--forks", factType === "forks");
         });
       });
     });
