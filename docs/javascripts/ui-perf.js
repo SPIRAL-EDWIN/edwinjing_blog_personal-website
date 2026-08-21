@@ -8,9 +8,8 @@
   var pendingPrimarySidebarScroll = null;
   var lastDocumentPageKey = navigationPageKey(window.location.href);
   var searchReloadBudgetProcessed = false;
-  var headerGeometryFrame = null;
-  var headerGeometryObserver = null;
   var headerSearchTransitionTimer = null;
+  var sectionNavigationDepthTimer = null;
   var archiveNavigationFeedbackReady = false;
   var archiveNavigationFallbackTimer = null;
   var warmedArchiveTargets = Object.create(null);
@@ -236,91 +235,15 @@
     }
   }
 
-  function writeHeaderGeometry() {
-    headerGeometryFrame = null;
-
-    var header = document.querySelector(".md-header");
-    var tabList = document.querySelector(".md-tabs__list");
-    if (!header || !tabList) return;
-
-    var headerRect = header.getBoundingClientRect();
-    var tabRect = tabList.getBoundingClientRect();
-    var searchGap = 16;
-    var measuredSearchLeft = Math.max(
-      tabRect.right - headerRect.left + searchGap,
-      0
-    );
-    var pathname = window.location.pathname || "";
-    try {
-      pathname = decodeURIComponent(pathname);
-    } catch (error) {
-      // Keep the encoded pathname when a malformed escape sequence is present.
-    }
-    var hasCompactDrawer = !primarySidebarIsDesktop() &&
-      /\/(?:OsdNotes|经验分享)(?:\/|$)/i.test(pathname);
-    var compressionAnchor = 420 + (hasCompactDrawer ? 44 : 0);
-    var searchLeft = Math.max(measuredSearchLeft, compressionAnchor);
-
-    document.documentElement.style.setProperty(
-      "--edwinos-header-search-left",
-      searchLeft.toFixed(2) + "px"
-    );
-  }
-
-  function syncHeaderGeometry() {
-    if (headerGeometryFrame !== null) {
-      window.cancelAnimationFrame(headerGeometryFrame);
-    }
-
-    headerGeometryFrame = window.requestAnimationFrame(writeHeaderGeometry);
-  }
-
-  function setupHeaderGeometrySync() {
-    if (headerGeometryObserver) {
-      headerGeometryObserver.disconnect();
-      headerGeometryObserver = null;
-    }
-
-    if (typeof window.ResizeObserver === "function") {
-      var header = document.querySelector(".md-header");
-      var tabList = document.querySelector(".md-tabs__list");
-
-      if (header && tabList) {
-        headerGeometryObserver = new window.ResizeObserver(syncHeaderGeometry);
-        headerGeometryObserver.observe(header);
-        headerGeometryObserver.observe(tabList);
-      }
-    }
-
-    if (!document.body || document.body.dataset.edwinosHeaderGeometryReady === "1") {
-      writeHeaderGeometry();
-      return;
-    }
-
-    document.body.dataset.edwinosHeaderGeometryReady = "1";
-    window.addEventListener("resize", syncHeaderGeometry, { passive: true });
-    window.addEventListener("orientationchange", syncHeaderGeometry, { passive: true });
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", syncHeaderGeometry, { passive: true });
-    }
-
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(syncHeaderGeometry);
-    }
-
-    writeHeaderGeometry();
-    window.setTimeout(syncHeaderGeometry, 120);
-    window.setTimeout(syncHeaderGeometry, 420);
-  }
-
   function beginHeaderSearchTransition() {
     document.documentElement.classList.add("edwinos-search-transitioning");
     // Commit the resting geometry before the checkbox changes its coordinates.
-    document.documentElement.getBoundingClientRect();
+    var search = document.querySelector(".md-search");
+    if (search) search.getBoundingClientRect();
     window.clearTimeout(headerSearchTransitionTimer);
     headerSearchTransitionTimer = window.setTimeout(function () {
       document.documentElement.classList.remove("edwinos-search-transitioning");
-    }, 320);
+    }, 500);
   }
 
   function setupHeaderSearchTransition() {
@@ -890,7 +813,7 @@
     if (!canObserveBody || typeof window.MutationObserver !== "function") return;
     if (sourceFactsObserver && sourceFactsObserverTarget === body) return;
 
-    var observer = new window.MutationObserver(function () {
+    var observer = new window.MutationObserver(function (mutations) {
       if (
         !sourceFactsObserverTarget ||
         sourceFactsObserverTarget !== document.body ||
@@ -899,8 +822,28 @@
         watchSourceFacts();
         return;
       }
+
+      var sourceChanged = mutations.some(function (mutation) {
+        var target = mutation.target;
+        if (
+          target &&
+          target.nodeType === window.Node.ELEMENT_NODE &&
+          target.closest(".md-header__source")
+        ) {
+          return true;
+        }
+
+        return Array.prototype.some.call(mutation.addedNodes, function (node) {
+          return node.nodeType === window.Node.ELEMENT_NODE &&
+            (
+              node.matches(".md-header__source") ||
+              node.querySelector(".md-header__source")
+            );
+        });
+      });
+
+      if (!sourceChanged) return;
       normalizeSourceFacts();
-      applySourceFacts();
     });
 
     try {
@@ -976,7 +919,9 @@
     var markup = '<span class="beijing-time-main">' + hours + ":" + minutes + '</span> <span class="beijing-time-zone">(UTC +08:00)</span>';
 
     timeElements.forEach(function (timeElement) {
-      timeElement.innerHTML = markup;
+      if (timeElement.innerHTML !== markup) {
+        timeElement.innerHTML = markup;
+      }
     });
   }
 
@@ -1419,7 +1364,11 @@
 
     var media = window.matchMedia(PRIMARY_SIDEBAR_DESKTOP_QUERY);
     var syncNavigationDepth = function () {
-      setSectionNavigationDepth(true);
+      window.clearTimeout(sectionNavigationDepthTimer);
+      sectionNavigationDepthTimer = window.setTimeout(function () {
+        sectionNavigationDepthTimer = null;
+        setSectionNavigationDepth(true);
+      }, 180);
     };
     if (typeof media.addEventListener === "function") {
       media.addEventListener("change", syncNavigationDepth);
@@ -1621,7 +1570,6 @@
   function runAll() {
     clearArchiveNavigationFeedback();
     updateHomepageClass();
-    setupHeaderGeometrySync();
     setupHeaderSearchTransition();
     normalizePaletteButtons();
     updateSourceFacts();

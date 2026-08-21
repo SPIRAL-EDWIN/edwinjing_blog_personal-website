@@ -4402,7 +4402,13 @@ body:has(.academic-home-layout) .academic-home-layout {
 body.is-homepage .academic-sidebar,
 body.is-home-profile-page .academic-sidebar,
 body:has(.academic-home-layout) .academic-sidebar {
-    top: calc(var(--compact-header-height, var(--md-header-height, 48px)) + 1.15rem) !important;
+    top: calc(
+        var(
+            --edwinos-header-height,
+            var(--compact-header-height, var(--md-header-height, 48px))
+        )
+        + clamp(0.75rem, 1.55vw, 1.15rem)
+    ) !important;
 }
 
 body.is-homepage .academic-home-layout .profile-card,

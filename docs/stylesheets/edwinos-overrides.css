@@ -716,7 +716,10 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         position: absolute !important;
         top: 0 !important;
         right: calc(var(--edwinos-mobile-header-control-space) + 0.8rem) !important;
-        left: calc(0.72rem + var(--edwinos-mobile-drawer-space)) !important;
+        left: calc(
+            var(--edwinos-header-edge)
+            + var(--edwinos-mobile-drawer-space)
+        ) !important;
         z-index: 21 !important;
         display: flex !important;
         width: auto !important;
@@ -765,7 +768,7 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         height: auto !important;
         align-items: center !important;
         justify-content: flex-start !important;
-        gap: 0.18rem !important;
+        gap: 4px !important;
         margin: 0 !important;
         padding: 0 !important;
     }
@@ -784,10 +787,9 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         align-items: center !important;
         justify-content: center !important;
         margin: 0 !important;
-        padding: 0 0.56rem !important;
+        padding: 0 11px !important;
         border-radius: 999px !important;
-        font-family: var(--edwinos-font-mono) !important;
-        font-size: 0.86rem !important;
+        font-size: 17.2px !important;
         font-weight: 500 !important;
         letter-spacing: 0 !important;
         line-height: 1 !important;
@@ -811,8 +813,8 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
     [data-md-toggle="search"]:checked ~ .md-header .md-search__overlay {
         position: fixed !important;
         inset: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
+        width: auto !important;
+        height: auto !important;
         opacity: 1 !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
@@ -865,27 +867,6 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         left: calc(0.58rem + var(--edwinos-mobile-drawer-space)) !important;
     }
 
-    .md-tabs__list {
-        gap: 0.06rem !important;
-    }
-
-    .md-tabs__link {
-        height: 2rem !important;
-        min-height: 2rem !important;
-        padding: 0 0.32rem !important;
-        font-size: 0.84rem !important;
-    }
-
-    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]) .md-tabs__list,
-    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]) .md-tabs__list {
-        gap: 0.02rem !important;
-    }
-
-    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]) .md-tabs__link,
-    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]) .md-tabs__link {
-        padding: 0 0.16rem !important;
-        font-size: 0.8rem !important;
-    }
 }
 
 @media screen and (max-width: 27rem) {
@@ -898,61 +879,6 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
         left: calc(0.52rem + var(--edwinos-mobile-drawer-space)) !important;
     }
 
-    .md-tabs__list {
-        gap: 0.02rem !important;
-    }
-
-    .md-tabs__link {
-        padding: 0 0.22rem !important;
-        font-size: 0.82rem !important;
-    }
-}
-
-@media screen and (max-width: 25rem) {
-    .md-tabs__link {
-        padding: 0 0.16rem !important;
-        font-size: 0.8rem !important;
-    }
-}
-
-@media screen and (max-width: 34rem) {
-    .md-tabs .md-tabs__list {
-        gap: 2px !important;
-    }
-
-    .md-tabs .md-tabs__link {
-        padding-inline: 1px !important;
-        font-size: 13.5px !important;
-    }
-
-    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
-    .md-tabs .md-tabs__list,
-    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
-    .md-tabs .md-tabs__list {
-        gap: 3px !important;
-    }
-
-    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
-    .md-tabs .md-tabs__link,
-    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
-    .md-tabs .md-tabs__link {
-        padding-inline: 0 !important;
-        font-size: 10.75px !important;
-    }
-}
-
-@media screen and (max-width: 23rem) {
-    .md-tabs__link {
-        padding: 0 0.08rem !important;
-        font-size: 0.76rem !important;
-    }
-}
-
-@media screen and (max-width: 22rem) {
-    .md-tabs__link {
-        padding-inline: 0 !important;
-        font-size: 0.7rem !important;
-    }
 }
 
 /*
@@ -962,8 +888,8 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
 .md-header .md-search__form {
     overflow: hidden !important;
     border-radius: 999px !important;
-    -webkit-backdrop-filter: blur(14px) saturate(1.16);
-    backdrop-filter: blur(14px) saturate(1.16);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     transition:
         background-color 160ms ease,
         border-color 160ms ease,
@@ -971,16 +897,10 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
 }
 
 .md-header .md-search__input {
-    padding-right: 1rem !important;
-    padding-left: 2.25rem !important;
+    background: transparent !important;
+    border: 0 !important;
     border-radius: inherit !important;
     box-shadow: none !important;
-}
-
-.md-header .md-search__form .md-search__icon[for="__search"] {
-    left: 0.68rem !important;
-    width: 1rem !important;
-    height: 1rem !important;
 }
 
 .md-header .md-search__options {
@@ -998,10 +918,11 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
 
 [data-md-color-scheme="default"] .md-header .md-search:hover .md-search__form {
     background: rgba(118, 118, 128, 0.2) !important;
-    border-color: rgba(60, 60, 67, 0.28) !important;
+    border-color: rgba(60, 60, 67, 0.14) !important;
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.5),
-        0 2px 8px rgba(31, 35, 40, 0.08) !important;
+        inset 0 1px 0 rgba(255, 255, 255, 0.58),
+        0 1px 2px rgba(31, 35, 40, 0.06),
+        0 4px 14px rgba(31, 35, 40, 0.04) !important;
 }
 
 [data-md-toggle="search"]:checked
@@ -1011,7 +932,7 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
 [data-md-toggle="search"]:checked
 ~ .md-header
 .md-search__form:focus-within {
-    background: rgba(255, 255, 255, 0.96) !important;
+    background: rgba(255, 255, 255, 0.76) !important;
     border-color: rgba(0, 122, 255, 0.58) !important;
     box-shadow:
         0 0 0 3px rgba(0, 122, 255, 0.13),
@@ -1048,11 +969,11 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
 }
 
 [data-md-color-scheme="slate"] .md-header .md-search:hover .md-search__form {
-    background: rgba(33, 38, 45, 0.9) !important;
-    border-color: rgba(139, 148, 158, 0.46) !important;
+    background: rgba(33, 38, 45, 0.82) !important;
+    border-color: rgba(240, 246, 252, 0.14) !important;
     box-shadow:
-        inset 0 1px 0 rgba(240, 246, 252, 0.07),
-        0 3px 12px rgba(1, 4, 9, 0.24) !important;
+        inset 0 1px 0 rgba(240, 246, 252, 0.05),
+        0 2px 10px rgba(1, 4, 9, 0.18) !important;
 }
 
 [data-md-toggle="search"]:checked
@@ -1062,7 +983,7 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
 [data-md-toggle="search"]:checked
 ~ .md-header
 .md-search__form:focus-within {
-    background: rgba(22, 27, 34, 0.96) !important;
+    background: rgba(22, 27, 34, 0.78) !important;
     border-color: rgba(88, 166, 255, 0.68) !important;
     box-shadow:
         0 0 0 3px rgba(88, 166, 255, 0.14),
@@ -1098,6 +1019,13 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
     background: rgba(1, 4, 9, 0.08) !important;
 }
 
+[data-md-toggle="search"]:checked ~ .md-header .md-search__overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    width: auto !important;
+    height: auto !important;
+}
+
 /*
  * Keep the search field in one header coordinate system so opening and
  * closing can animate between its resting width and the full notch.
@@ -1108,22 +1036,13 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
 
 html.edwinos-search-transitioning .md-header .md-search {
     transition:
-        left 260ms cubic-bezier(0.22, 1, 0.36, 1),
-        right 260ms cubic-bezier(0.22, 1, 0.36, 1),
-        width 260ms cubic-bezier(0.22, 1, 0.36, 1),
+        left 420ms cubic-bezier(0.42, 0, 0.58, 1),
+        right 420ms cubic-bezier(0.42, 0, 0.58, 1),
         opacity 180ms ease !important;
 }
 
 @media screen {
     [data-md-toggle="search"]:checked ~ .md-header .md-search {
-        position: fixed !important;
-        top: calc(
-            (
-                var(--edwinos-header-height)
-                - var(--edwinos-header-control-size)
-            )
-            / 2
-        ) !important;
         right: var(--edwinos-header-edge) !important;
         left: var(--edwinos-header-edge) !important;
         z-index: 30 !important;
@@ -1158,24 +1077,20 @@ html.edwinos-search-transitioning .md-header .md-search {
         min-height: calc(var(--edwinos-header-control-size) - 2px) !important;
         margin: 0 !important;
         padding: 0 !important;
+        -webkit-backdrop-filter: blur(14px) saturate(1.16) !important;
+        backdrop-filter: blur(14px) saturate(1.16) !important;
     }
 
     [data-md-toggle="search"]:checked ~ .md-header .md-search__input {
         width: 100% !important;
         height: 100% !important;
         min-height: 0 !important;
-        line-height: 1.25 !important;
+        line-height: normal !important;
+        transition:
+            color 140ms ease,
+            opacity 180ms ease 80ms !important;
     }
 
-    [data-md-toggle="search"]:checked ~ .md-header :is(
-        .md-header__source,
-        .md-header__option
-    ),
-    [data-md-toggle="search"]:checked ~ .md-header .md-tabs {
-        opacity: 0 !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-    }
 }
 
 .md-header .md-search__output {
@@ -1281,16 +1196,14 @@ html.edwinos-search-transitioning .md-header .md-search {
     --edwinos-source-star-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194-3.047-2.97a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z'/%3E%3C/svg%3E");
     --edwinos-source-fork-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 3.25a1.75 1.75 0 1 1-2.5 1.58v6.34a1.75 1.75 0 1 1-1.5 0V4.83A1.75 1.75 0 1 1 5 3.25Zm6.5-1.75a1.75 1.75 0 1 1-1.5 2.664V5a2.5 2.5 0 0 1-2.5 2.5h-1A1.5 1.5 0 0 0 5 9v2.17a1.75 1.75 0 1 1-1.5 0V9a3 3 0 0 1 3-3h1a1 1 0 0 0 1-1v-.836A1.75 1.75 0 0 1 11.5 1.5Z'/%3E%3C/svg%3E");
     --edwinos-header-edge: clamp(8px, 2vw, 32px);
+    --edwinos-header-right-edge: 12px;
+    --edwinos-mobile-header-height: 3.5rem;
     --edwinos-header-height: var(
         --edwinos-mobile-header-height,
         var(--compact-header-height, 3.5rem)
     );
     --edwinos-header-control-size: 44px;
-    --edwinos-header-control-gap: clamp(
-        0px,
-        calc((100vw - 420px) / 39),
-        4px
-    );
+    --edwinos-header-control-gap: 4px;
     --edwinos-header-tabs-search-gap: clamp(
         2px,
         calc((100vw - 360px) / 20),
@@ -1305,20 +1218,29 @@ html.edwinos-search-transitioning .md-header .md-search {
         / 2
     );
     --edwinos-header-search-source-gap: clamp(
-        7px,
+        10px,
         calc(3.75vw - 5.75px),
         16px
     );
-    --edwinos-header-search-left: 420px;
+    --edwinos-header-tabs-left: calc(
+        var(--edwinos-header-edge)
+        + var(--edwinos-mobile-drawer-space, 0px)
+    );
+    --edwinos-header-tabs-width: 361px;
+    --edwinos-header-search-left: calc(
+        var(--edwinos-header-tabs-left)
+        + var(--edwinos-header-tabs-width)
+        + var(--edwinos-header-tabs-search-gap)
+    );
     --edwinos-header-search-stage-width: 190px;
     --edwinos-header-source-max-width: 204px;
     --edwinos-header-source-right: calc(
-        var(--edwinos-header-edge)
+        var(--edwinos-header-right-edge)
         + var(--edwinos-header-control-size)
         + var(--edwinos-header-control-gap)
     );
     --edwinos-header-compression-budget: calc(
-        100vw
+        100%
         - var(--edwinos-header-search-left)
         - var(--edwinos-header-source-right)
         + var(--edwinos-header-source-icon-inset)
@@ -1346,10 +1268,98 @@ html.edwinos-search-transitioning .md-header .md-search {
         + var(--edwinos-header-search-source-gap)
     );
     --edwinos-header-search-rest-left: calc(
-        100vw
+        100%
         - var(--edwinos-header-search-right)
         - var(--edwinos-header-search-width)
     );
+}
+
+/* Keep one header layout model across Material's 76.25em desktop breakpoint.
+   The legacy layer switches fixed/grid to sticky/flex at that boundary, which
+   forces a full header reflow while the browser window is being resized. */
+.md-header {
+    position: sticky !important;
+    top: 0 !important;
+    right: auto !important;
+    left: auto !important;
+    z-index: 20 !important;
+    width: 100% !important;
+    min-height: var(--edwinos-header-height) !important;
+    height: var(--edwinos-header-height) !important;
+    overflow: visible !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+.md-header__inner {
+    position: relative !important;
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: var(--edwinos-header-height) !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 0 !important;
+    grid-template-columns: none !important;
+    grid-template-rows: none !important;
+    column-gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+.md-header .md-tabs,
+.md-header .md-tabs[data-md-state="hidden"],
+.md-header .md-tabs[data-md-state="lock"] {
+    position: absolute !important;
+    top: 0 !important;
+    right: calc(
+        var(--edwinos-header-search-right)
+        + var(--edwinos-header-control-size)
+        + var(--edwinos-header-tabs-search-gap)
+    ) !important;
+    bottom: auto !important;
+    left: var(--edwinos-header-tabs-left) !important;
+    z-index: 21 !important;
+    display: flex !important;
+    width: auto !important;
+    height: var(--edwinos-header-height) !important;
+    min-height: var(--edwinos-header-height) !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    overflow: hidden !important;
+    transform: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+[data-md-color-scheme] .md-header .md-tabs,
+[data-md-color-scheme] .md-header .md-tabs[data-md-state="hidden"],
+[data-md-color-scheme] .md-header .md-tabs[data-md-state="lock"] {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+.md-header .md-tabs .md-grid {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+}
+
+.md-container {
+    padding-top: 0 !important;
 }
 
 .md-header .md-search,
@@ -1369,17 +1379,35 @@ html.edwinos-search-transitioning .md-header .md-search {
 .md-tabs__list {
     flex: 0 0 max-content !important;
     min-width: max-content !important;
+    justify-content: flex-start !important;
 }
 
 .md-tabs__link {
+    font-family: "Inter", "Noto Sans SC", sans-serif !important;
     transition:
         color 160ms ease,
         background-color 160ms ease,
         transform 160ms ease !important;
 }
 
+[data-md-color-scheme="default"]
+.md-tabs__item--active
+.md-tabs__link {
+    color: #1f2328 !important;
+    background: rgba(31, 35, 40, 0.1) !important;
+    font-weight: 600 !important;
+}
+
+[data-md-color-scheme="slate"]
+.md-tabs__item--active
+.md-tabs__link {
+    color: #f0f6fc !important;
+    background: rgba(240, 246, 252, 0.12) !important;
+    font-weight: 600 !important;
+}
+
 .md-header .md-header__option {
-    position: fixed !important;
+    position: absolute !important;
     top: calc(
         (
             var(--edwinos-header-height)
@@ -1387,7 +1415,7 @@ html.edwinos-search-transitioning .md-header .md-search {
         )
         / 2
     ) !important;
-    right: var(--edwinos-header-edge) !important;
+    right: var(--edwinos-header-right-edge) !important;
     z-index: 28 !important;
     display: inline-flex !important;
     width: var(--edwinos-header-control-size) !important;
@@ -1412,7 +1440,7 @@ html.edwinos-search-transitioning .md-header .md-search {
 }
 
 .md-header .md-header__source {
-    position: fixed !important;
+    position: absolute !important;
     top: calc(
         (
             var(--edwinos-header-height)
@@ -1448,9 +1476,11 @@ html.edwinos-search-transitioning .md-header .md-search {
     height: var(--edwinos-header-control-size) !important;
     margin: 0 !important;
     padding: 0 !important;
+    align-items: normal !important;
+    gap: 0 !important;
+    grid-template-columns: none !important;
     overflow: hidden !important;
     border-radius: 999px !important;
-    isolation: isolate !important;
     transform: none !important;
     pointer-events: auto !important;
     transition:
@@ -1495,7 +1525,7 @@ html.edwinos-search-transitioning .md-header .md-search {
 
 .md-header .md-source__repository {
     position: absolute !important;
-    top: 50% !important;
+    top: 7px !important;
     right: 0 !important;
     left: auto !important;
     z-index: 1 !important;
@@ -1516,7 +1546,7 @@ html.edwinos-search-transitioning .md-header .md-search {
     line-height: 1.08 !important;
     white-space: nowrap !important;
     text-overflow: clip !important;
-    transform: translateY(-50%) !important;
+    transform: none !important;
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
@@ -1524,20 +1554,46 @@ html.edwinos-search-transitioning .md-header .md-search {
 }
 
 .md-header .md-source__facts {
-    margin-top: 0.12rem !important;
+    display: flex !important;
+    min-height: 14.4px !important;
+    align-items: center !important;
+    gap: 11.2px !important;
+    margin-top: 2.4px !important;
     overflow: hidden !important;
+    font-family:
+        "JetBrains Mono",
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        monospace !important;
     font-size: 11px !important;
+    line-height: 11px !important;
     opacity: 0.78 !important;
+    animation: none !important;
+    transition: none !important;
+}
+
+.md-header .md-source__fact {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4.4px !important;
+    line-height: 11px !important;
+    animation: none !important;
+    transition: none !important;
 }
 
 .md-header .md-source__fact::before {
     display: inline-block !important;
+    width: 14.4px !important;
+    height: 14.4px !important;
+    flex: 0 0 14.4px !important;
     content: "" !important;
     background-color: currentColor !important;
     border: 0 !important;
     -webkit-mask: var(--edwinos-source-star-mask) center / contain no-repeat !important;
     mask: var(--edwinos-source-star-mask) center / contain no-repeat !important;
     transform: translateY(-0.5px);
+    transition: none !important;
 }
 
 .md-header .md-source__fact[data-source-fact="forks"]::before,
@@ -1547,9 +1603,17 @@ html.edwinos-search-transitioning .md-header .md-search {
     mask-image: var(--edwinos-source-fork-mask) !important;
 }
 
+/* Covered header controls remain visually static behind the expanding search
+   capsule. Disable interaction so clicks cannot pass through to navigation. */
+[data-md-toggle="search"]:checked ~ .md-header .md-tabs,
+[data-md-toggle="search"]:checked ~ .md-header .md-header__source,
+[data-md-toggle="search"]:checked ~ .md-header .md-header__option {
+    pointer-events: none !important;
+}
+
 @media screen and (min-width: 76.25em) {
     .md-tabs__list {
-        gap: 6px !important;
+        gap: 4px !important;
     }
 
     .md-tabs__link {
@@ -1562,7 +1626,7 @@ html.edwinos-search-transitioning .md-header .md-search {
 
 @media screen {
     .md-header .md-search {
-        position: fixed !important;
+        position: absolute !important;
         top: calc(
             (
                 var(--edwinos-header-height)
@@ -1571,13 +1635,13 @@ html.edwinos-search-transitioning .md-header .md-search {
             / 2
         ) !important;
         right: var(--edwinos-header-search-right) !important;
-        left: auto !important;
+        left: var(--edwinos-header-search-rest-left) !important;
         z-index: 27 !important;
         display: block !important;
         box-sizing: border-box !important;
-        width: var(--edwinos-header-search-width) !important;
+        width: auto !important;
         min-width: var(--edwinos-header-control-size) !important;
-        max-width: var(--edwinos-header-search-width) !important;
+        max-width: none !important;
         height: var(--edwinos-header-control-size) !important;
         margin: 0 !important;
         padding: 1px 0 !important;
@@ -1607,7 +1671,9 @@ html.edwinos-search-transitioning .md-header .md-search {
 
     .md-header .md-search__form {
         display: flex !important;
+        width: calc(100% - 2px) !important;
         align-items: center !important;
+        margin-inline: auto !important;
     }
 
     .md-header .md-search__input {
@@ -1618,8 +1684,17 @@ html.edwinos-search-transitioning .md-header .md-search {
         height: 100% !important;
         min-height: 0 !important;
         margin: 0 !important;
-        padding: 0 0.9rem 0 2.5rem !important;
-        line-height: 1.25 !important;
+        padding: 0 1rem 0 46px !important;
+        font-family:
+            -apple-system,
+            BlinkMacSystemFont,
+            "SF Pro Text",
+            "Segoe UI",
+            sans-serif !important;
+        font-size: 16px !important;
+        font-weight: 400 !important;
+        line-height: normal !important;
+        letter-spacing: 0 !important;
         white-space: nowrap !important;
         text-overflow: clip !important;
         opacity: 1 !important;
@@ -1636,17 +1711,10 @@ html.edwinos-search-transitioning .md-header .md-search {
 
     .md-header .md-search__form .md-search__icon[for="__search"] {
         top: 50% !important;
-        left: calc(
-            (
-                var(--edwinos-header-control-size)
-                - 1.15rem
-            )
-            / 2
-            - 2px
-        ) !important;
+        left: min(14px, calc(50% - 9.5px)) !important;
         display: inline-flex !important;
-        width: 1.15rem !important;
-        height: 1.15rem !important;
+        width: 19px !important;
+        height: 19px !important;
         align-items: center !important;
         justify-content: center !important;
         margin: 0 !important;
@@ -1678,13 +1746,7 @@ html.edwinos-search-transitioning .md-header .md-search {
 }
 
 @container edwinos-header-search (max-width: 6.75rem) {
-    .md-header .md-search__form {
-        width: calc(100% - 2px) !important;
-        margin-inline: auto !important;
-    }
-
     .md-header .md-search__input {
-        padding-inline: 0 !important;
         color: transparent !important;
         opacity: 0 !important;
         cursor: pointer !important;
@@ -1702,6 +1764,10 @@ html.edwinos-search-transitioning .md-header .md-search {
     :root {
         --edwinos-header-edge: max(5px, 2vw);
         --edwinos-header-control-size: 44px;
+        --edwinos-header-tabs-left: calc(
+            max(7px, 2vw)
+            + var(--edwinos-mobile-drawer-space)
+        );
     }
 
     .md-header .md-header__source,
@@ -1757,30 +1823,12 @@ html.edwinos-search-transitioning .md-header .md-search {
     }
 
     .md-tabs .md-tabs__list {
-        gap: clamp(
-            3.5px,
-            calc(1.25vw - 0.5px),
-            4px
-        ) !important;
+        gap: 4px !important;
     }
 
     .md-tabs .md-tabs__link {
-        padding-inline: clamp(
-            0px,
-            max(
-                calc((100vw - 460px) / 12.89),
-                calc(14.97vw - 70.97px)
-            ),
-            10.47px
-        ) !important;
-        font-size: clamp(
-            10.8px,
-            max(
-                calc(4.6vw - 5.16px),
-                calc(1.475vw + 6.09px)
-            ),
-            16px
-        ) !important;
+        padding-inline: 11px !important;
+        font-size: 17.2px !important;
     }
 
     html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]),
@@ -1797,34 +1845,49 @@ html.edwinos-search-transitioning .md-header .md-search {
     }
 }
 
-@media screen and (min-width: 34.0625rem) and (max-width: 36rem) {
-    .md-tabs {
-        left: clamp(
-            10.88px,
-            calc(11vw - 48.96px),
-            14.4px
-        ) !important;
-    }
-
-    .md-tabs .md-tabs__list {
-        gap: clamp(
-            3.6px,
-            calc(10.8px - 1.25vw),
-            4px
-        ) !important;
+/* Preserve the full navigation rhythm until the search has naturally reached
+   its circular endpoint. Afterward, consume only surplus button spacing. */
+@media screen and (max-width: 32.875rem) {
+    .md-header .md-search {
+        left: auto !important;
+        width: var(--edwinos-header-control-size) !important;
+        min-width: var(--edwinos-header-control-size) !important;
+        max-width: var(--edwinos-header-control-size) !important;
     }
 
     .md-tabs .md-tabs__link {
         padding-inline: clamp(
-            10.62px,
-            calc(1.88vw + 0.37px),
-            11.2px
+            1.5px,
+            calc((100vw - 460px) / 6),
+            11px
         ) !important;
-        font-size: clamp(
-            16px,
-            calc(3.75vw - 4.4px),
-            17.2px
+    }
+}
+
+@media screen and (min-width: 34.0625rem) and (max-width: 36rem) {
+    :root {
+        --edwinos-header-tabs-left: clamp(
+            10.88px,
+            calc(1.74vw + 1.5px),
+            11.52px
+        );
+    }
+
+    .md-tabs {
+        left: clamp(
+            10.88px,
+            calc(1.74vw + 1.5px),
+            11.52px
         ) !important;
+    }
+
+    .md-tabs .md-tabs__list {
+        gap: 4px !important;
+    }
+
+    .md-tabs .md-tabs__link {
+        padding-inline: 11px !important;
+        font-size: 17.2px !important;
     }
 
     html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
@@ -1832,6 +1895,11 @@ html.edwinos-search-transitioning .md-header .md-search {
     html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
     .md-tabs {
         left: calc(max(10px, 2vw) + 52px) !important;
+    }
+
+    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]),
+    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]) {
+        --edwinos-header-tabs-left: calc(max(10px, 2vw) + 52px);
     }
 }
 
@@ -1852,16 +1920,6 @@ html.edwinos-search-transitioning .md-header .md-search {
     .md-tabs .md-tabs__list {
         flex: 0 0 max-content !important;
         min-width: max-content !important;
-        gap: 4px !important;
-    }
-
-    html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
-    .md-tabs .md-tabs__link,
-    html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
-    .md-tabs .md-tabs__link {
-        flex: 0 0 auto !important;
-        padding-inline: 5px !important;
-        font-size: 13px !important;
     }
 }
 
@@ -1898,6 +1956,17 @@ html.edwinos-search-transitioning .md-header .md-search {
     line-height: normal !important;
 }
 
+@media (prefers-reduced-motion: reduce) {
+    html.edwinos-search-transitioning .md-header .md-search,
+    [data-md-toggle="search"]:checked ~ .md-header .md-search__input,
+    [data-md-toggle="search"]:checked
+    ~ .md-header
+    .md-search__form
+    .md-search__icon[for="__search"] {
+        transition: none !important;
+    }
+}
+
 /*
  * The header and tab layer used to draw separate borders during elastic
  * overscroll. A single header-relative rule keeps the notch edge unified.
@@ -1921,7 +1990,7 @@ html.edwinos-search-transitioning .md-header .md-search {
     left: 0 !important;
     z-index: 24 !important;
     display: block !important;
-    width: 100vw !important;
+    width: auto !important;
     height: 1px !important;
     border: 0 !important;
     background: #d0d7de !important;
@@ -1966,11 +2035,10 @@ html.edwinos-search-transitioning .md-header .md-search {
     }
 }
 
-/* Keep the complete mobile notch in the sticky header's coordinate system.
-   iOS otherwise composites fixed controls and absolute tabs separately while
-   recovering from elastic overscroll. The expanded search remains viewport
-   fixed through its more specific checked-state rule above. */
-@media screen and (max-width: 76.1875em) {
+/* Keep the complete mobile notch, including expanded search, in the sticky
+   header's coordinate system. iOS otherwise composites fixed controls and
+   absolute tabs separately while recovering from elastic overscroll. */
+@media screen and (max-width: 58em) {
     .md-header .md-search,
     .md-header .md-header__source,
     .md-header .md-header__option {
