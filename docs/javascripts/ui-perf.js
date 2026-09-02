@@ -1575,6 +1575,141 @@
   }
 
   /**
+   * Give Pymdown's native <details> callouts an Obsidian-like height reveal.
+   *
+   * Keeping the native element preserves keyboard and no-JS behavior. We only
+   * take over an activation while motion is enabled, leave `open` set until a
+   * closing animation finishes, and reverse cleanly when a card is clicked
+   * again mid-transition.
+   */
+  function setupCollapsibleCallouts() {
+    var CALLOUT_TYPES = [
+      "note", "abstract", "summary", "tldr", "info", "todo", "tip",
+      "hint", "important", "success", "check", "done", "question",
+      "help", "faq", "warning", "caution", "attention", "failure",
+      "fail", "missing", "danger", "error", "bug", "example", "quote",
+      "cite"
+    ];
+    var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    function isCallout(details) {
+      return CALLOUT_TYPES.some(function (type) {
+        return details.classList.contains(type);
+      });
+    }
+
+    function directSummary(details) {
+      return Array.prototype.find.call(details.children, function (child) {
+        return child.tagName && child.tagName.toLowerCase() === "summary";
+      });
+    }
+
+    function clearSelection() {
+      var selection = window.getSelection && window.getSelection();
+      if (selection && !selection.isCollapsed) selection.removeAllRanges();
+    }
+
+    function closedHeight(details, summary) {
+      var style = window.getComputedStyle(details);
+      return summary.getBoundingClientRect().height
+        + parseFloat(style.paddingTop || "0")
+        + parseFloat(style.paddingBottom || "0")
+        + parseFloat(style.borderTopWidth || "0")
+        + parseFloat(style.borderBottomWidth || "0");
+    }
+
+    function animate(details, summary, shouldOpen) {
+      var startHeight = details.getBoundingClientRect().height;
+      var previous = details.edwinosCalloutAnimation;
+
+      if (previous) {
+        previous.onfinish = null;
+        previous.oncancel = null;
+        previous.cancel();
+      }
+
+      details.style.height = startHeight + "px";
+      details.style.overflow = "hidden";
+
+      if (shouldOpen && !details.open) details.open = true;
+
+      var endHeight = shouldOpen
+        ? details.scrollHeight
+        : closedHeight(details, summary);
+      var distance = Math.abs(endHeight - startHeight);
+      var duration = Math.max(180, Math.min(320, 190 + distance * 0.14));
+      var state = shouldOpen ? "opening" : "closing";
+
+      details.dataset.edwinosCalloutState = state;
+      var motion = details.animate(
+        [
+          { height: startHeight + "px" },
+          { height: endHeight + "px" }
+        ],
+        {
+          duration: duration,
+          easing: shouldOpen
+            ? "cubic-bezier(0.22, 1, 0.36, 1)"
+            : "cubic-bezier(0.4, 0, 0.2, 1)"
+        }
+      );
+
+      details.edwinosCalloutAnimation = motion;
+      motion.onfinish = function () {
+        if (details.edwinosCalloutAnimation !== motion) return;
+        if (!shouldOpen) details.open = false;
+        details.style.removeProperty("height");
+        details.style.removeProperty("overflow");
+        delete details.dataset.edwinosCalloutState;
+        details.edwinosCalloutAnimation = null;
+      };
+      motion.oncancel = function () {
+        if (details.edwinosCalloutAnimation !== motion) return;
+        details.style.removeProperty("height");
+        details.style.removeProperty("overflow");
+        delete details.dataset.edwinosCalloutState;
+        details.edwinosCalloutAnimation = null;
+      };
+    }
+
+    document.querySelectorAll(".md-typeset details").forEach(function (details) {
+      if (!isCallout(details)) return;
+
+      var summary = directSummary(details);
+      if (!summary) return;
+
+      details.dataset.edwinosCallout = "true";
+      if (details.dataset.edwinosCalloutReady === "1") return;
+      details.dataset.edwinosCalloutReady = "1";
+
+      summary.addEventListener("mousedown", function (event) {
+        // Suppress the browser's second-click word selection while preserving
+        // normal click-and-drag selection after the card has settled.
+        if (event.button === 0 && event.detail > 1) event.preventDefault();
+      });
+
+      summary.addEventListener("dblclick", function (event) {
+        event.preventDefault();
+        clearSelection();
+      });
+
+      summary.addEventListener("click", function (event) {
+        clearSelection();
+        if (reduceMotion.matches || typeof details.animate !== "function") return;
+
+        event.preventDefault();
+        var state = details.dataset.edwinosCalloutState;
+        var shouldOpen = state === "opening"
+          ? false
+          : state === "closing"
+            ? true
+            : !details.open;
+        animate(details, summary, shouldOpen);
+      });
+    });
+  }
+
+  /**
    * Fix ordered-list numbering across callout and code-block breaks.
    *
    * When Obsidian-style notes have:
@@ -1677,6 +1812,7 @@
     restorePrimarySidebarScroll();
     openExternalContentLinksInNewTabs();
     labelCodeBlockLanguages();
+    setupCollapsibleCallouts();
     setupVisitorBadge();
     updateVisitorDeploymentTime();
     fixOrderedListContinuity();

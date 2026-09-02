@@ -550,6 +550,22 @@ body[data-md-color-scheme="slate"] {
     cursor: pointer;
 }
 
+/* Animated Obsidian-style callouts keep the card itself fill-only. The
+   runtime temporarily clips the height while the body is revealed, so the
+   card grows and the following content moves as one continuous motion. */
+.md-typeset details[data-edwinos-callout] {
+    border: 0 !important;
+    border-color: transparent !important;
+    outline: 0;
+    box-shadow: none !important;
+}
+
+.md-typeset details[data-edwinos-callout][data-edwinos-callout-state]
+> summary {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
 .md-typeset details:not([open]) {
     padding-bottom: 0.58rem;
 }
@@ -573,10 +589,16 @@ body[data-md-color-scheme="slate"] {
     background-color: rgb(var(--edwinos-callout-rgb));
     transform: translateY(-50%);
     transform-origin: center;
+    transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.md-typeset details[open] > summary::after {
+.md-typeset details[open] > summary::after,
+.md-typeset details[data-edwinos-callout-state="opening"] > summary::after {
     transform: translateY(-50%) rotate(90deg);
+}
+
+.md-typeset details[data-edwinos-callout-state="closing"] > summary::after {
+    transform: translateY(-50%);
 }
 
 .md-typeset details > summary:focus-visible {
