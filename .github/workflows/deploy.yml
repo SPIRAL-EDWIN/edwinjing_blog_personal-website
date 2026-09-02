@@ -46,6 +46,9 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: python tools/write_github_repo_facts.py
 
+      - name: Run regression tests
+        run: python -m unittest discover -s tools -p 'test_*.py'
+
       - name: Build site
         run: mkdocs build --clean
 

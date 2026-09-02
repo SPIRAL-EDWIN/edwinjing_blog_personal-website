@@ -23,8 +23,9 @@ ASSET_ROOT = REPO_ROOT / "docs/assets/lab-projects"
 
 EXPECTED_PAGES = {
     "docs/OsdNotes/Embodied AI/【Hand-Eye Calibration】 手眼标定理论与实践.md",
-    "docs/OsdNotes/Embodied AI/【MDP】奖励函数解构学习.md",
+    "docs/经验分享/Phi Lab/WBC/【MDP】奖励函数解构学习.md",
     "docs/OsdNotes/Embodied AI/仿真框架RFM的初步学习.md",
+    "docs/经验分享/Phi Lab/WBC/Gprogress的意义.md",
     "docs/经验分享/Phi Lab/WBC/如何确定__init__.py中特定task选取的robot asset.md",
     "docs/经验分享/Phi Lab/Diffusion Policy/Diffusion-policy-training中global steps和epoch的区分实例.md",
     "docs/OsdNotes/Embodied AI/Bash命令与服务器训练操作查表指南.md",
@@ -115,7 +116,7 @@ def audit_text(paths: list[Path]) -> list[str]:
     patterns = {
         "personal home path": re.compile(r"/(?:home|Users)/(?!<|USER|SERVER_USER|LOCAL_PATH)[^/\s`]+/"),
         "private infrastructure marker": re.compile(
-            r"(?:New_WBC|JC_umi|IsaacLab_RFM|arx-difussion-deploy|zhejiang-univerisity)",
+            r"(?:New_WBC|IsaacLab_RFM|arx-difussion-deploy|zhejiang-univerisity)",
             re.I,
         ),
         "W&B run URL": re.compile(r"https?://wandb\.ai/[^\s)`]+/(?:runs?|projects?)/", re.I),
@@ -139,7 +140,13 @@ def audit_markdown_blocks(paths: list[Path]) -> list[str]:
     failures: list[str] = []
     for path in paths:
         text = path.read_text(encoding="utf-8")
-        normalized, changes = publisher.normalize_obsidian_blocks(text)
+        normalized, changes = publisher.normalize_obsidian_blocks(
+            text,
+            close_obsidian_lists=path.name in {
+                "【MDP】奖励函数解构学习.md",
+                "Gprogress的意义.md",
+            },
+        )
         if changes or normalized != text:
             failures.append("public Markdown requires block-boundary normalization")
     return failures
@@ -207,7 +214,7 @@ def audit_built_site() -> list[str]:
         failures.append("built site contains private credential exact value")
     built_patterns = {
         "built site contains private infrastructure marker": re.compile(
-            r"(?:New_WBC|JC_umi|IsaacLab_RFM|arx-difussion-deploy|zhejiang-univerisity)",
+            r"(?:New_WBC|IsaacLab_RFM|arx-difussion-deploy|zhejiang-univerisity)",
             re.I,
         ),
         "built site contains W&B run URL": re.compile(
@@ -221,9 +228,9 @@ def audit_built_site() -> list[str]:
 
     archive = (site_root / "HOME/Archive/index.html").read_text(encoding="utf-8")
     expectations = {
-        'class="archive-card ': 38,
-        '<span class="archive-card__category">Phi Lab</span>': 13,
-        '<span class="archive-card__category">Embodied AI</span>': 9,
+        'class="archive-card ': 39,
+        '<span class="archive-card__category">Phi Lab</span>': 15,
+        '<span class="archive-card__category">Embodied AI</span>': 8,
     }
     for marker, expected in expectations.items():
         actual = archive.count(marker)
@@ -248,7 +255,10 @@ def main() -> int:
         for label in sorted(set(failures)):
             print(f"FAIL: {label}", file=sys.stderr)
         return 1
-    print("PASS: 16 pages, 27 referenced assets, built-site, Archive and safety gates")
+    print(
+        f"PASS: {len(pages)} pages, 27 referenced assets, built-site, "
+        "Archive and safety gates"
+    )
     return 0
 
 

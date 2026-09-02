@@ -16,6 +16,42 @@
     font-display: swap;
 }
 
+@font-face {
+    font-family: "Outfit EdwinOS";
+    src: url("../assets/fonts/outfit/outfit-latin.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 300 700;
+    font-display: swap;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC,
+        U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+        U+20AC, U+2122, U+2191-2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Outfit EdwinOS";
+    src: url("../assets/fonts/outfit/outfit-latin-ext.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 300 700;
+    font-display: swap;
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC,
+        U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+        U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: "Noto Sans SC EdwinOS";
+    src: url("../assets/fonts/noto-sans-sc/noto-sans-sc-overview.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 300 700;
+    font-display: swap;
+    unicode-range: U+00B7, U+2014, U+2192, U+4E0B, U+4E2D, U+4E8E,
+        U+4EF6, U+5145, U+5173, U+5728, U+5BB8, U+5E74, U+5F00,
+        U+603B, U+6253, U+63D2, U+65E0, U+6CD5, U+7684, U+7CFB,
+        U+7EC8, U+7ECF, U+7ED3, U+7EDF, U+8865, U+95EE, U+9898,
+        U+FF1A;
+}
+
 /* ==========================================================================
    Typography
    ========================================================================== */
@@ -24,6 +60,8 @@
     --edwinos-font-serif: "Source Serif 4", Georgia, "Noto Serif SC", serif;
     --edwinos-font-hand: "Caveat", cursive;
     --edwinos-font-mono: "JetBrains Mono", "Courier New", monospace;
+    --edwinos-font-reading-sans: "Outfit EdwinOS", "Noto Sans SC EdwinOS",
+        "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 body,
@@ -226,31 +264,44 @@ body.is-homepage .education-degree,
 body.is-homepage .cv-subtitle,
 body.is-homepage .cv-desc,
 body.is-homepage .award-copy,
-body.is-homepage .personalities-list li,
-body.is-home-profile-page .academic-section p,
-body.is-home-profile-page .academic-section li,
-body.is-home-profile-page .news-text,
-body.is-home-profile-page .pub-authors,
-body.is-home-profile-page .pub-venue,
-body.is-home-profile-page .project-card p,
-body.is-home-profile-page .education-degree,
-body.is-home-profile-page .cv-subtitle,
-body.is-home-profile-page .cv-desc,
-body.is-home-profile-page .award-copy,
-body.is-home-profile-page .personalities-list li,
-body:has(.academic-home-layout) .academic-section p,
-body:has(.academic-home-layout) .academic-section li,
-body:has(.academic-home-layout) .news-text,
-body:has(.academic-home-layout) .pub-authors,
-body:has(.academic-home-layout) .pub-venue,
-body:has(.academic-home-layout) .project-card p,
-body:has(.academic-home-layout) .education-degree,
-body:has(.academic-home-layout) .cv-subtitle,
-body:has(.academic-home-layout) .cv-desc,
-body:has(.academic-home-layout) .award-copy,
-body:has(.academic-home-layout) .personalities-list li {
-    font-family: var(--edwinos-font-serif) !important;
+body.is-homepage .personalities-list li {
+    font-family: var(--edwinos-font-reading-sans) !important;
     letter-spacing: 0 !important;
+}
+
+/* Bold marked text needs a quiet surface in dark articles; the legacy yellow
+   fill has insufficient contrast with the surrounding GitHub-dark palette. */
+body[data-md-color-scheme="slate"]
+.md-content__inner.md-typeset
+:is(
+    strong > mark,
+    strong > .pymdownx-mark,
+    mark:has(> strong),
+    .pymdownx-mark:has(> strong)
+) {
+    color: inherit;
+    background-color: rgba(177, 186, 196, 0.16);
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+/* ==========================================================================
+   Markdown Lists
+   ========================================================================== */
+
+/* Only classless nested Markdown lists receive the tighter rhythm. Keeping
+   markers outside and a small gutter preserves each level without starving
+   third- and fourth-level text of line width. */
+.md-content__inner.md-typeset
+li > :is(ul:not([class]), ol:not([class])) {
+    margin-inline-start: 0.2em !important;
+    padding-inline-start: 1.35em !important;
+    list-style-position: outside !important;
+}
+
+.md-content__inner.md-typeset
+:is(ul:not([class]), ol:not([class])) > li {
+    display: list-item !important;
 }
 
 /* ==========================================================================
@@ -357,8 +408,8 @@ body[data-md-color-scheme="slate"] {
     border-radius: 0.32rem;
 }
 
-/* Language metadata occupies a quiet first row inside the code surface. The
-   copy control keeps the far-right position, so both remain visible. */
+/* Language metadata and copy share the upper-right utility slot. Code starts
+   at the normal first-line position instead of reserving an empty title row. */
 .md-typeset .highlight[data-code-language] {
     position: relative;
 }
@@ -381,6 +432,7 @@ body[data-md-color-scheme="slate"] {
     content: attr(data-code-language);
     pointer-events: none;
     user-select: none;
+    transition: opacity 140ms ease;
 }
 
 .md-typeset .highlight[data-code-language]:not(:has(.md-code__nav))::before {
@@ -388,7 +440,7 @@ body[data-md-color-scheme="slate"] {
 }
 
 .md-typeset .highlight[data-code-language] > pre > code {
-    padding-top: 1.72rem;
+    padding-top: 0.82rem;
 }
 
 .md-typeset .highlight[data-code-language]:has(> .filename) > .filename {
@@ -402,6 +454,38 @@ body[data-md-color-scheme="slate"] {
     padding-top: 0.82rem;
 }
 
+/* Fine pointers can discover the copy control in its actual hit area: the
+   language fades out and the button fades in without shifting any code. */
+@media (hover: hover) and (pointer: fine) {
+    .md-typeset
+    .highlight[data-code-language]:not(:has(> .filename))::before {
+        inset-inline-end: 0.45rem;
+        padding-inline: 0.28rem;
+        background: var(--md-code-bg-color);
+        border-radius: 0.28rem;
+    }
+
+    .md-typeset
+    .highlight[data-code-language]:not(:has(> .filename))
+    .md-code__nav {
+        opacity: 0;
+        transition: opacity 140ms ease, background-color 250ms;
+    }
+
+    .md-typeset
+    .highlight[data-code-language]:not(:has(> .filename))
+    .md-code__nav:is(:hover, :focus-within) {
+        opacity: 1;
+    }
+
+    .md-typeset
+    .highlight[data-code-language]:not(:has(> .filename)):has(.md-code__nav:hover)::before,
+    .md-typeset
+    .highlight[data-code-language]:not(:has(> .filename)):has(.md-code__nav:focus-within)::before {
+        opacity: 0;
+    }
+}
+
 @media screen and (max-width: 44.984375em) {
     .md-typeset .highlight[data-code-language]::before {
         inset-inline-end: 2.25rem;
@@ -409,7 +493,7 @@ body[data-md-color-scheme="slate"] {
     }
 
     .md-typeset .highlight[data-code-language] > pre > code {
-        padding: 1.55rem 0.75rem 0.72rem;
+        padding: 0.72rem 0.75rem;
     }
 
     .md-typeset .highlight[data-code-language]:has(> .filename) > pre > code {
@@ -1968,37 +2052,155 @@ html.edwinos-search-transitioning .md-header .md-search {
 }
 
 /*
- * The header and tab layer used to draw separate borders during elastic
- * overscroll. A single header-relative rule keeps the notch edge unified.
+ * Progressive Header Glass
+ *
+ * Five independently masked backdrop filters dissolve scrolling content into
+ * the translucent notch. The 52px extension is part of one continuous glass
+ * field, not a second panel attached beneath the 70px header.
  */
-[data-md-color-scheme] .md-header.md-header,
-[data-md-color-scheme] .md-tabs.md-tabs {
+.md-header.md-header {
+    isolation: isolate !important;
+    border: 0 !important;
     border-bottom: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
 }
 
-.md-header::after {
-    content: "" !important;
+/* The legacy homepage selectors include both body state and color-scheme
+   classes, so repeat the transparent shell at matching specificity here. */
+body[data-md-color-scheme] .md-header.md-header {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+/* Retire the former core/tail pseudo-elements from both EdwinOS and legacy. */
+.md-header.md-header::before,
+.md-header.md-header::after {
+    display: none !important;
+    content: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+.md-header > .edwinos-header-glass {
     position: absolute !important;
-    top: calc(
-        var(
-            --edwinos-mobile-header-height,
-            var(--compact-header-height, 3.5rem)
-        )
-        - 1px
-    ) !important;
+    top: 0 !important;
     right: 0 !important;
     left: 0 !important;
-    z-index: 24 !important;
+    z-index: 0 !important;
     display: block !important;
     width: auto !important;
-    height: 1px !important;
-    border: 0 !important;
-    background: #d0d7de !important;
+    height: calc(100% + 52px) !important;
+    overflow: hidden !important;
     pointer-events: none !important;
 }
 
-[data-md-color-scheme="slate"] .md-header::after {
-    background: #30363d !important;
+.edwinos-header-glass__layer,
+.edwinos-header-glass__fade {
+    position: absolute !important;
+    inset: 0 !important;
+    display: block !important;
+    border: 0 !important;
+    background: transparent;
+    box-shadow: none !important;
+    pointer-events: none !important;
+}
+
+.edwinos-header-glass__layer {
+    -webkit-mask-repeat: no-repeat !important;
+    mask-repeat: no-repeat !important;
+    -webkit-mask-size: 100% 100% !important;
+    mask-size: 100% 100% !important;
+}
+
+.edwinos-header-glass__layer--1 {
+    /* Reference-shaped mask shifted upward to preserve the 74% safety boundary. */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0 24%, #000 44% 56%, transparent 74% 100%);
+    mask-image: linear-gradient(to bottom, transparent 0 24%, #000 44% 56%, transparent 74% 100%);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+}
+
+.edwinos-header-glass__layer--2 {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0 18%, #000 36% 52%, transparent 74% 100%);
+    mask-image: linear-gradient(to bottom, transparent 0 18%, #000 36% 52%, transparent 74% 100%);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+.edwinos-header-glass__layer--3 {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0 28%, transparent 58% 100%);
+    mask-image: linear-gradient(to bottom, #000 0 28%, transparent 58% 100%);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+.edwinos-header-glass__layer--4 {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0 16%, transparent 42% 100%);
+    mask-image: linear-gradient(to bottom, #000 0 16%, transparent 42% 100%);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+}
+
+.edwinos-header-glass__layer--5 {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 22% 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 22% 100%);
+    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(22px);
+}
+
+[data-md-color-scheme="default"] .edwinos-header-glass__fade {
+    background: linear-gradient(
+        to bottom,
+        rgba(246, 248, 250, 0.9) 0%,
+        rgba(246, 248, 250, 0.55) 28%,
+        rgba(246, 248, 250, 0.18) 52%,
+        transparent 74%
+    ) !important;
+}
+
+[data-md-color-scheme="slate"] .edwinos-header-glass__fade {
+    background: linear-gradient(
+        to bottom,
+        rgba(13, 17, 23, 0.9) 0%,
+        rgba(13, 17, 23, 0.55) 28%,
+        rgba(13, 17, 23, 0.18) 52%,
+        transparent 74%
+    ) !important;
+}
+
+/* Material keeps tabs as a separate header child. Lift the control rail above
+   the glass and tabs, but let pointer events pass through its empty areas so
+   the tab links beneath remain interactive. */
+.md-header > .md-header__inner {
+    z-index: 22 !important;
+    pointer-events: none !important;
+}
+
+.md-header > .md-header__inner > * {
+    pointer-events: auto !important;
+}
+
+/* Legacy gives the direct-child tabs a solid dark/light rectangle. Keep only
+   each individual tab pill opaque and leave the tab rail itself transparent. */
+body[data-md-color-scheme] .md-header > .md-tabs.md-tabs,
+[data-md-color-scheme] .md-header > .md-tabs.md-tabs,
+body[data-md-color-scheme] .md-header .md-tabs.md-tabs,
+[data-md-color-scheme] .md-header .md-tabs.md-tabs {
+    border: 0 !important;
+    border-bottom: 0 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
 }
 
 /* Safari keeps a tapped link in :hover after Material's instant navigation.
@@ -2090,22 +2292,7 @@ html.edwinos-search-transitioning .md-header .md-search {
     .md-nav--primary[data-edwinos-drawer-section]
     .edwinos-drawer-section-nav
     > .edwinos-drawer-section-title {
-        display: flex !important;
-        width: 100% !important;
-        height: 5.6rem !important;
-        min-height: 5.6rem !important;
-        align-items: center !important;
-        margin: 0 !important;
-        padding: 3.5rem 0.8rem 0 !important;
-        overflow: hidden !important;
-        color: var(--md-default-fg-color) !important;
-        font-size: 0.9rem !important;
-        font-weight: 600 !important;
-        line-height: 1.2 !important;
-        white-space: nowrap !important;
-        text-overflow: ellipsis !important;
-        cursor: default !important;
-        pointer-events: none !important;
+        display: none !important;
     }
 
     .md-nav--primary[data-edwinos-drawer-section]
@@ -2264,9 +2451,122 @@ html.edwinos-search-transitioning .md-header .md-search {
 .md-sidebar--primary .md-nav__list
 .md-nav__link:not(.md-nav__title):not(.edwinos-drawer-back-title):not(.edwinos-drawer-section-title):is(:hover, :focus-visible, .md-nav__link--active),
 .md-sidebar--secondary [data-md-component="toc"]
-.md-nav__link:is(:hover, :focus-visible, .md-nav__link--active) {
+.md-nav__link:is(:hover, :focus-visible, .md-nav__link--active, .edwinos-toc-link--selected) {
     padding-left: 0 !important;
     transform: none !important;
+}
+
+/* Keep the responsive ENotes/Experiences drawer visually continuous with the
+   desktop sidebar: one canvas, no row dividers, and color-only interaction. */
+@media screen and (max-width: 76.1875em) {
+    body[data-md-color-scheme="default"]
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section],
+    body[data-md-color-scheme="default"]
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section] .md-nav,
+    body[data-md-color-scheme="default"]
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section] .md-nav__title,
+    body[data-md-color-scheme="default"]
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section]
+    .md-nav__title ~ .md-nav__list {
+        background: var(--github-frame-light-bg, #f6f8fa) !important;
+        background-color: var(--github-frame-light-bg, #f6f8fa) !important;
+    }
+
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav .md-nav__title {
+        border-bottom: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav .md-nav__title ~ .md-nav__list {
+        box-shadow: none !important;
+    }
+
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav .md-nav__item {
+        border-top: 0 !important;
+    }
+
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    > .md-nav__list
+    > .md-nav__item
+    > .md-nav__link:not(.md-nav__container):is(
+        :hover,
+        :focus-visible,
+        .md-nav__link--active
+    ),
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    .md-nav:not(.md-nav--secondary)
+    > .md-nav__list
+    > .md-nav__item
+    > .md-nav__link:not(.md-nav__container):is(
+        :hover,
+        :focus-visible,
+        .md-nav__link--active
+    ) {
+        padding-left: 0.8rem !important;
+        background: transparent !important;
+        transform: none !important;
+    }
+
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    .md-nav__container:is(
+        :hover,
+        :focus-visible,
+        .md-nav__link--active
+    ) {
+        padding-left: 0.8rem !important;
+        background: transparent !important;
+        transform: none !important;
+    }
+
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    .md-nav__container
+    > .md-nav__link:is(
+        :hover,
+        :focus-visible,
+        .md-nav__link--active
+    ) {
+        padding-left: 0 !important;
+        background: transparent !important;
+        transform: none !important;
+    }
+
+    body[data-md-color-scheme="default"]
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    .md-nav__link:is(:hover, :focus-visible) {
+        color: #0969da !important;
+        background: transparent !important;
+        transform: none !important;
+    }
+
+    body[data-md-color-scheme="slate"]
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    .md-nav__link:is(:hover, :focus-visible) {
+        color: #58a6ff !important;
+        background: transparent !important;
+        transform: none !important;
+    }
 }
 
 body[data-md-color-scheme="default"]
@@ -2277,6 +2577,151 @@ body[data-md-color-scheme="default"]
 body[data-md-color-scheme="slate"]
 .md-sidebar--primary .md-nav__link--active {
     color: #58a6ff !important;
+}
+
+/* Article TOC: the title follows Overview's Caveat section headings. The
+   masked layers reuse the header's five-stage blur, while one theme-matched
+   fade supplies the glass tint beneath the title divider. */
+.md-sidebar--secondary .md-nav--secondary > .md-nav__title {
+    position: sticky !important;
+    z-index: 3 !important;
+    overflow: visible !important;
+    font-family: var(--edwinos-font-hand) !important;
+    font-size: 1.3rem !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    background: rgb(246, 248, 250) !important;
+    border-bottom: 0 !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: blur(18px) saturate(108%);
+    backdrop-filter: blur(18px) saturate(108%);
+}
+
+/* Cover the small scrollwrap strip above the sticky title so TOC entries
+   cannot peek through while Material keeps the sidebar vertically aligned. */
+.md-sidebar--secondary .md-nav--secondary > .md-nav__title::before {
+    position: absolute;
+    right: 0;
+    bottom: 100%;
+    left: 0;
+    height: 1rem;
+    background: inherit;
+    content: "";
+    pointer-events: none;
+}
+
+[data-md-color-scheme="slate"]
+.md-sidebar--secondary .md-nav--secondary > .md-nav__title {
+    background: rgb(13, 17, 23) !important;
+}
+
+.md-sidebar--secondary .edwinos-toc-glass {
+    position: absolute;
+    top: calc(100% - 1px);
+    right: 0;
+    left: 0;
+    z-index: 2;
+    display: block;
+    height: calc(var(--edwinos-toc-glass-depth, 0px) + 1px);
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.md-sidebar--secondary :is(.edwinos-toc-glass__layer, .edwinos-toc-glass__fade) {
+    position: absolute;
+    inset: 0;
+    display: block;
+    border: 0;
+    background: transparent;
+    pointer-events: none;
+}
+
+.md-sidebar--secondary .edwinos-toc-glass__layer {
+    background: transparent;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+}
+
+.md-sidebar--secondary .edwinos-toc-glass__layer--1 {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0 24%, #000 44% 56%, transparent 74% 100%);
+    mask-image: linear-gradient(to bottom, transparent 0 24%, #000 44% 56%, transparent 74% 100%);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+}
+
+.md-sidebar--secondary .edwinos-toc-glass__layer--2 {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0 18%, #000 36% 52%, transparent 74% 100%);
+    mask-image: linear-gradient(to bottom, transparent 0 18%, #000 36% 52%, transparent 74% 100%);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+.md-sidebar--secondary .edwinos-toc-glass__layer--3 {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0 28%, transparent 58% 100%);
+    mask-image: linear-gradient(to bottom, #000 0 28%, transparent 58% 100%);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+.md-sidebar--secondary .edwinos-toc-glass__layer--4 {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0 16%, transparent 42% 100%);
+    mask-image: linear-gradient(to bottom, #000 0 16%, transparent 42% 100%);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+}
+
+.md-sidebar--secondary .edwinos-toc-glass__layer--5 {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 22% 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 22% 100%);
+    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(22px);
+}
+
+[data-md-color-scheme="default"]
+.md-sidebar--secondary .edwinos-toc-glass__fade {
+    background: linear-gradient(
+        to bottom,
+        rgba(246, 248, 250, 0.9) 0%,
+        rgba(246, 248, 250, 0.55) 28%,
+        rgba(246, 248, 250, 0.18) 52%,
+        transparent 74%
+    );
+}
+
+[data-md-color-scheme="slate"]
+.md-sidebar--secondary .edwinos-toc-glass__fade {
+    background: linear-gradient(
+        to bottom,
+        rgba(13, 17, 23, 0.9) 0%,
+        rgba(13, 17, 23, 0.55) 28%,
+        rgba(13, 17, 23, 0.18) 52%,
+        transparent 74%
+    );
+}
+
+.md-sidebar--secondary [data-md-component="toc"] .md-nav__link {
+    font-family: var(--edwinos-font-serif) !important;
+    line-height: 1.38 !important;
+}
+
+.md-sidebar--secondary [data-md-component="toc"] > li > .md-nav__link {
+    font-size: 0.69rem !important;
+}
+
+.md-sidebar--secondary [data-md-component="toc"] li li > .md-nav__link {
+    font-size: 0.64rem !important;
+}
+
+.md-sidebar--secondary [data-md-component="toc"] li li li > .md-nav__link {
+    font-size: 0.61rem !important;
+}
+
+.md-sidebar--secondary [data-md-component="toc"] li li li li > .md-nav__link {
+    font-size: 0.59rem !important;
 }
 
 /* Deep TOC entries need a brighter active color than the inherited navy on
@@ -2291,6 +2736,40 @@ body[data-md-color-scheme="slate"]
 .md-sidebar--secondary [data-md-component="toc"]
 li li > .md-nav__link--active {
     color: #79c0ff !important;
+}
+
+/* A TOC click may intentionally place the heading below Material's scrollspy
+   threshold to clear the translucent notch. Keep the clicked item visually
+   selected while the page is stationary; normal scroll tracking resumes as
+   soon as the reader scrolls again. */
+body[data-md-color-scheme="default"]
+.md-sidebar--secondary [data-md-component="toc"]
+.edwinos-toc-link--selected {
+    color: #0550ae !important;
+    font-weight: 600 !important;
+    opacity: 1 !important;
+}
+
+body[data-md-color-scheme="slate"]
+.md-sidebar--secondary [data-md-component="toc"]
+.edwinos-toc-link--selected {
+    color: #79c0ff !important;
+    font-weight: 600 !important;
+    opacity: 1 !important;
+}
+
+body[data-md-color-scheme="default"]
+.md-sidebar--secondary [data-md-component="toc"]:has(.edwinos-toc-link--selected)
+.md-nav__link--active:not(.edwinos-toc-link--selected) {
+    color: var(--md-default-fg-color--light) !important;
+    font-weight: 400 !important;
+}
+
+body[data-md-color-scheme="slate"]
+.md-sidebar--secondary [data-md-component="toc"]:has(.edwinos-toc-link--selected)
+.md-nav__link--active:not(.edwinos-toc-link--selected) {
+    color: #94a3b8 !important;
+    font-weight: 400 !important;
 }
 
 /* ==========================================================================
@@ -2352,11 +2831,16 @@ body.is-homepage .academic-content > .academic-section:first-of-type li,
 body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type p,
 body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type li {
     color: #1a1a1a !important;
-    font-family: var(--edwinos-font-serif) !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
     font-size: 0.96rem !important;
     font-weight: 400 !important;
     letter-spacing: 0 !important;
     line-height: 1.75 !important;
+}
+
+body.is-homepage .academic-content > .academic-section:first-of-type .about-name-cn,
+body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type .about-name-cn {
+    font-family: var(--edwinos-font-serif) !important;
 }
 
 body.is-homepage .academic-content > .academic-section:first-of-type p,
@@ -2712,7 +3196,12 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
 
 body.is-homepage .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
 body.is-home-profile-page .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
-body:has(.academic-home-layout) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+body:has(.academic-home-layout) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator) {
+    font-family: var(--edwinos-font-mono) !important;
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+}
+
 body.is-homepage .md-typeset .profile-meta :is(li, a, .meta-text),
 body.is-home-profile-page .md-typeset .profile-meta :is(li, a, .meta-text),
 body:has(.academic-home-layout) .md-typeset .profile-meta :is(li, a, .meta-text) {
@@ -3007,6 +3496,343 @@ body:has(.academic-home-layout) .news-text {
     min-width: 0 !important;
 }
 
+.academic-home-layout .overview-news-links {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-left: 0.35rem;
+}
+
+.academic-home-layout .overview-news-links a {
+    color: var(--academic-accent) !important;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+}
+
+.academic-home-layout .overview-news-more {
+    margin-top: 0.55rem;
+}
+
+.academic-home-layout .overview-news-more > summary {
+    width: fit-content;
+    margin-left: 6rem;
+    color: var(--academic-muted);
+    font-family: var(--edwinos-font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    list-style: none;
+}
+
+.academic-home-layout .overview-news-more > summary::-webkit-details-marker {
+    display: none;
+}
+
+.academic-home-layout .overview-news-more .when-open,
+.academic-home-layout .overview-news-more[open] .when-closed {
+    display: none;
+}
+
+.academic-home-layout .overview-news-more[open] .when-open {
+    display: inline;
+}
+
+.academic-home-layout .overview-news-list--older {
+    margin-top: 0.4rem !important;
+}
+
+/* ==========================================================================
+   Overview Publications
+   ========================================================================== */
+
+.academic-home-layout .overview-publication-list {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+.academic-home-layout .overview-publication {
+    position: relative;
+    display: grid !important;
+    grid-template-columns: 8.75rem minmax(0, 1fr) !important;
+    gap: 1rem !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0.78rem 0.62rem !important;
+    border-bottom: 1px solid var(--academic-card-border);
+    background: transparent;
+    list-style: none !important;
+    transition: background-color 160ms ease;
+}
+
+.academic-home-layout .overview-publication:first-child {
+    border-top: 1px solid var(--academic-card-border);
+}
+
+.academic-home-layout .overview-publication.is-lead {
+    background: color-mix(in srgb, var(--academic-accent) 5%, transparent);
+    box-shadow: inset 2px 0 color-mix(in srgb, var(--academic-accent) 44%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .academic-home-layout .overview-publication:hover {
+        background: color-mix(in srgb, var(--academic-accent) 4%, transparent);
+    }
+
+    .academic-home-layout .overview-publication.is-lead:hover {
+        background: color-mix(in srgb, var(--academic-accent) 8%, transparent);
+    }
+}
+
+.academic-home-layout .overview-publication__media {
+    display: flex;
+    width: 8.75rem;
+    aspect-ratio: 7 / 4;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid var(--academic-card-border);
+    border-radius: 0.55rem;
+    background: var(--academic-soft);
+}
+
+.academic-home-layout .overview-publication__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0 !important;
+    object-fit: contain;
+}
+
+.academic-home-layout .overview-publication__media--placeholder {
+    color: var(--academic-accent);
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--academic-accent) 10%, transparent),
+            color-mix(in srgb, var(--academic-accent) 3%, transparent)
+        ),
+        var(--academic-soft);
+    font-family: var(--edwinos-font-mono);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+.academic-home-layout .overview-publication__body {
+    min-width: 0;
+}
+
+.academic-home-layout .md-typeset .overview-publication__title,
+.academic-home-layout .overview-publication__title {
+    margin: 0 0 0.24rem !important;
+    color: var(--academic-ink) !important;
+    font-family: var(--edwinos-font-serif) !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.academic-home-layout .overview-publication__authors,
+.academic-home-layout .overview-publication__authors-full {
+    margin: 0 !important;
+    color: var(--academic-muted) !important;
+    font-family: var(--edwinos-font-serif) !important;
+    font-size: 0.79rem !important;
+    line-height: 1.45 !important;
+}
+
+.academic-home-layout .overview-publication__author {
+    color: inherit !important;
+    font-family: inherit !important;
+    font-weight: 400 !important;
+    text-decoration: none !important;
+}
+
+.academic-home-layout .overview-publication__author.is-self {
+    color: var(--academic-ink) !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    font-weight: 600 !important;
+}
+
+.academic-home-layout a.overview-publication__author:hover {
+    color: var(--academic-accent) !important;
+    text-decoration: underline !important;
+    text-underline-offset: 0.17em;
+}
+
+.academic-home-layout .overview-publication__authors-details > summary {
+    display: inline;
+    color: inherit;
+    cursor: pointer;
+    list-style: none;
+}
+
+.academic-home-layout .overview-publication__authors-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.academic-home-layout .overview-publication__authors-toggle {
+    display: inline-block;
+    margin-left: 0.45rem;
+    color: var(--academic-accent);
+    font-family: var(--edwinos-font-mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+}
+
+.academic-home-layout .overview-publication__authors-details .when-open,
+.academic-home-layout .overview-publication__authors-details[open] .when-closed {
+    display: none;
+}
+
+.academic-home-layout .overview-publication__authors-details[open] .when-open {
+    display: inline;
+}
+
+.academic-home-layout .overview-publication__authors-details[open] .overview-publication__authors-short {
+    display: none;
+}
+
+.academic-home-layout .overview-publication__authors-full {
+    margin-top: 0.15rem !important;
+}
+
+.academic-home-layout .overview-publication__venue {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.28rem 0.5rem;
+    margin-top: 0.2rem;
+    font-family: var(--edwinos-font-mono);
+    line-height: 1.35;
+}
+
+.academic-home-layout .overview-publication__venue-name {
+    color: var(--academic-accent);
+    font-size: 0.69rem;
+    font-weight: 700;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+}
+
+.academic-home-layout .overview-publication__venue-meta {
+    color: var(--academic-muted);
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.academic-home-layout .overview-publication__award {
+    margin: 0.16rem 0 0 !important;
+    color: #cf222e !important;
+    font-family: var(--edwinos-font-serif) !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+}
+
+[data-md-color-scheme="slate"] .academic-home-layout .overview-publication__award {
+    color: #ff7b72 !important;
+}
+
+.academic-home-layout .overview-publication__links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 0.32rem;
+    font-family: var(--edwinos-font-mono);
+    font-size: 0.71rem;
+    font-weight: 500;
+}
+
+.academic-home-layout .overview-publication__links a {
+    position: relative;
+    color: var(--academic-ink) !important;
+    text-decoration: underline !important;
+    text-decoration-thickness: 1px !important;
+    text-underline-offset: 0.2em;
+}
+
+.academic-home-layout .overview-publication__links a:hover {
+    color: var(--academic-accent) !important;
+}
+
+.academic-home-layout .overview-publication__links a + a {
+    margin-left: 0.62rem;
+    padding-left: 0.62rem;
+}
+
+.academic-home-layout .overview-publication__links a + a::before {
+    content: "";
+    position: absolute;
+    top: 0.12em;
+    bottom: 0.12em;
+    left: 0;
+    width: 1px;
+    background: var(--academic-card-border);
+}
+
+.academic-home-layout .overview-publication-notes,
+.academic-home-layout .overview-section-empty {
+    margin: 0.52rem 0 0 !important;
+    color: var(--academic-muted) !important;
+    font-size: 0.74rem !important;
+    line-height: 1.45 !important;
+}
+
+@media screen and (max-width: 42.5rem) {
+    .academic-home-layout .overview-publication {
+        grid-template-columns: 6rem minmax(0, 1fr) !important;
+        gap: 0.75rem !important;
+        align-items: start !important;
+        padding: 0.74rem 0.5rem !important;
+    }
+
+    .academic-home-layout .overview-publication__media {
+        width: 6rem;
+    }
+
+    .academic-home-layout .md-typeset .overview-publication__title,
+    .academic-home-layout .overview-publication__title {
+        font-size: 0.92rem !important;
+    }
+
+    .academic-home-layout .overview-publication__authors,
+    .academic-home-layout .overview-publication__authors-full {
+        font-size: 0.74rem !important;
+    }
+
+    .academic-home-layout .overview-news-more > summary {
+        margin-left: 0;
+    }
+}
+
+@media screen and (max-width: 26.25rem) {
+    .academic-home-layout .overview-publication {
+        grid-template-columns: 5rem minmax(0, 1fr) !important;
+        gap: 0.62rem !important;
+        padding: 0.64rem 0.25rem !important;
+    }
+
+    .academic-home-layout .overview-publication__media {
+        width: 5rem;
+    }
+
+    .academic-home-layout .md-typeset .overview-publication__title,
+    .academic-home-layout .overview-publication__title {
+        font-size: 0.86rem !important;
+    }
+}
+
 /* ==========================================================================
    Experiences timeline axis lock
    ========================================================================== */
@@ -3056,6 +3882,53 @@ body:has(.academic-home-layout) .cv-marker {
    Article Headings
    ========================================================================== */
 
+/* Publication context for individual ENotes and More Experiences articles.
+   The build hook places this directly after the page title. */
+.md-content__inner.md-typeset > h1:has(+ .article-meta) {
+    margin-bottom: 0.42rem;
+}
+
+.md-content__inner.md-typeset > .article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.18rem 0.42rem;
+    margin: 0 0 1.35rem;
+    color: var(--md-default-fg-color--light);
+    font-family: var(--edwinos-font-serif);
+    font-size: 0.64rem;
+    font-weight: 400;
+    line-height: 1.55;
+    letter-spacing: 0.01em;
+}
+
+.md-content__inner.md-typeset > .article-meta time {
+    color: var(--md-default-fg-color);
+    font-variant-numeric: tabular-nums;
+}
+
+.md-content__inner.md-typeset > .article-meta .article-meta__author {
+    color: var(--md-default-fg-color);
+    font-weight: 600;
+}
+
+.md-content__inner.md-typeset > .article-meta .article-meta__inspiration {
+    font-style: italic;
+}
+
+.md-content__inner.md-typeset > .article-meta .article-meta__separator {
+    color: var(--md-default-fg-color--lighter);
+    user-select: none;
+}
+
+@media screen and (max-width: 44.984375em) {
+    .md-content__inner.md-typeset > .article-meta {
+        gap: 0.12rem 0.32rem;
+        margin-bottom: 1.15rem;
+        font-size: 0.61rem;
+    }
+}
+
 /*
  * Give both Introduction hubs and every child note the same compact opening
  * rhythm. Reset each contributing layout layer explicitly so the first H1 sits
@@ -3096,6 +3969,15 @@ body .md-content__inner::before {
  * Match the two Introduction hubs to the handwritten Overview section title
  * without changing article headings or navigation typography.
  */
+:is(
+    html:has(> head > link[rel="canonical"][href$="/OsdNotes/"]),
+    html:has(> head > link[rel="canonical"][href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
+)
+body .md-content__inner.md-typeset {
+    font-family: var(--edwinos-font-reading-sans) !important;
+    letter-spacing: 0 !important;
+}
+
 html:has(> head > link[rel="canonical"][href$="/OsdNotes/"])
 body .md-content__inner.md-typeset
 :is(
@@ -3168,46 +4050,108 @@ body .md-content__inner > .md-typeset__scrollwrap + h2#matlab-python {
 }
 
 /* ==========================================================================
+   Fragment Targets
+   ========================================================================== */
+
+/* A heading selected from the right-hand TOC remains identifiable through the
+   scroll, then its yellow glass highlight fades without dimming the text. */
+.md-typeset :is(h1, h2, h3, h4, h5, h6).block-highlight--pinned {
+    box-sizing: border-box;
+    width: calc(100% + 1.4rem);
+    margin-inline: -0.7rem;
+    padding: 0.42rem 0.7rem;
+    border: 1px solid rgba(234, 179, 8, 0.26);
+    border-radius: 1rem;
+    background: rgba(255, 221, 36, 0.14);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.24),
+        0 0.5rem 1.35rem rgba(234, 179, 8, 0.06);
+    -webkit-backdrop-filter: blur(8px) saturate(115%);
+    backdrop-filter: blur(8px) saturate(115%);
+}
+
+[data-md-color-scheme="slate"]
+.md-typeset :is(h1, h2, h3, h4, h5, h6).block-highlight--pinned {
+    border-color: rgba(255, 243, 138, 0.4);
+    background: rgba(255, 232, 64, 0.2);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 252, 214, 0.18),
+        0 0 1.55rem rgba(255, 220, 24, 0.08),
+        0 0.55rem 1.45rem rgba(0, 0, 0, 0.12);
+}
+
+.md-typeset :is(h1, h2, h3, h4, h5, h6).block-highlight--pinned.block-highlight--fading {
+    border-color: transparent;
+    background-color: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: blur(0) saturate(100%);
+    backdrop-filter: blur(0) saturate(100%);
+    transition:
+        border-color 1.15s ease,
+        background-color 1.15s ease,
+        box-shadow 1.15s ease,
+        -webkit-backdrop-filter 1.15s ease,
+        backdrop-filter 1.15s ease;
+}
+
+.md-typeset :is(h1, h2, h3, h4, h5, h6).block-highlight--pinned::before {
+    content: none;
+}
+
+/* ==========================================================================
    Math
    ========================================================================== */
 
-/* Long inline formulas remain readable on narrow screens without expanding
-   the entire document beyond the viewport. */
-.md-typeset span.arithmatex {
+/* Math-bearing article tracks may shrink beside the desktop TOC. Each formula
+   owns its overflow, so an oversized expression scrolls inside prose instead
+   of widening the content track or painting across the right rail. */
+.md-content:has(.md-content__inner.md-typeset .arithmatex),
+.md-content__inner.md-typeset:has(.arithmatex) {
+    min-width: 0;
+}
+
+.md-content__inner.md-typeset span.arithmatex {
+    box-sizing: border-box;
     display: inline-block;
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
+    overscroll-behavior-inline: contain;
     vertical-align: middle;
 }
 
-.md-typeset div.arithmatex {
+.md-content__inner.md-typeset span.arithmatex.arithmatex--display {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.md-content__inner.md-typeset div.arithmatex {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* MathJax glyph overhang can make an otherwise complete inline expression
-   report a few pixels of overflow. On regular article widths, keep inline
-   math in normal text flow so that false-positive scrollbars are not drawn.
-   Narrow screens retain the scroll container for genuinely long formulas. */
-@media screen and (min-width: 45em) {
-    .md-typeset span.arithmatex {
-        display: inline;
-        max-width: none;
-        overflow: visible;
-        vertical-align: baseline;
-    }
+.md-content__inner.md-typeset :is(span.arithmatex, div.arithmatex) {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--md-default-fg-color) 35%, transparent)
+        transparent;
 }
 
-@media screen and (max-width: 44.984375em) {
-    .md-typeset span.arithmatex {
-        scrollbar-width: none;
-    }
+.md-content__inner.md-typeset
+:is(span.arithmatex, div.arithmatex)::-webkit-scrollbar {
+    height: 0.35rem;
+}
 
-    .md-typeset span.arithmatex::-webkit-scrollbar {
-        display: none;
-    }
+.md-content__inner.md-typeset
+:is(span.arithmatex, div.arithmatex)::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--md-default-fg-color) 35%, transparent);
+    border-radius: 999px;
 }
 
 /* ==========================================================================
@@ -3482,6 +4426,24 @@ body:has(.friend-links) .academic-content--subpage {
     gap: 0 !important;
 }
 
+body:has(.friend-links)
+.academic-content--subpage
+> :is(h1, h2) {
+    font-family: var(--edwinos-font-hand) !important;
+    letter-spacing: 0 !important;
+}
+
+/* Keep the Friends profile statistic in the compact pre-handwriting face;
+   page and section headings continue to inherit the Caveat heading rule. */
+body:has(.friend-links)
+.md-typeset
+.profile-followers
+:is(.follower-link, .follower-text, .follower-count, .follower-separator) {
+    font-family: var(--edwinos-font-mono) !important;
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+}
+
 /* Keep the YAML example visually attached to its short "Link format:" label
    instead of inheriting the combined paragraph and code-block margins. */
 body:has(.friend-links)
@@ -3718,16 +4680,25 @@ body[data-md-color-scheme="slate"]
    ========================================================================== */
 
 .academic-home-layout .academic-content .visitor-meta-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    column-gap: 2rem;
+    row-gap: 0.75rem;
     box-sizing: border-box;
     width: 100%;
+    min-width: 0;
     margin: 1.65rem 0 0;
+    padding-inline: 0;
     padding-top: 1.25rem;
     border-top: 1px solid var(--academic-card-border);
 }
 
 .academic-home-layout .academic-content .visitor-meta-footer__signature {
     display: flex;
-    flex-wrap: wrap;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
@@ -3739,6 +4710,7 @@ body[data-md-color-scheme="slate"]
     letter-spacing: 0;
     line-height: 1.3;
     text-align: center;
+    white-space: nowrap;
 }
 
 .academic-home-layout .academic-content .visitor-meta-footer__separator {
@@ -3747,12 +4719,14 @@ body[data-md-color-scheme="slate"]
 
 .academic-home-layout .academic-content .visitor-container.visitor-badge-panel {
     display: flex !important;
+    flex: 0 0 auto;
     align-items: center !important;
     justify-content: center !important;
-    width: 100% !important;
-    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: auto !important;
     min-height: 0 !important;
-    margin: 1rem 0 0 !important;
+    margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
     background: transparent !important;
@@ -3761,15 +4735,16 @@ body[data-md-color-scheme="slate"]
     box-shadow: none !important;
     transform: none !important;
     transition: none !important;
+    white-space: nowrap !important;
 }
 
 .academic-home-layout .academic-content .visitor-badge-link {
     display: inline-flex !important;
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     align-items: center !important;
     justify-content: center !important;
     width: auto !important;
-    max-width: 100%;
+    max-width: none;
     min-height: 0 !important;
     margin: 0 !important;
     padding: 0;
@@ -3788,7 +4763,7 @@ body[data-md-color-scheme="slate"]
 .academic-home-layout .academic-content .visitor-badge-image {
     display: block !important;
     width: auto !important;
-    max-width: 100% !important;
+    max-width: none !important;
     height: auto !important;
     margin: 0 !important;
     object-fit: contain;
@@ -3803,7 +4778,7 @@ body[data-md-color-scheme="slate"]
     align-items: center;
     justify-content: center;
     min-height: 1.25rem;
-    max-width: 100%;
+    max-width: none;
     padding: 0;
     color: var(--academic-muted);
     font-family: var(--edwinos-font-mono);
@@ -3811,20 +4786,28 @@ body[data-md-color-scheme="slate"]
     font-weight: 400;
     line-height: 1.35;
     text-align: center;
+    white-space: nowrap;
 }
 
-@media screen and (max-width: 28rem) {
+@media screen and (max-width: 36rem) {
     .academic-home-layout .academic-content .visitor-meta-footer {
+        flex-direction: column;
+        align-items: center;
+        row-gap: 0.75rem;
         margin-top: 1.35rem;
+        padding-inline: 0;
         padding-top: 1rem;
     }
 
     .academic-home-layout .academic-content .visitor-meta-footer__signature {
+        justify-content: center;
         gap: 0.32rem;
         font-size: 0.66rem;
+        text-align: center;
     }
 
     .academic-home-layout .academic-content .visitor-container.visitor-badge-panel {
-        margin-top: 0.85rem !important;
+        justify-content: center !important;
+        width: auto !important;
     }
 }

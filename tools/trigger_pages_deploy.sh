@@ -28,6 +28,7 @@ remote_sha="$(git rev-parse origin/main)"
 [[ -z "$(git status --porcelain --untracked-files=normal)" ]] || \
   fail "working tree is dirty; uncommitted files are never deployed"
 
+.venv/bin/python -m unittest discover -s tools -p 'test_*.py'
 .venv/bin/mkdocs build --clean --strict
 
 repo="$(gh repo view --json nameWithOwner --jq '.nameWithOwner')"

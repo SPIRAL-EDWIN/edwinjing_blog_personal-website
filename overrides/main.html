@@ -9,7 +9,68 @@
 {% endblock %}
 
 {% block extrahead %}
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ 'assets/favicon-32x32.png' | url }}">
+  <link rel="icon" type="image/png" sizes="96x96" href="{{ 'assets/favicon-96x96.png' | url }}">
+  <link rel="shortcut icon" type="image/x-icon" href="{{ 'favicon.ico' | url }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ 'assets/apple-touch-icon.png' | url }}">
   <link rel="preload" href="{{ 'assets/fonts/caveat/caveat-latin.woff2' | url }}" as="font" type="font/woff2" crossorigin>
+  {% if page.url in ["", "OsdNotes/", "经验分享/", "%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"] %}
+  <link rel="preload" href="{{ 'assets/fonts/outfit/outfit-latin.woff2' | url }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ 'assets/fonts/noto-sans-sc/noto-sans-sc-overview.woff2' | url }}" as="font" type="font/woff2" crossorigin>
+  {% endif %}
+  {% if page.url == "" %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://edwinjing-blog.com/#website",
+        "url": "https://edwinjing-blog.com/",
+        "name": "Chen Jing (经宸)",
+        "alternateName": ["Jing Chen", "Edwin Jing"]
+      },
+      {
+        "@type": "ProfilePage",
+        "@id": "https://edwinjing-blog.com/#profile",
+        "url": "https://edwinjing-blog.com/",
+        "name": "Chen Jing (经宸) | Zhejiang University",
+        "isPartOf": { "@id": "https://edwinjing-blog.com/#website" },
+        "mainEntity": { "@id": "https://edwinjing-blog.com/#person" }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://edwinjing-blog.com/#person",
+        "name": "Chen Jing",
+        "alternateName": ["经宸", "Jing Chen", "Edwin Jing"],
+        "url": "https://edwinjing-blog.com/",
+        "affiliation": {
+          "@type": "CollegeOrUniversity",
+          "name": "Zhejiang University"
+        },
+        "memberOf": {
+          "@type": "Organization",
+          "name": "ZJU-UIUC Institute"
+        },
+        "email": "mailto:edwinjing2026@outlook.com",
+        "knowsAbout": [
+          "Embodied AI",
+          "Legged Locomotion",
+          "Whole-body Loco-manipulation",
+          "Sim2Real",
+          "Robotics"
+        ],
+        "sameAs": [
+          "https://github.com/SPIRAL-EDWIN",
+          "https://www.youtube.com/@EdwinJing",
+          "https://x.com/EdwinJing661",
+          "https://www.instagram.com/edwinjing2025/"
+        ]
+      }
+    ]
+  }
+  </script>
+  {% endif %}
   {{ super() }}
 {% endblock %}
 

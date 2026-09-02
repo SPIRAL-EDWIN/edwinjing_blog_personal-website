@@ -1,9 +1,12 @@
 import hashlib
+import io
 import json
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import quote
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -178,6 +181,25 @@ class PublisherTest(unittest.TestCase):
         with self.assertRaisesRegex(publisher.PublishError, "not approved for materialization"):
             publisher.materialize(self.plan(manifest))
 
+    def test_cli_runs_math_validation_before_materialization(self):
+        source = "# Source\n"
+        self.write_note("Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "Source.md", "docs/Source.md", source),
+        ])
+        with patch.object(
+            publisher,
+            "validate_converted_outputs",
+            side_effect=publisher.MathRenderingError("math gate failed"),
+        ) as validator:
+            with redirect_stderr(io.StringIO()):
+                self.assertEqual(
+                    publisher.main(["--manifest", str(manifest), "--apply"]),
+                    2,
+                )
+        validator.assert_called_once()
+        self.assertFalse((self.repo / ".codex/staging/lab-projects").exists())
+
     def test_apply_rejects_symlink_in_staging(self):
         source = "# Source\n"
         self.write_note("Source.md", source)
@@ -249,6 +271,18 @@ class PublisherTest(unittest.TestCase):
         self.assertRegex(output, r"!\[[^\]]+\]\([^\n]+\)\n\n- parent")
         self.assertIn("\n    - child\n", output)
 
+    def test_keeps_root_image_and_caption_list_with_parent_item(self):
+        image = b"image"
+        (self.vault / "image.png").write_bytes(image)
+        source = "- parent\n![[image.png]]\n    - caption\n- next\n"
+        self.write_note("Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "Source.md", "docs/Source.md", source),
+        ])
+        output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
+        self.assertRegex(output, r"- parent\n\n    !\[[^\]]+\]\([^\n]+\)")
+        self.assertIn("\n\n    - caption\n\n- next", output)
+
     def test_preserves_reviewed_image_presentation_classes(self):
         image = b"reviewed image"
         image_path = self.vault / "image.png"
@@ -307,30 +341,169 @@ class PublisherTest(unittest.TestCase):
         output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
         self.assertIn("| `|` | pipe |\n\nThis paragraph", output)
 
-    def test_injects_public_only_reading_bridge_fail_closed(self):
-        anchor, paragraph = publisher.PUBLIC_NOTE_INSERTIONS["rfm-introduction"]
-        source = "---\ntitle: RFM\n---\n\n" + anchor + "\n# Body\n"
-        self.write_note("RFM.md", source)
+    def test_closes_obsidian_lists_before_headings_callouts_and_prose(self):
+        source = (
+            "- parent\n"
+            "\t- child\n"
+            "## Next heading\n"
+            "Paragraph\n"
+            "- fresh list\n"
+            "> callout\n"
+            "After list\n"
+        )
+        self.write_note("Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "Source.md", "docs/Source.md", source),
+        ])
+        output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
+        self.assertIn("    - child\n\n## Next heading", output)
+        self.assertIn("Paragraph\n\n- fresh list", output)
+        self.assertIn("- fresh list\n\n> callout", output)
+
+    def test_public_mdp_prefix_and_core_formula_dehighlight(self):
+        source = (
+            "## 说明\n"
+            "- ==**核心计算公式**==：$$x=1$$\n"
+            "### 【Loco-manipulation_reward】对`track_EE_pb` 的理解（Progress-Based）\n"
+            "## `rewards.py`在整个MDP中的流程\n"
+        )
+        self.write_note("MDP.md", source)
         manifest = self.manifest([
             self.entry(
-                "rfm-introduction",
-                "RFM.md",
-                "docs/OsdNotes/Embodied AI/RFM.md",
+                "mdp-reward-analysis",
+                "MDP.md",
+                "docs/经验分享/Phi Lab/WBC/MDP.md",
                 source,
             ),
         ])
         output = self.plan(manifest).outputs[
-            Path("docs/OsdNotes/Embodied AI/RFM.md")
+            Path("docs/经验分享/Phi Lab/WBC/MDP.md")
         ].decode()
-        self.assertEqual(output.count(paragraph.strip()), 1)
+        self.assertTrue(output.startswith('---\ntitle: "【MDP】奖励函数解构学习"'))
+        self.assertIn("**核心计算公式**", output)
+        self.assertNotIn("<mark>**核心计算公式**</mark>", output)
 
-        changed = source.replace(anchor, "anchor changed\n")
-        self.write_note("RFM.md", changed)
+    def test_normalizes_single_line_display_math_inside_lists_and_quotes(self):
+        source = (
+            "- Formula: $$x=1$$ after\n"
+            "> Formula: $$y=2$$\n"
+            "$$a=1,\\qquad\n"
+            "b=2$$\n"
+        )
+        self.write_note("Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "Source.md", "docs/Source.md", source),
+        ])
+        output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
+        self.assertIn(
+            '- Formula:\n\n    <span class="arithmatex arithmatex--display">'
+            "&#92;&#91;x&#61;1&#92;&#93;</span>\n\n    after",
+            output,
+        )
+        self.assertIn(
+            '> Formula:\n>\n> <span class="arithmatex arithmatex--display">'
+            "&#92;&#91;y&#61;2&#92;&#93;</span>",
+            output,
+        )
+        self.assertIn("$$\na=1,\\qquad\nb=2\n$$", output)
+
+    def test_repairs_previously_indented_display_math(self):
+        source = (
+            "- Formula:\n\n"
+            "    $$\n"
+            "    x=1\n"
+            "    $$\n"
+            "> $$\n"
+            "> y=2\n"
+            "> $$\n"
+        )
+        self.write_note("Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "Source.md", "docs/Source.md", source),
+        ])
+        output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
+        self.assertIn(
+            '    <span class="arithmatex arithmatex--display">'
+            "&#92;&#91;x&#61;1&#92;&#93;</span>",
+            output,
+        )
+        self.assertIn(
+            '> <span class="arithmatex arithmatex--display">'
+            "&#92;&#91;y&#61;2&#92;&#93;</span>",
+            output,
+        )
+
+    def test_keeps_nested_bullets_after_display_math(self):
+        source = (
+            "- Position error:\n\n"
+            "    $$e_P=1$$\n"
+            "    - non-negative\n"
+            "    - measured in metres\n"
+        )
+        self.write_note("Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "Source.md", "docs/Source.md", source),
+        ])
+        output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
+        self.assertIn("</span>\n\n    - non-negative", output)
+        self.assertIn("    - non-negative\n\n    - measured in metres", output)
+
+    def test_starts_nested_bullets_after_same_indented_prose(self):
+        source = (
+            "1. Mapping:\n"
+            "    Intuition:\n"
+            "    - zero is best\n"
+            "    - larger decays faster\n"
+        )
+        self.write_note("Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "Source.md", "docs/Source.md", source),
+        ])
+        output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
+        self.assertIn("    Intuition:\n\n    - zero is best", output)
+
+    def test_closes_list_display_math_before_next_root_item(self):
+        source = (
+            "- First formula:\n\n"
+            "    $$\n"
+            "    x=1\n"
+            "    $$\n"
+            "- Next root item\n"
+        )
+        self.write_note("Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "Source.md", "docs/Source.md", source),
+        ])
+        output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
+        self.assertIn("</span>\n\n- Next root item", output)
+
+    def test_injects_public_only_editorial_blocks_fail_closed(self):
+        insertions = publisher.PUBLIC_NOTE_INSERTIONS["mdp-reward-analysis"]
+        source = "---\ntitle: MDP\n---\n\n" + "\n".join(
+            anchor for anchor, _paragraph in insertions
+        )
+        self.write_note("MDP.md", source)
         manifest = self.manifest([
             self.entry(
-                "rfm-introduction",
-                "RFM.md",
-                "docs/OsdNotes/Embodied AI/RFM.md",
+                "mdp-reward-analysis",
+                "MDP.md",
+                "docs/OsdNotes/Embodied AI/MDP.md",
+                source,
+            ),
+        ])
+        output = self.plan(manifest).outputs[
+            Path("docs/OsdNotes/Embodied AI/MDP.md")
+        ].decode()
+        for _anchor, paragraph in insertions:
+            self.assertEqual(output.count(paragraph.strip()), 1)
+
+        changed = source.replace(insertions[0][0], "anchor changed\n")
+        self.write_note("MDP.md", changed)
+        manifest = self.manifest([
+            self.entry(
+                "mdp-reward-analysis",
+                "MDP.md",
+                "docs/OsdNotes/Embodied AI/MDP.md",
                 changed,
             ),
         ])

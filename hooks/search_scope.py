@@ -1,4 +1,4 @@
-"""Limit the generated search index to the three visitor-facing sections."""
+"""Limit the generated search index to ENotes and More Experiences."""
 
 import json
 from pathlib import Path
@@ -12,7 +12,7 @@ ALLOWED_ROOTS = ("OsdNotes/", "经验分享/")
 
 def _is_searchable(location):
     normalized = unquote(location or "").lstrip("/")
-    return normalized == "" or normalized.startswith(ALLOWED_ROOTS)
+    return normalized.startswith(ALLOWED_ROOTS)
 
 
 @event_priority(-100)

@@ -1,0 +1,32 @@
+# Overview > Publications
+# Keep entries in the order you want them to appear on the page.
+# Upload local artwork to docs/assets/images/publications/ and set image below.
+# See README.md in this folder for a complete copy/paste template.
+
+settings:
+  self_author: "Chen Jing"
+  collapse_after: 7
+  author_notes:
+    "*": "Equal contribution"
+    "†": "Corresponding author"
+    "§": "Project lead"
+
+entries:
+  - id: "research-notes"
+    title: "Research notes and preprint ideas will be listed here."
+    image: ""
+    image_alt: ""
+    placeholder: "WIP"
+    authors:
+      - name: "Chen Jing"
+        self: true
+    venue:
+      name: "Working Notes"
+      year: ""
+      status: "Reading reports and future research outputs"
+      rank: ""
+    award: ""
+    lead: true
+    links:
+      - label: "Notes"
+        url: "OsdNotes/Embodied%20AI/具身智能基础路线/"

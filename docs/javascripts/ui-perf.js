@@ -235,6 +235,98 @@
     }
   }
 
+  /**
+   * Install the progressive backdrop stack used by the translucent header.
+   *
+   * Material keeps the header across instant navigation, so this routine is
+   * deliberately idempotent. Keeping the glass in real DOM nodes (instead of
+   * header pseudo-elements) also lets each masked blur sample the document
+   * independently without painting a separate hard-edged band below it.
+   */
+  function ensureHeaderGlass() {
+    var header = document.querySelector(".md-header");
+    if (!header) return;
+
+    var glasses = Array.prototype.filter.call(header.children, function (child) {
+      return child.classList && child.classList.contains("edwinos-header-glass");
+    });
+    var glass = glasses.shift();
+
+    glasses.forEach(function (duplicate) {
+      duplicate.remove();
+    });
+
+    if (!glass) {
+      glass = document.createElement("div");
+      glass.className = "edwinos-header-glass";
+      glass.setAttribute("aria-hidden", "true");
+
+      for (var layerIndex = 1; layerIndex <= 5; layerIndex += 1) {
+        var layer = document.createElement("div");
+        layer.className = "edwinos-header-glass__layer edwinos-header-glass__layer--" + layerIndex;
+        glass.appendChild(layer);
+      }
+
+      var fade = document.createElement("div");
+      fade.className = "edwinos-header-glass__fade";
+      glass.appendChild(fade);
+    }
+
+    glass.setAttribute("aria-hidden", "true");
+    if (header.firstElementChild !== glass) {
+      header.insertBefore(glass, header.firstChild);
+    }
+  }
+
+  /**
+   * Add a short progressive blur directly below the sticky article TOC title.
+   * Its depth is measured from the title rule to the first TOC entry and
+   * capped at 12px, so the initial first entry never starts inside the glass.
+   */
+  function ensureTocGlass() {
+    var title = document.querySelector(
+      ".md-sidebar--secondary .md-nav--secondary > .md-nav__title"
+    );
+    var firstLink = document.querySelector(
+      '.md-sidebar--secondary [data-md-component="toc"] > li > .md-nav__link'
+    );
+    if (!title || !firstLink) return;
+
+    var glasses = Array.prototype.filter.call(title.children, function (child) {
+      return child.classList && child.classList.contains("edwinos-toc-glass");
+    });
+    var glass = glasses.shift();
+
+    glasses.forEach(function (duplicate) {
+      duplicate.remove();
+    });
+
+    if (!glass) {
+      glass = document.createElement("span");
+      glass.className = "edwinos-toc-glass";
+      glass.setAttribute("aria-hidden", "true");
+
+      for (var layerIndex = 1; layerIndex <= 5; layerIndex += 1) {
+        var layer = document.createElement("span");
+        layer.className = "edwinos-toc-glass__layer edwinos-toc-glass__layer--" + layerIndex;
+        glass.appendChild(layer);
+      }
+
+      var fade = document.createElement("span");
+      fade.className = "edwinos-toc-glass__fade";
+      glass.appendChild(fade);
+      title.appendChild(glass);
+    }
+
+    var titleBottom = title.getBoundingClientRect().bottom;
+    var firstTop = firstLink.getBoundingClientRect().top;
+    var availableGap = Math.max(0, firstTop - titleBottom);
+    title.style.setProperty(
+      "--edwinos-toc-glass-depth",
+      Math.min(12, Math.floor(availableGap)) + "px"
+    );
+  }
+
   function beginHeaderSearchTransition() {
     document.documentElement.classList.add("edwinos-search-transitioning");
     // Commit the resting geometry before the checkbox changes its coordinates.
@@ -1570,6 +1662,8 @@
   function runAll() {
     clearArchiveNavigationFeedback();
     updateHomepageClass();
+    ensureHeaderGlass();
+    ensureTocGlass();
     setupHeaderSearchTransition();
     normalizePaletteButtons();
     updateSourceFacts();

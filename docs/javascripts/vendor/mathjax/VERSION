@@ -1,0 +1,4 @@
+MathJax 3.2.2
+Source: https://www.npmjs.com/package/mathjax/v/3.2.2
+Vendored files: 3.2.2/es5/tex-mml-chtml.js and 3.2.2/es5/output/chtml/fonts/woff-v2/*.woff
+License: Apache-2.0 (see LICENSE)

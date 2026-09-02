@@ -1,6 +1,6 @@
 # MATLAB
 
-### Some Useful Commands & Types
+## Some Useful Commands & Types
 
 | Command         | Command       | Command              |
 | --------------- | ------------- | -------------------- |
@@ -26,9 +26,9 @@
 | `mod(a,b)`                                | `a%b`                            |
 `%` 为comment；`#` 为脚本
 
-# Lec22-Intro
+## Lec22-Intro
 
-## Numeric types
+### Numeric types
 
 MATLAB numbers **by default** are all `float`s.
 `x = 5`时，`x`的类型不是整数，而是*双精度浮点数（double-precision floating point）*
@@ -66,7 +66,7 @@ in 8-, 16-, 32-, and 64-bit versions (like NumPy).
 `whos` 把workspace的所有变量的类型输出
 `whos a` 返回a的类型
 
-## Arrays
+### Arrays
 
 ```matlab
 A = [ 1 2 3 ];  %Python, numpy.array([​[1,2,3]])
@@ -120,7 +120,7 @@ eye(M,N)  #生成二维M*N数组，从（0,0）向右下角的对角线为1，�
 > %没有像np.array那样两个括号的取法
 > ```
 
-## 索引
+### 索引
 
 - ***从1开始，尾端取***
 - ***用 `()` 取***
@@ -143,7 +143,7 @@ B = A( [ 5,9,2,2 ] );
 >>> [40,90,20,20]
 ```
 
-## Strings
+### Strings
 
 ```matlab
 msg = 'I am going to miss CS101 during my winter break!';
@@ -163,7 +163,7 @@ bigS(1) >>> "Different? What? Confused!" %返回整个字符串
  bigS{1}(1:2) >>> 'Di'
 ```
 
-## 脚本(Script) & 函数(Functions)
+### 脚本(Script) & 函数(Functions)
 
 脚本是用文件写成的程序。脚本文件和函数文件均带有后缀 `.m`
 
@@ -187,7 +187,7 @@ end
  如果函数是matlab自带的，那么在运行需要调用函数的工具时，前面也要加@
 ```
 
-## Loops
+### Loops
 
 ```matlab
 for i = 1:10
@@ -210,7 +210,7 @@ end
 
 *`continue` 和 `break` 与python中的功能一样*
 
-## Logic
+### Logic
 
 MATLAB does **NOT** have a `bool` data type.
 It is called `logical` data type Instead of `True`/`False`, MATLAB uses integers:
@@ -247,7 +247,7 @@ end
 
 > [!WARNING] 判断语句和循环语句**都没有 `:`**
 
-## Random Number Generation (`ml::rand`)
+### Random Number Generation (`ml::rand`)
 
 | Distribution     | Sample Commands          | Meaning                                          |
 | :--------------- | ------------------------ | ------------------------------------------------ |
@@ -266,9 +266,9 @@ end
 
 ![Pasted image 20251208222047.png](images/Pasted image 20251208222047.png)
 
-# Lec23 - Input/Output
+## Lec23 - Input/Output
 
-## Save
+### Save
 
 ```matlab
 A = [ 1 2 3 ; 4 5 6 ]; 
@@ -281,7 +281,7 @@ M1: `save( 'test');` %save *everything* in the Workspace into `test.mat` Or
 M2: Use `save test.txt A -ascii -append`
 to append the value of `A` into a file with the name `test.txt`
 
-## Load
+### Load
 
 `A = load( ’test’, ’A’ );` Load variable A from `text.mat`
  ***更简单的方案：双击文件，变量和值就会导入 Workspace***
@@ -292,7 +292,7 @@ to append the value of `A` into a file with the name `test.txt`
 `importdata('https://zjui.intl.zju.edu.cn/sites/default/files/inline-images/WechatIMG1450.jpeg' );`
 ***无需`\\`, 只要 `\`就可以***
 
-## Web I/O
+### Web I/O
 
 `webread` processes data gracefully.
 
@@ -302,7 +302,7 @@ data = webread( url );
 image( data );               %display image from an array (DEMO)
 ```
 
-## Plotting
+### Plotting
 
 figure(xxx) creates a new figure (window for plots).
 
@@ -366,7 +366,7 @@ plot(x,y2)
 
 ![Pasted image 20251210144817.png](images/Pasted image 20251210144817.png)
 
-# Lec24 - Polynomial
+## Lec24 - Polynomial
 
 ![Pasted image 20251215131801.png](images/Pasted image 20251215131801.png)
 
@@ -442,7 +442,7 @@ derivative = polyder( polynomial );
 >
 > ```matlab
 
-## 零点与极值
+### 零点与极值
 
 `roots([])`  在多项式中找到根（包括复根），并返回为列向量
 
@@ -459,7 +459,7 @@ a.fzero()
 x = fzero( f,x0 )   %一个x0只能得到一个root
 ```
 
-## Minimize
+### Minimize
 
 ```matlab
 x =-1:.01:2; 
@@ -476,9 +476,9 @@ ylabel( ’f(x)’ );
 grid on;
 ```
 
-# Lec25 - Basic Statistics
+## Lec25 - Basic Statistics
 
-## Statistical quantities
+### Statistical quantities
 
 ```matlab
 rng( 101 );    % seed the random number generator, so the set of random numbers can be always the same. Mostly for troubleshooting.
@@ -523,7 +523,7 @@ cumsum( x ) >>>ans = 1 3 6 10 15    % 求Sn
 > ![Pasted image 20251217132441.png](images/Pasted image 20251217132441.png)
 > 箱体的**底边**和**顶边**分别对应数据的**第25百分位数（Q1）** 和**第75百分位数（Q3）**，箱子中间的标记（一条线或一个符号）代表**中位数**
 
-## Interpolation 插值法
+### Interpolation 插值法
 
 `interp1(x,y,x0,[type])`  %默认为 `linear`，用线段穿过每两个数据点
  ***注意，`interp1()` 是数字 `1`不是字母小写 `l
@@ -548,9 +548,9 @@ plot( x_est,y_est,’bo’ );
 
 `pchip` / `cubic` 在**每两个相邻已知点之间**构建一个三次多项式（除了两个数据点，还用到了这两个端点的**导数**（由更多点计算而来），4 个条件锁定 4 个参数，才得到**唯一**的三次多项式）
 
-## Matrix Equations
+### Matrix Equations
 
-### 定义
+#### 定义
 
 > [!NOTE] `A*x = y`
 >
@@ -560,9 +560,9 @@ plot( x_est,y_est,’bo’ );
 
 ![Pasted image 20251217140359.png](images/Pasted image 20251217140359.png)
 
-### 解法
+#### 解法
 
-#### 1.逆矩阵法 （`x = inv(A) * y`）——类比倒数求解 **缺点：效率低**
+##### 1.逆矩阵法 （`x = inv(A) * y`）——类比倒数求解 **缺点：效率低**
 
 矩阵里没有 “除法”，但有类似 “倒数” 的东西叫 **逆矩阵**（记为 `A⁻¹`），满足：`A * A⁻¹ = I`（`I` 是单位矩阵，相当于矩阵里的 “1”）
 
@@ -577,13 +577,13 @@ y = [1; 2; 3];                   % 3行1列，对应方程右边的结果
 x = inv(A) * y;  % inv(A) 就是求 A 的逆矩阵
 ```
 
-#### 2. 左除法（`x = A \ y`）——MATLAB推荐，更高效  
+##### 2. 左除法（`x = A \ y`）——MATLAB推荐，更高效
 
-## Time Code
+### Time Code
 
 `tic; [operation]; toc`
 
-# Lec26-Polyfit
+## Lec26-Polyfit
 
 Given `n+1` number of `( x,y )` points (or more), we can fit a nth order polynomial as a possible curve.
 `polyfit(x,y,n)`
@@ -623,13 +623,13 @@ plot( x,y,’rx’, xf,yf,’r-’ );
 
 **n不能太高，否则会为了过所有点而 overfitting ，图像会失真**
 
-## Estimate the Error of a Fit
+### Estimate the Error of a Fit
 
 ![Pasted image 20251222133659.png](images/Pasted image 20251222133659.png)
 
 **A good fit has a small residual**
 
-## Another Interpolation — Spline
+### Another Interpolation — Spline
 
 Splines 分段多项式，旨在平滑地拟合长段而不会过度拟合
 Splines 通常由三多项式构成。 类似 `interp1()` 中的 `pchip`

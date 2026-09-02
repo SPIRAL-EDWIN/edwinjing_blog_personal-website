@@ -421,6 +421,56 @@ def _render_archive(entries: Sequence[ArchiveEntry]) -> str:
 """.strip()
 
 
+def _is_article_page(src_uri: str, metadata: Mapping[str, str]) -> bool:
+    """Return whether a page is an individual ENotes/Experiences article."""
+    if src_uri in {"OsdNotes/index.md", "经验分享/index.md"}:
+        return False
+    if not src_uri.startswith(("OsdNotes/", "经验分享/")):
+        return False
+    return _metadata_bool(metadata.get("archive"))
+
+
+def _article_meta(
+    metadata: Mapping[str, str],
+    published: date,
+    updated: date,
+    default_author: str,
+) -> str:
+    """Render compact, semantic provenance directly below an article title."""
+    author_value = metadata.get("author", default_author).replace("Chen Jing (经宸)", "Chen Jing")
+    author = html.escape(author_value)
+    inspired_by = metadata.get("inspired_by", "").strip()
+    parts = [
+        (
+            '<span class="article-meta__item article-meta__date">'
+            f'Published <time datetime="{published.isoformat()}">{published.isoformat()}</time>'
+            "</span>"
+        )
+    ]
+
+    if updated > published:
+        parts.append(
+            '<span class="article-meta__item article-meta__date">'
+            f'Updated <time datetime="{updated.isoformat()}">{updated.isoformat()}</time>'
+            "</span>"
+        )
+
+    parts.append(f'<span class="article-meta__item article-meta__author">By {author}</span>')
+    if inspired_by:
+        parts.append(
+            '<span class="article-meta__item article-meta__inspiration">'
+            f'Inspired by {html.escape(inspired_by)}'
+            "</span>"
+        )
+
+    separator = '<span class="article-meta__separator" aria-hidden="true">·</span>'
+    return (
+        '<div class="article-meta" aria-label="Article information">'
+        + separator.join(parts)
+        + "</div>"
+    )
+
+
 def _add_obsidian_block_anchors(markdown: str) -> str:
     """Expose Obsidian block IDs as HTML anchors for MkDocs link checks.
 
@@ -576,3 +626,41 @@ def on_page_markdown(markdown, page, config, files, **kwargs):
     entries = _collect_entries(config, files, page)
     log.info("Archive generated with %d content entries", len(entries))
     return markdown.replace(ARCHIVE_MARKER, _render_archive(entries))
+
+
+def on_page_content(html_content, page, config, files, **kwargs):
+    """Add publication provenance below individual note/article titles.
+
+    Existing notes inherit the same Git-backed date and default-author fallbacks
+    as Archive cards. New notes can override them with scalar front matter:
+    ``date``, ``updated``, ``author``, and optional ``inspired_by``.
+    """
+    src_uri = getattr(page.file, "src_uri", getattr(page.file, "src_path", ""))
+    abs_path_value = getattr(page.file, "abs_src_path", None)
+    if not abs_path_value:
+        return html_content
+
+    abs_path = Path(abs_path_value)
+    if not abs_path.is_file():
+        return html_content
+
+    source = abs_path.read_text(encoding="utf-8")
+    metadata, _ = _plain_front_matter(source)
+    if not _is_article_page(src_uri, metadata):
+        return html_content
+
+    config_path = Path(getattr(config, "config_file_path", "mkdocs.yml")).resolve()
+    first_added, latest = _git_dates(config_path.parent, abs_path)
+    filesystem_date = datetime.fromtimestamp(abs_path.stat().st_mtime).date()
+    published = _parse_date(metadata.get("date")) or first_added or latest or filesystem_date
+    updated = _parse_date(metadata.get("updated")) or latest or published
+    default_author, _ = _archive_options(config)
+    article_meta = _article_meta(metadata, published, updated, default_author)
+
+    h1_end = re.search(r"</h1\s*>", html_content, re.I)
+    if not h1_end:
+        # Material inserts its automatic H1 before page.content, so prepending
+        # here still places the provenance immediately beneath that title.
+        return article_meta + html_content
+
+    return html_content[: h1_end.end()] + article_meta + html_content[h1_end.end() :]

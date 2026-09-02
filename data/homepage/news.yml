@@ -1,0 +1,13 @@
+# Overview > Recent News
+# Add a new entry anywhere in this list; the build sorts entries newest-first.
+# Use quoted YYYY-MM-DD dates. Optional links appear after the text.
+
+settings:
+  visible_count: 5
+
+entries:
+  - date: "2026-07-29"
+    text: "Refined EdwinOS across desktop, tablet, and mobile window widths, improving responsive usability and polishing the header, search, and profile animations."
+
+  - date: "2026-07-13"
+    text: "Released EdwinOS 2.1.2 on July 13, 2026, further refining the GitHub-inspired experience for the personal website."

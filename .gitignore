@@ -4,6 +4,7 @@ __pycache__/
 nul
 ~/
 .sisyphus/
+.codex/staging/
 
 # PHIL 206 课程资料暂未获得公开分享授权，仅保留本地副本
 /course-materials/PHIL/PHIL 206/

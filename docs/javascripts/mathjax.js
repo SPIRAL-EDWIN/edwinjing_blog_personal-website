@@ -14,7 +14,14 @@
 (function () {
   "use strict";
 
-  var MATHJAX_SRC = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+  var mathJaxConfigScript = document.currentScript;
+  var mathJaxBaseUrl = mathJaxConfigScript && mathJaxConfigScript.src
+    ? mathJaxConfigScript.src
+    : document.baseURI;
+  var MATHJAX_SRC = new URL(
+    "vendor/mathjax/3.2.2/es5/tex-mml-chtml.js",
+    mathJaxBaseUrl
+  ).href;
   var mathJaxLoadPromise = null;
   var navigationSequence = 0;
   var typesetQueue = Promise.resolve();
@@ -22,7 +29,12 @@
   window.MathJax = {
     tex: {
       macros: {
-        prescript: ["{}^{#1}_{#2}\\!#3", 3]
+        prescript: ["{}^{#1}_{#2}\\!#3", 3],
+        boldsymbol: ["\\mathbf{#1}", 1],
+        // The bundled MathJax build does not include mathtools. This reviewed
+        // fallback preserves annotation text instead of exposing \mathclap as
+        // a red undefined control sequence.
+        mathclap: ["\\smash{#1}", 1]
       },
       inlineMath: [["\\(", "\\)"]],
       displayMath: [["\\[", "\\]"]],
@@ -167,16 +179,43 @@ function typesetCurrentDocument() {
         wrapTocMath();
         window.MathJax.typesetClear();
         window.MathJax.texReset();
-        return window.MathJax.typesetPromise();
+        return window.MathJax.typesetPromise().then(function () {
+          restoreCurrentHash(sequence);
+        });
       });
 
-    // Always attach a rejection handler: CDN and rapid-navigation failures must
-    // not surface as uncaught promise rejections.
+    // Always attach a rejection handler: asset-load and rapid-navigation
+    // failures must not surface as uncaught promise rejections.
     typesetQueue.catch(function () {
       // A later document$ emission can safely retry the lifecycle.
     });
   }).catch(function () {
-    // Keep raw TeX readable when the optional CDN dependency is unavailable.
+    // Keep raw TeX readable if the local optional runtime cannot be loaded.
+  });
+}
+
+function restoreCurrentHash(sequence) {
+  if (sequence !== navigationSequence || !window.location.hash) return;
+
+  var id;
+  try {
+    id = decodeURIComponent(window.location.hash.slice(1));
+  } catch (_error) {
+    id = window.location.hash.slice(1);
+  }
+  var target = document.getElementById(id);
+  if (!target) return;
+
+  window.requestAnimationFrame(function () {
+    window.requestAnimationFrame(function () {
+      if (sequence !== navigationSequence) return;
+      var header = document.querySelector(".md-header");
+      // Match block-links.js: keep hash targets below the translucent
+      // EdwinOS header/notch and its blur falloff after MathJax reflow.
+      var offset = (header ? header.getBoundingClientRect().height : 0) + 40;
+      var top = target.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+    });
   });
 }
 

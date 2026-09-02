@@ -5,6 +5,8 @@ The default mode is a read-only dry run.  ``--apply`` writes only to the
 isolated staging root declared by the manifest; it never writes to the vault
 or to the repository's live ``docs`` tree.  Note contents are never executed
 and diagnostics deliberately avoid echoing source text or link targets.
+Every dry run and apply validates the converted Markdown against the vendored
+MathJax runtime before any staging write occurs.
 """
 
 from __future__ import annotations
@@ -21,6 +23,14 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple
 from urllib.parse import quote
+
+try:
+    from tools.math_rendering_checks import (
+        MathRenderingError,
+        validate_converted_outputs,
+    )
+except ModuleNotFoundError:  # Direct execution: python tools/publish_lab_projects.py
+    from math_rendering_checks import MathRenderingError, validate_converted_outputs
 
 
 IMAGE_EXTENSIONS = {
@@ -51,15 +61,39 @@ IMAGE_PRESENTATION_CLASSES: Dict[str, Tuple[str, ...]] = {
 # not exist in the Obsidian publishing manifest (for example, a PDF viewer
 # page).  Each insertion is anchored fail-closed so a later source rewrite
 # cannot silently place the bridge in the wrong paragraph.
-PUBLIC_NOTE_INSERTIONS: Dict[str, Tuple[str, str]] = {
-    "rfm-introduction": (
-        "该笔记中所有代码详例均基于：\n",
-        "本文从宏观层面梳理 RFM 的概念框架、主要文件职责与强化学习流程。"
-        "如果希望继续下钻到仓库和工程实现层面，可对照阅读 "
-        "[【组会分享】RFM/调参](../../%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/Phi%20Lab/WBC/"
-        "RFM%20%26%20%E5%AE%9E%E9%99%85%E8%B0%83%E5%8F%82%E7%BB%8F%E9%AA%8C%E7%BB%84%E4%BC%9A%E5%88%86%E4%BA%AB.md)"
-        "；后者通过更微观的仓库结构、框图、公式与实际调参经验，"
-        "展示这些概念如何落到具体实现中。\n",
+PUBLIC_NOTE_INSERTIONS: Dict[str, Tuple[Tuple[str, str], ...]] = {
+    "mdp-reward-analysis": (
+        (
+            "## 说明\n",
+            "\n本文侧重从奖励函数实现与奖励融合机制的角度拆解 RFM。"
+            "若希望结合完整的训练部署链路与实际调参经验理解其工程落地，可对照阅读 "
+            "[【组会分享】RFM/调参](RFM%20%26%20%E5%AE%9E%E9%99%85%E8%B0%83%E5%8F%82%E7%BB%8F%E9%AA%8C%E7%BB%84%E4%BC%9A%E5%88%86%E4%BA%AB.md)"
+            "；两篇笔记分别对应机制分析与实践复盘，可以结合阅读。\n",
+        ),
+        (
+            "## `rewards.py`在整个MDP中的流程\n",
+            "\n> [!warning] 版本与调度顺序\n"
+            "> 以下 step 顺序与具体仓库代码、提交版本和管理器调度实现强相关，"
+            "不能视为 Isaac Lab 或 MDP 的通用不变量；正文保留为当时项目代码的阅读记录。\n",
+        ),
+        (
+            "### 【Loco-manipulation_reward】对`track_EE_pb` 的理解（Progress-Based）\n",
+            '<a id="loco-manipulationtrack_ee_pb-progress-based"></a>\n',
+        ),
+    ),
+}
+PUBLIC_NOTE_PREFIXES: Dict[str, str] = {
+    "mdp-reward-analysis": (
+        '---\ntitle: "【MDP】奖励函数解构学习"\n---\n\n'
+        "> [!warning] 阅读说明\n"
+        "> 本文是笔者基于特定课程、项目代码与个人学习过程整理的工作笔记。"
+        "部分论断可能不完整、过时或依赖特定版本，请结合原始论文、官方文档及实际源码独立核验。\n\n"
+    ),
+    "gprogress-analysis": (
+        '---\ntitle: "Gprogress 的意义"\n---\n\n'
+        "> [!warning] 阅读说明\n"
+        "> 本文是笔者基于特定课程、项目代码与个人学习过程整理的工作笔记。"
+        "部分论断可能不完整、过时或依赖特定版本，请结合原始论文、官方文档及实际源码独立核验。\n\n"
     ),
 }
 WIKILINK_RE = re.compile(r"(!?)\[\[([^\]]+)\]\]")
@@ -70,10 +104,15 @@ LIST_ITEM_RE = re.compile(r"^[ \t]*(?:[-+*]|\d+[.)])[ \t]+\S")
 IMAGE_ONLY_RE = re.compile(
     r'^[ \t]*!\[[^\n]*\]\([^\n]+\)(?:\{[^\n]*\})?[ \t]*$'
 )
+DISPLAY_MATH_ONLY_RE = re.compile(
+    r'^[ \t]*<span class="arithmatex arithmatex--display">[^\n]*</span>[ \t]*$'
+)
 TABLE_SEPARATOR_RE = re.compile(
     r"^ {0,3}\|?[ \t]*:?-{3,}:?[ \t]*(?:\|[ \t]*:?-{3,}:?[ \t]*)+\|?[ \t]*$"
 )
 FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
+INLINE_CODE_SPAN_RE = re.compile(r"`+[^`\n]*`+")
+LIST_PREFIX_RE = re.compile(r"^([ \t]*)(?:[-+*]|\d+[.)])[ \t]+")
 
 
 class PublishError(RuntimeError):
@@ -831,16 +870,25 @@ def convert_unprotected_highlights(
 
 
 def inject_public_note_insertion(text: str, note_id: str) -> str:
-    insertion = PUBLIC_NOTE_INSERTIONS.get(note_id)
-    if insertion is None:
+    insertions = PUBLIC_NOTE_INSERTIONS.get(note_id)
+    if insertions is None:
         return text
 
-    anchor, paragraph = insertion
-    if paragraph.strip() in text:
+    for anchor, paragraph in insertions:
+        if paragraph.strip() in text:
+            continue
+        if text.count(anchor) != 1:
+            raise PublishError("public note insertion anchor changed")
+        text = text.replace(anchor, paragraph + "\n" + anchor, 1)
+    return text
+
+
+def inject_public_note_prefix(text: str, note_id: str) -> str:
+    """Add reviewed site-only front matter and safety context once."""
+    prefix = PUBLIC_NOTE_PREFIXES.get(note_id)
+    if prefix is None or text.startswith("---\n"):
         return text
-    if text.count(anchor) != 1:
-        raise PublishError("public note insertion anchor changed")
-    return text.replace(anchor, paragraph + "\n" + anchor, 1)
+    return prefix + text.lstrip("\n")
 
 
 def inject_anchors(
@@ -874,15 +922,16 @@ def inject_anchors(
     return "".join(output)
 
 
-def normalize_obsidian_blocks(text: str) -> Tuple[str, int]:
+def normalize_obsidian_blocks(
+    text: str, *, close_obsidian_lists: bool = False
+) -> Tuple[str, int]:
     """Add block boundaries that Obsidian accepts but Python-Markdown requires.
 
-    Obsidian treats an image embed as a standalone block and terminates a table
-    when the following line no longer resembles a row.  Python-Markdown is more
-    conservative: an image immediately followed by a list can remain one
-    paragraph, while a non-empty line immediately after a table can be consumed
-    as a one-cell row.  Insert only the missing blank lines, and never touch
-    fenced code blocks.
+    Obsidian also ends lists before root headings, callouts and following prose
+    without requiring a blank line. Python-Markdown does not, which can place
+    later headings inside an earlier ``li`` and break both bullets and anchor
+    scrolling. Insert those structural boundaries, normalize mixed tab/space
+    indentation, and never touch fenced code blocks.
     """
 
     had_trailing_newline = text.endswith("\n")
@@ -903,10 +952,19 @@ def normalize_obsidian_blocks(text: str) -> Tuple[str, int]:
 
     for line in source_lines:
         if fence_char is None:
-            leading_tabs = re.match(r"^\t+", line)
-            if leading_tabs:
-                line = " " * (4 * len(leading_tabs.group(0))) + line[leading_tabs.end() :]
+            leading = re.match(r"^[ \t]+", line)
+            if leading and "\t" in leading.group(0):
+                expanded = leading.group(0).expandtabs(4)
+                line = expanded + line[leading.end() :]
                 changes += 1
+            if close_obsidian_lists:
+                list_prefix = LIST_PREFIX_RE.match(line)
+                if list_prefix:
+                    indent = len(list_prefix.group(1).expandtabs(4))
+                    normalized_indent = indent - (indent % 4)
+                    if normalized_indent != indent:
+                        line = " " * normalized_indent + line[len(list_prefix.group(1)) :]
+                        changes += 1
         fence = FENCE_RE.match(line)
         if fence_char is not None:
             output.append(line)
@@ -924,6 +982,81 @@ def normalize_obsidian_blocks(text: str) -> Tuple[str, int]:
 
         stripped = line.strip()
         current_indent = len(line) - len(line.lstrip(" "))
+        if (
+            close_obsidian_lists
+            and
+            current_indent == 0
+            and IMAGE_ONLY_RE.match(line)
+            and output
+            and LIST_ITEM_RE.match(output[-1])
+            and len(output[-1]) == len(output[-1].lstrip(" "))
+        ):
+            output.append("")
+            line = "    " + line
+            stripped = line.strip()
+            current_indent = 4
+            changes += 1
+
+        if close_obsidian_lists and stripped and output and output[-1].strip():
+            previous = output[-1]
+            previous_stripped = previous.strip()
+            previous_indent = len(previous) - len(previous.lstrip(" "))
+            is_root_heading = current_indent == 0 and HEADING_RE.fullmatch(line)
+            is_heading_anchor = previous_stripped.startswith(
+                '<a id="obsidian-heading-'
+            )
+            if is_root_heading:
+                if is_heading_anchor and len(output) >= 2 and output[-2].strip():
+                    output.insert(len(output) - 1, "")
+                    changes += 1
+                elif not is_heading_anchor:
+                    output.append("")
+                    changes += 1
+            elif (
+                current_indent == 0
+                and line.startswith(">")
+                and not previous.lstrip().startswith(">")
+            ):
+                output.append("")
+                changes += 1
+            elif (
+                current_indent == 0
+                and LIST_ITEM_RE.match(line)
+                and previous_indent > 0
+            ):
+                output.append("")
+                changes += 1
+            elif (
+                current_indent == 0
+                and LIST_ITEM_RE.match(line)
+                and previous_indent == 0
+                and not LIST_ITEM_RE.match(previous)
+                and not previous.lstrip().startswith(("#", "<a "))
+            ):
+                output.append("")
+                changes += 1
+            elif (
+                current_indent > 0
+                and LIST_ITEM_RE.match(line)
+                and previous_indent == current_indent
+                and not LIST_ITEM_RE.match(previous)
+                and not previous.lstrip().startswith(("#", ">", "|", "<a "))
+                and not IMAGE_ONLY_RE.match(previous)
+                and not DISPLAY_MATH_ONLY_RE.match(previous)
+            ):
+                # Obsidian starts a nested list directly after same-indented
+                # prose; Python-Markdown needs an explicit block boundary.
+                output.append("")
+                changes += 1
+            elif (
+                current_indent == 0
+                and not LIST_ITEM_RE.match(line)
+                and not line.startswith((">", "#", "|", "<a "))
+                and previous_indent == 0
+                and LIST_ITEM_RE.match(previous)
+            ):
+                output.append("")
+                changes += 1
         if loose_list_indent is not None and stripped and current_indent < loose_list_indent:
             loose_list_indent = None
         if in_table:
@@ -943,17 +1076,20 @@ def normalize_obsidian_blocks(text: str) -> Tuple[str, int]:
                 changes += 1
             in_table = True
 
-        image_followed_by_list = (
+        block_followed_by_list = (
             LIST_ITEM_RE.match(line)
             and output
-            and IMAGE_ONLY_RE.match(output[-1])
+            and (
+                IMAGE_ONLY_RE.match(output[-1])
+                or DISPLAY_MATH_ONLY_RE.match(output[-1])
+            )
         )
-        if image_followed_by_list:
+        if block_followed_by_list:
             output.append("")
             changes += 1
-            # Nested image/list sequences are parsed inconsistently by the
-            # glightbox + nl2br extension stack unless the sibling list is
-            # explicitly loose. Keep top-level lists compact.
+            # Nested image or display-math/list sequences are parsed
+            # inconsistently by the extension stack unless the sibling list
+            # is explicitly loose. Keep top-level lists compact.
             if current_indent >= 4:
                 loose_list_indent = current_indent
         elif (
@@ -974,6 +1110,171 @@ def normalize_obsidian_blocks(text: str) -> Tuple[str, int]:
     return normalized, changes
 
 
+def normalize_display_math_blocks(text: str) -> Tuple[str, int]:
+    """Normalize Obsidian display math for Python-Markdown + MathJax.
+
+    Obsidian accepts ``prose: $$...$$`` on one line. Python-Markdown requires
+    display delimiters on their own lines. Its block processor does not run
+    reliably inside indented list, callout, or details content, so nested
+    displays use an explicit MathJax container while root displays keep normal
+    ``$$`` blocks.
+    """
+
+    output: List[str] = []
+    changes = 0
+    fence_char: Optional[str] = None
+    fence_length = 0
+    lines = text.splitlines()
+
+    def delimiter_positions(line: str) -> List[int]:
+        protected = [(match.start(), match.end()) for match in INLINE_CODE_SPAN_RE.finditer(line)]
+        return [
+            match.start()
+            for match in re.finditer(r"\$\$", line)
+            if not any(start <= match.start() < end for start, end in protected)
+        ]
+
+    def container_marker(prefix: str) -> Tuple[str, str]:
+        quote = re.match(r"^([ \t]*(?:>[ \t]*)+)(.*)$", prefix)
+        if quote:
+            return quote.group(1), quote.group(2)
+        whitespace = re.match(r"^[ \t]*", prefix).group(0)
+        return whitespace, prefix[len(whitespace) :]
+
+    def strip_container(line: str, marker: str) -> str:
+        if marker and line.startswith(marker):
+            return line[len(marker) :].strip()
+        return line.strip()
+
+    def display_container(prefix: str) -> Tuple[Optional[str], str, str]:
+        quote = re.match(r"^([ \t]*(?:>[ \t]*)+)(.*)$", prefix)
+        if quote:
+            marker = quote.group(1)
+            prose = quote.group(2).rstrip()
+            return (marker + prose if prose else None), marker, marker.rstrip()
+        list_item = LIST_PREFIX_RE.match(prefix)
+        if list_item:
+            leading = list_item.group(1).expandtabs(4)
+            return prefix.rstrip(), " " * (len(leading) + 4), ""
+        leading = re.match(r"^[ \t]*", prefix).group(0).expandtabs(4)
+        prose = prefix.rstrip()
+        return (prose if prose else None), leading, ""
+
+    def nested_display(container: str, formula_parts: Sequence[str]) -> str:
+        formula = " ".join(part.strip() for part in formula_parts if part.strip())
+        # Inline raw HTML still passes through Markdown's emphasis parser.
+        # Encode TeX punctuation so ``_``, ``*`` and bracket sequences reach
+        # MathJax as text instead of becoming Markdown structure.
+        escaped = "".join(
+            char if char.isalnum() or char.isspace() else f"&#{ord(char)};"
+            for char in formula
+        )
+        return (
+            container
+            + '<span class="arithmatex arithmatex--display">'
+            + "&#92;&#91;"
+            + escaped
+            + "&#92;&#93;"
+            + "</span>"
+        )
+
+    def append_display(container: str, formula_parts: Sequence[str]) -> None:
+        if container:
+            output.append(nested_display(container, formula_parts))
+            return
+        output.append("$$")
+        output.extend(part for part in formula_parts if part.strip())
+        output.append("$$")
+
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        fence = FENCE_RE.match(line)
+        if fence_char is not None:
+            output.append(line)
+            marker = fence.group(1) if fence else ""
+            if marker and marker[0] == fence_char and len(marker) >= fence_length:
+                fence_char = None
+                fence_length = 0
+            index += 1
+            continue
+        if fence:
+            marker = fence.group(1)
+            fence_char = marker[0]
+            fence_length = len(marker)
+            output.append(line)
+            index += 1
+            continue
+
+        positions = delimiter_positions(line)
+        if len(positions) == 2:
+            start, end = positions
+            prefix = line[:start]
+            formula = line[start + 2 : end].strip()
+            suffix = line[end + 2 :].strip()
+            head, continuation, blank = display_container(prefix)
+            if head is not None:
+                output.extend((head, blank))
+            append_display(continuation, (formula,))
+            if suffix:
+                output.extend((blank, continuation + suffix))
+            changes += 1
+            index += 1
+            continue
+
+        if len(positions) == 1:
+            start = positions[0]
+            close_index = index + 1
+            close_position: Optional[int] = None
+            while close_index < len(lines):
+                candidate_positions = delimiter_positions(lines[close_index])
+                if candidate_positions:
+                    close_position = candidate_positions[0]
+                    break
+                close_index += 1
+
+            if close_position is not None:
+                prefix = line[:start]
+                marker, prose = container_marker(prefix)
+                closing_line = lines[close_index]
+                formula_parts = []
+                opening_formula = line[start + 2 :].strip()
+                if opening_formula:
+                    formula_parts.append(opening_formula)
+                formula_parts.extend(
+                    part
+                    for part in (
+                        strip_container(item, marker)
+                        for item in lines[index + 1 : close_index]
+                    )
+                    if part
+                )
+                closing_formula = strip_container(
+                    closing_line[:close_position], marker
+                )
+                if closing_formula:
+                    formula_parts.append(closing_formula)
+                suffix = closing_line[close_position + 2 :].strip()
+
+                head, continuation, blank = display_container(prefix)
+                if head is not None:
+                    output.extend((head, blank))
+                append_display(continuation, formula_parts)
+                if suffix:
+                    output.extend((blank, continuation + suffix))
+                changes += 1
+                index = close_index + 1
+                continue
+
+        output.append(line)
+        index += 1
+
+    normalized = "\n".join(output)
+    if text.endswith("\n"):
+        normalized += "\n"
+    return normalized, changes
+
+
 def convert_note(
     planned: PlannedNote, headings: Set[str], blocks: Set[str]
 ) -> Tuple[str, int, int]:
@@ -985,11 +1286,21 @@ def convert_note(
     # which is prohibited by occurrences_for().
     spans = protected_spans(text, planned.manifest.protected_spans)
     text, highlight_count = convert_unprotected_highlights(text, spans)
+    if planned.manifest.note_id == "mdp-reward-analysis":
+        text = text.replace(
+            "<mark>**核心计算公式**</mark>",
+            "**核心计算公式**",
+        )
     text = inject_public_note_insertion(text, planned.manifest.note_id)
+    text = inject_public_note_prefix(text, planned.manifest.note_id)
+    text, math_format_count = normalize_display_math_blocks(text)
     spans = protected_spans(text, planned.manifest.protected_spans)
     text = inject_anchors(text, headings, blocks, spans)
-    text, format_fix_count = normalize_obsidian_blocks(text)
-    return text, highlight_count, format_fix_count
+    text, format_fix_count = normalize_obsidian_blocks(
+        text,
+        close_obsidian_lists=True,
+    )
+    return text, highlight_count, format_fix_count + math_format_count
 
 
 def report_bytes(plan: Plan) -> bytes:
@@ -1075,7 +1386,7 @@ def write_source_hashes(config: Config) -> None:
             os.unlink(temporary)
 
 
-def print_summary(plan: Plan, mode: str) -> None:
+def print_summary(plan: Plan, mode: str, math_note_count: int) -> None:
     print(f"Mode: {mode}")
     print(f"Published notes: {len(plan.notes)}")
     print(f"Unique referenced assets: {len(plan.asset_sources)}")
@@ -1083,6 +1394,7 @@ def print_summary(plan: Plan, mode: str) -> None:
     print(f"Converted highlights: {plan.highlight_count}")
     print(f"Normalized Markdown block boundaries: {plan.format_fix_count}")
     print(f"Planned output files: {len(plan.outputs)}")
+    print(f"Math rendering validation: passed ({math_note_count} converted notes)")
     print("Validation: passed (no source text or credential values logged)")
 
 
@@ -1099,12 +1411,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print(f"Updated source inventory for {len(config.notes)} manifest entries.")
             return 0
         plan = resolve_plan(config)
+        math_note_count = validate_converted_outputs(config.repo_root, plan.outputs)
         if args.apply:
             materialize(plan)
-            print_summary(plan, "apply-to-isolated-staging")
+            print_summary(plan, "apply-to-isolated-staging", math_note_count)
         else:
-            print_summary(plan, "dry-run")
+            print_summary(plan, "dry-run", math_note_count)
         return 0
+    except MathRenderingError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
     except PublishError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

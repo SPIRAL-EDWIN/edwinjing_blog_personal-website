@@ -11,6 +11,8 @@ site_name: "Chen Jing (经宸) | Zhejiang University"  # 网站标题，将显�
 site_url: https://edwinjing-blog.com/  # 生产环境的域名，用于生成 SEO 规范链接 (Canonical URL) [13]
 site_author: "Chen Jing (经宸)"
 site_description: "Official personal website of Chen Jing (经宸; name also written as Jing Chen; also known as Edwin Jing), an undergraduate student at the ZJU-UIUC Institute, Zhejiang University, working on Embodied AI, legged locomotion, whole-body loco-manipulation, and a personal knowledge garden."
+exclude_docs: |
+  research/
 copyright: >-
   <span class="footer-copyright">Copyright 2025-2026 Chen Jing.</span>
   <span class="site-status"><span class="site-status__dot" aria-hidden="true"></span>Syncing Knowledge Garden</span>
@@ -26,7 +28,9 @@ theme:
   name: material
   custom_dir: overrides
   language: zh # 强制界面语言为简体中文 (如“上一页”、“目录”等 UI 文本) [14]
-  favicon: assets/favicon.svg
+  # Keep a traditional root-level ICO for crawlers such as Bing. Modern
+  # browsers receive explicit PNG sizes from overrides/main.html as well.
+  favicon: favicon.ico
   
   # 图标设置 (Icon) 
   icon:
@@ -119,6 +123,7 @@ plugins:
 # 构建时根据内容文件和 Git 历史生成 HOME/Archive 页面
 hooks:
   - hooks/archive.py
+  - hooks/home_sections.py
   - hooks/search_scope.py
 
 extra:
@@ -129,6 +134,7 @@ extra:
     exclude:
       - index.md
       - HOME/**
+      - research/**
       - blog/index.md
       - OsdNotes/index.md
       - 经验分享/index.md
@@ -180,18 +186,19 @@ markdown_extensions:
   - toc:
       permalink: true           # 生成标题永久链接 (¶ 符号)
       baselevel: 1              # 即使 markdown 从 H1 开始，也正确解析
+      title: Contents           # 仅覆盖右侧目录标题，不改变全站中文界面
 
 # --- 6. 额外脚本与样式 (Extra Scripts & CSS) ---
 extra_javascript:
   # MathJax 3 配置：实现 LaTeX 公式的浏览器端渲染 
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
-  - javascripts/mathjax.js?v=20260805a
-  - javascripts/block-links.js?v=20260717a  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js?v=20260821b
+  - javascripts/mathjax.js?v=20260901d
+  - javascripts/block-links.js?v=20260901t  # Obsidian 风格块引用链接支持
+  - javascripts/ui-perf.js?v=20260901b
 
 extra_css:
   - stylesheets/extra.css?v=20260813a       # Base theme and legacy UI layer
-  - stylesheets/edwinos-overrides.css?v=20260821b  # Final EdwinOS component fixes
+  - stylesheets/edwinos-overrides.css?v=20260902i  # Final EdwinOS component fixes
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。
@@ -212,8 +219,7 @@ nav:
       - "Hua Chen - Embodied AI & Humanoid Robots": "OsdNotes/Embodied AI/Hua Chen - Embodied AI & Humanoid Robots.md"
       - "具身智能基础路线": "OsdNotes/Embodied AI/具身智能基础路线.md"
       - "手眼标定理论与实践": "OsdNotes/Embodied AI/【Hand-Eye Calibration】 手眼标定理论与实践.md"
-      - "MDP 奖励函数解构学习": "OsdNotes/Embodied AI/【MDP】奖励函数解构学习.md"
-      - "仿真框架 RFM 的初步学习": "OsdNotes/Embodied AI/仿真框架RFM的初步学习.md"
+      - "仿真框架的初步学习": "OsdNotes/Embodied AI/仿真框架RFM的初步学习.md"
       - "Bash 命令与服务器训练操作查表指南": "OsdNotes/Embodied AI/Bash命令与服务器训练操作查表指南.md"
       - VLA:
         - "π0.7: Compositional Generalization": "OsdNotes/Embodied AI/VLA/π0.7：组合泛化的思考.md"
@@ -248,6 +254,8 @@ nav:
         - "UMI Matrix Studio 配置架构": "经验分享/Phi Lab/Diffusion Policy/🦾UMI_Matrix-Studio配置架构.md"
       - WBC:
         - "TensorBoard 与 W&B": "经验分享/Phi Lab/WBC/补充插件：Tensorboard & WandB.md"
+        - "【MDP】奖励函数解构学习": "经验分享/Phi Lab/WBC/【MDP】奖励函数解构学习.md"
+        - "Gprogress 的意义": "经验分享/Phi Lab/WBC/Gprogress的意义.md"
         - "【组会分享】RFM/调参": "经验分享/Phi Lab/WBC/RFM & 实际调参经验组会分享.md"
         - "如何确定 __init__.py 中特定 task 选取的 robot asset": "经验分享/Phi Lab/WBC/如何确定__init__.py中特定task选取的robot asset.md"
         - "Sim2Sim 配置与训练": "经验分享/Phi Lab/WBC/Sim2Sim配置与训练.md"

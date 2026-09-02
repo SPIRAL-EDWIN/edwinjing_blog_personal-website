@@ -7,58 +7,6 @@ hide:
 description: "Official personal website of Chen Jing (经宸; name also written as Jing Chen; also known as Edwin Jing), an undergraduate student at the ZJU-UIUC Institute, Zhejiang University; research notes on Embodied AI, legged locomotion, whole-body loco-manipulation, and a personal knowledge garden."
 ---
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebSite",
-      "@id": "https://edwinjing-blog.com/#website",
-      "url": "https://edwinjing-blog.com/",
-      "name": "Chen Jing (经宸)",
-      "alternateName": ["Jing Chen", "Edwin Jing"]
-    },
-    {
-      "@type": "ProfilePage",
-      "@id": "https://edwinjing-blog.com/#profile",
-      "url": "https://edwinjing-blog.com/",
-      "name": "Chen Jing (经宸) | Zhejiang University",
-      "isPartOf": { "@id": "https://edwinjing-blog.com/#website" },
-      "mainEntity": { "@id": "https://edwinjing-blog.com/#person" }
-    },
-    {
-      "@type": "Person",
-      "@id": "https://edwinjing-blog.com/#person",
-      "name": "Chen Jing",
-      "alternateName": ["经宸", "Jing Chen", "Edwin Jing"],
-      "url": "https://edwinjing-blog.com/",
-      "affiliation": {
-        "@type": "CollegeOrUniversity",
-        "name": "Zhejiang University"
-      },
-      "memberOf": {
-        "@type": "Organization",
-        "name": "ZJU-UIUC Institute"
-      },
-      "email": "mailto:edwinjing2026@outlook.com",
-      "knowsAbout": [
-        "Embodied AI",
-        "Legged Locomotion",
-        "Whole-body Loco-manipulation",
-        "Sim2Real",
-        "Robotics"
-      ],
-      "sameAs": [
-        "https://github.com/SPIRAL-EDWIN",
-        "https://www.youtube.com/@EdwinJing",
-        "https://x.com/EdwinJing661",
-        "https://www.instagram.com/edwinjing2025/"
-      ]
-    }
-  ]
-}
-</script>
-
 <div class="academic-home-layout">
   <aside class="academic-sidebar">
     <div class="profile-card">
@@ -114,7 +62,7 @@ description: "Official personal website of Chen Jing (经宸; name also written 
   <main class="academic-content">
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.1s;">
       <h2 class="section-title"><span class="title-dash"></span>About Me</h2>
-      <p>I am Chen Jing (经宸; Jing is my family name), a sophomore majoring in Mechanical Engineering at the ZJU-UIUC Institute (ZJUI), Zhejiang University. Currently, I am an undergraduate research assistant at the <a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a>, safely guided by <a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">Prof. Hua Chen</a> and <a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">Prof. Liangjing Yang</a>.</p>
+      <p>I am Chen Jing (<span class="about-name-cn" lang="zh-Hans">经宸</span>; Jing is my family name), a sophomore majoring in Mechanical Engineering at the ZJU-UIUC Institute (ZJUI), Zhejiang University. Currently, I am an undergraduate research assistant at the <a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a>, safely guided by <a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">Prof. Hua Chen</a> and <a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">Prof. Liangjing Yang</a>.</p>
       <p>My research interests broadly lie in Embodied AI, Legged Locomotion, and Whole-body Loco-manipulation. Currently, I am exploring the synergy between physics-based simulation and real-world deployment. Specifically, my work focuses on:</p>
       <ul class="about-focus-list">
         <li><strong>Simulation &amp; Reinforcement Learning:</strong> Implementing whole-body control and tracking frameworks within advanced simulation platforms, e.g., Isaac Lab.</li>
@@ -125,31 +73,12 @@ description: "Official personal website of Chen Jing (经宸; name also written 
 
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.2s;">
       <h2 class="section-title"><span class="title-dash"></span>Recent News</h2>
-      <ul class="news-list">
-        <li>
-          <span class="news-date">JUL 29</span>
-          <span class="news-text">Refined EdwinOS across desktop, tablet, and mobile window widths, improving responsive usability and polishing the header, search, and profile animations.</span>
-        </li>
-        <li>
-          <span class="news-date">JUL 13</span>
-          <span class="news-text">Released EdwinOS 2.1.2 on July 13, 2026, further refining the GitHub-inspired experience for the personal website.</span>
-        </li>
-      </ul>
+      <!-- OVERVIEW_NEWS_AUTO -->
     </section>
 
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.3s;">
       <h2 class="section-title"><span class="title-dash"></span>Publications</h2>
-      <div class="pub-card hover-lift">
-        <div class="pub-image" aria-hidden="true"><div class="placeholder-img blue-grad">WIP</div></div>
-        <div class="pub-info">
-          <h3 class="pub-title"><strong>Research notes and preprint ideas will be listed here.</strong></h3>
-          <p class="pub-authors"><strong>Chen Jing</strong></p>
-          <p class="pub-venue"><em>Working notes, reading reports, and future research outputs.</em></p>
-          <div class="pub-links">
-            <a href="./OsdNotes/Embodied%20AI/具身智能基础路线/">[Notes]</a>
-          </div>
-        </div>
-      </div>
+      <!-- OVERVIEW_PUBLICATIONS_AUTO -->
     </section>
 
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.4s;">
@@ -207,20 +136,7 @@ description: "Official personal website of Chen Jing (经宸; name also written 
       </ul>
     </section>
 
-    <section class="academic-section animate-slide-up" style="--anim-delay: 0.8s;">
-      <h2 class="section-title"><span class="title-dash"></span>Personalities</h2>
-      <ul class="personalities-list">
-        <li><span class="personality-icon">🔭</span><span>I'm currently an undergraduate student in Zhejiang University studying mechanical engineering.</span></li>
-        <li><span class="personality-icon">🌱</span><span>I'm currently learning Embodied AI and Whole Body Control (WBC) as my research project.</span></li>
-        <li><span class="personality-icon">👯</span><span>I'm looking to collaborate on personal website vibing and Embodied AI community.</span></li>
-        <li><span class="personality-icon">🤔</span><span>I'm looking for help with LLM and agents. With AI's help, can learning be comprehensive?</span></li>
-        <li><span class="personality-icon">💬</span><span>Ask me about the study experiences in ZJU, especially in ZJUI, and any questions about mechanical engineering knowledge as well as WBC.</span></li>
-        <li><span class="personality-icon">🏸</span><span>Sports. Badminton, football, fitness and running.</span></li>
-        <li><span class="personality-icon">📷</span><span>Photography. Have a preference for natural scenery and architectural structures.</span></li>
-      </ul>
-    </section>
-
-    <footer class="visitor-meta-footer animate-slide-up" style="--anim-delay: 0.9s;" data-visitor-deployment data-deployment-repository="SPIRAL-EDWIN/edwinjing-blog-website" data-deployment-workflow="deploy.yml">
+    <footer class="visitor-meta-footer animate-slide-up" style="--anim-delay: 0.8s;" data-visitor-deployment data-deployment-repository="SPIRAL-EDWIN/edwinjing-blog-website" data-deployment-workflow="deploy.yml">
       <p class="visitor-meta-footer__signature">
         <span>&copy; Chen Jing</span>
         <span class="visitor-meta-footer__separator" aria-hidden="true">&middot;</span>
