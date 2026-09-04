@@ -192,13 +192,12 @@ markdown_extensions:
 extra_javascript:
   # MathJax 3 配置：实现 LaTeX 公式的浏览器端渲染 
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
-  - javascripts/mathjax.js?v=20260901d
-  - javascripts/block-links.js?v=20260903a  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js?v=20260902a
+  - javascripts/mathjax.js?v=20260904a
+  - javascripts/block-links.js?v=20260904a  # Obsidian 风格块引用链接支持
+  - javascripts/ui-perf.js?v=20260904a
 
 extra_css:
-  - stylesheets/extra.css?v=20260813a       # Base theme and legacy UI layer
-  - stylesheets/edwinos-overrides.css?v=20260904a  # Final EdwinOS component fixes
+  - stylesheets/edwinos.css?v=20260904b  # Unified EdwinOS cascade
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。

@@ -1,15 +1,17 @@
 /* ==============================================================================
- * MathJax 3 配置 + TOC 渲染补丁
+ * MathJax 3 configuration and TOC rendering adapter
  *
  * 默认 pymdownx.arithmatex (generic: true) 只在正文标题中插入
  *   <span class="arithmatex">\(...\)</span>
  * 而右侧目录 (TOC) 中只有 .md-ellipsis 里的纯文本 "\(sp^3\)"
  * MathJax 因 ignoreHtmlClass=".*|" + processHtmlClass="arithmatex" 默认跳过 TOC
  *
- * 解决方案：
+ * Responsibilities:
  * 1. 在 typeset 之前，扫描 TOC 中的 .md-ellipsis，把任何含 \(...\) 的文本
  *    重新包裹为 <span class="arithmatex">...</span>，让 MathJax 接管渲染。
  * 2. 同时显式调用 typesetPromise 处理整个文档。
+ * 3. Typesetting completion is announced semantically; block-links.js remains
+ *    the sole owner of fragment positioning after layout changes.
  * ============================================================================== */
 (function () {
   "use strict";
@@ -25,6 +27,7 @@
   var mathJaxLoadPromise = null;
   var navigationSequence = 0;
   var typesetQueue = Promise.resolve();
+  var HASH_LAYOUT_SETTLED_EVENT = "edwinos:hash-layout-settled";
 
   window.MathJax = {
     tex: {
@@ -180,7 +183,7 @@ function typesetCurrentDocument() {
         window.MathJax.typesetClear();
         window.MathJax.texReset();
         return window.MathJax.typesetPromise().then(function () {
-          restoreCurrentHash(sequence);
+          announceHashLayoutSettled(sequence);
         });
       });
 
@@ -194,29 +197,11 @@ function typesetCurrentDocument() {
   });
 }
 
-function restoreCurrentHash(sequence) {
+function announceHashLayoutSettled(sequence) {
   if (sequence !== navigationSequence || !window.location.hash) return;
-
-  var id;
-  try {
-    id = decodeURIComponent(window.location.hash.slice(1));
-  } catch (_error) {
-    id = window.location.hash.slice(1);
-  }
-  var target = document.getElementById(id);
-  if (!target) return;
-
-  window.requestAnimationFrame(function () {
-    window.requestAnimationFrame(function () {
-      if (sequence !== navigationSequence) return;
-      var header = document.querySelector(".md-header");
-      // Match block-links.js: keep hash targets below the translucent
-      // EdwinOS header/notch and its blur falloff after MathJax reflow.
-      var offset = (header ? header.getBoundingClientRect().height : 0) + 40;
-      var top = target.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
-    });
-  });
+  document.dispatchEvent(new CustomEvent(HASH_LAYOUT_SETTLED_EVENT, {
+    detail: { hash: window.location.hash }
+  }));
 }
 
 // MkDocs Material 暴露 document$ Observable（基于 RxJS），

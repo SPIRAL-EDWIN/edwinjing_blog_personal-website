@@ -70,7 +70,7 @@ Generated files under `site/` should not be committed. The production deploy bui
 - `mkdocs.yml`: main MkDocs configuration.
 - `hooks/archive.py`: custom MkDocs hook for Archive generation and Obsidian-style Markdown compatibility.
 - `docs/HOME/Archive/index.md`: Archive page source placeholder; the hook injects generated Archive content during build.
-- `docs/stylesheets/extra.css`: custom site styling, including Archive cards and target-fragment highlight animation.
+- `docs/stylesheets/edwinos.css`: the single custom site stylesheet, including Archive cards and target-fragment highlight animation.
 - `docs/javascripts/block-links.js`: improves internal hash-link jumps by highlighting the actual target block.
 - `.gitattributes`: forces LF line endings across Mac/Windows to avoid noisy diffs.
 - `.gitignore`: ignores `site/`, `.venv/`, caches, and OS-generated files.
@@ -142,4 +142,3 @@ Commit only intentional source files. Avoid committing:
 After pushing to `main`, check GitHub Actions:
 
 `https://github.com/SPIRAL-EDWIN/edwinjing-blog-website/actions`
-

@@ -52,7 +52,7 @@
 
 - 首页： [docs/index.md](docs/index.md)
 - 全站配置： [mkdocs.yml](mkdocs.yml)
-- 自定义样式： [docs/stylesheets/extra.css](docs/stylesheets/extra.css)
+- 自定义样式： [docs/stylesheets/edwinos.css](docs/stylesheets/edwinos.css)
 - 数学公式配置： [docs/javascripts/mathjax.js](docs/javascripts/mathjax.js)
 
 ---
@@ -79,7 +79,7 @@
 
 ### 4.4 调整主题配色
 
-自定义主题色位于 [docs/stylesheets/extra.css](docs/stylesheets/extra.css)。
+自定义主题色位于 [docs/stylesheets/edwinos.css](docs/stylesheets/edwinos.css)。
 
 ---
 

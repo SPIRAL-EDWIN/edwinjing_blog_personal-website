@@ -1,4 +1,11 @@
-/* Reserved for lightweight UI hooks. */
+/**
+ * EdwinOS runtime UI adaptations.
+ *
+ * Owns idempotent DOM enhancements that must be reapplied after MkDocs
+ * Material instant navigation (route classes, header/search/profile shells,
+ * source facts, visitor metadata, callouts, and list continuity). Content
+ * conversion and fragment/hash navigation are intentionally owned elsewhere.
+ */
 (function () {
   "use strict";
 
@@ -1734,14 +1741,6 @@
     var content = document.querySelector(".md-content__inner") || document.body;
     if (!content) return;
 
-    var BRIDGE_SELECTORS = [
-      ".admonition",   // pymdownx admonition / mkdocs-callouts output
-      "blockquote",    // raw blockquote (Obsidian callouts before plugin)
-      "details",       // collapsible admonitions
-      ".highlight",    // fenced code block with syntax highlighting
-      "pre"            // fenced code block without a highlight wrapper
-    ];
-
     function isBridge(el) {
       if (!el || el.nodeType !== 1) return false;
       var tag = el.tagName.toLowerCase();
@@ -1751,12 +1750,6 @@
         (el.classList.contains("admonition") || el.classList.contains("highlight"))
       ) return true;
       return false;
-    }
-
-    function previousNonEmpty(el) {
-      var p = el.previousElementSibling;
-      // Skip empty text-only wrappers if any (none expected, but defensive).
-      return p;
     }
 
     // Walk all <ol> elements; if the immediately-previous element (skipping
@@ -1771,12 +1764,12 @@
         ol.closest(".md-footer")
       ) return;
 
-      var prev = previousNonEmpty(ol);
+      var prev = ol.previousElementSibling;
       // Walk back across bridges to find the most recent <ol>
       var bridgeChain = [];
       while (prev && isBridge(prev)) {
         bridgeChain.push(prev);
-        prev = previousNonEmpty(prev);
+        prev = prev.previousElementSibling;
       }
 
       if (!prev || prev.tagName.toLowerCase() !== "ol") return;
@@ -1790,7 +1783,6 @@
 
       var newStart = prevStart + prevItems;
       ol.setAttribute("start", String(newStart));
-      ol.setAttribute("data-continued-from", String(prevStart));
     });
   }
 

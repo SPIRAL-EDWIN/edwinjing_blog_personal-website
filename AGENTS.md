@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-07-17
+Last updated: 2026-09-04
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -8,14 +8,15 @@ first and follow the rules below.
 
 ## EdwinOS UI Governance
 
-Do not keep appending new UI fixes to `docs/stylesheets/extra.css`.
+Read `EDWINOS_UI_ARCHITECTURE.md` before changing UI code.
 
-Current layering policy:
+Current stylesheet policy:
 
-- `docs/stylesheets/extra.css` is the legacy/base UI layer. Treat it as frozen
-  for normal feature requests.
-- `docs/stylesheets/edwinos-overrides.css` is the final EdwinOS override layer.
-  New UI fixes and pixel-level refinements should go here.
+- `docs/stylesheets/edwinos.css` is the single custom CSS entry point.
+- Its source order is part of the visual contract. It currently preserves a
+  historical baseline zone followed by the EdwinOS final component zone.
+- Do not recreate `extra.css`, `edwinos-overrides.css`, or another tail-patch
+  stylesheet.
 - `docs/javascripts/ui-perf.js` is the runtime adaptation layer. It owns body
   route classes, search interaction adjustments, profile shell injection on
   home subpages, Beijing time updates, friend-count updates, GitHub source facts,
@@ -25,33 +26,27 @@ Current layering policy:
 
 When adding new UI rules:
 
-1. Add them to `docs/stylesheets/edwinos-overrides.css`, grouped by component.
+1. Add them to the existing component section in `docs/stylesheets/edwinos.css`.
 2. Use short section headers, for example `Header`, `Profile Card`,
    `Recent News`, `Experiences Timeline`, or `Friends Page`.
 3. Keep selectors as narrow as practical and scoped to the affected page or
    component.
 4. Avoid broad global overrides unless the user explicitly asks for a global
    design change.
-5. Prefer modifying or extending an existing section in `edwinos-overrides.css`
-   over creating a duplicate section later in the file.
-6. Only edit `extra.css` when removing dead legacy rules, migrating a whole
-   component during an explicit refactor, or fixing a base-layer bug that cannot
-   reasonably live in the override layer.
+5. Prefer modifying or extending an existing section over creating a duplicate
+   section later in the file.
+6. Migrate historically ordered rules one component at a time. Keep old rules
+   until computed-style, geometry, interaction, and breakpoint checks prove the
+   replacement is equivalent.
 7. Preserve existing user-visible personal information unless the user explicitly
    asks to change it.
 
 ## Current Low-Risk Maintenance Decision
 
-The current recommendation is:
-
-- Do not do a large CSS/UI rewrite right now.
-- Keep `extra.css` as the historical base layer.
-- Keep `edwinos-overrides.css` as the future EdwinOS final-fix layer.
-- Future UI requests should be implemented progressively in
-  `edwinos-overrides.css`, organized by component group.
-
-This prevents the project from becoming a confusing cascade stack while avoiding
-unnecessary risk to the current first-screen experience.
+The old/new two-file split was retired on 2026-09-04. Continue the gradual
+component migration inside `edwinos.css`; do not perform a full reorder merely
+to make the file look cleaner. The goal is one owner per component, reached
+through verified component-sized changes.
 
 ## If the User Requests a Systematic UI Refactor
 

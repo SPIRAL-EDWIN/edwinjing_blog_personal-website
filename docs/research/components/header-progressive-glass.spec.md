@@ -2,7 +2,7 @@
 
 ## Overview
 
-- Target files: `docs/javascripts/ui-perf.js` and `docs/stylesheets/edwinos-overrides.css`
+- Target files: `docs/javascripts/ui-perf.js` and `docs/stylesheets/edwinos.css`
 - Reference: <https://tianxingchen.github.io/>
 - Reference source: `TianxingChen/tianxingchen.github.io`, `index.html` lines 64–124 and 1720–1744
 - Interaction model: fixed visual treatment; no scroll-triggered blur changes
@@ -54,7 +54,7 @@ the boundary. There must be no color or blur discontinuity at exactly 70px.
 
 - Delete/disable the current `.md-header::before` and `.md-header::after` glass implementation.
   Its 24px core and 48–68px tail create a visible sheet outside the header.
-- `extra.css` gives `.md-tabs` an opaque dark background. Because `.md-header__inner` currently
+- The historical baseline zone in `edwinos.css` gives `.md-tabs` an opaque dark background. Because `.md-header__inner` currently
   creates a lower stacking context, the tabs rectangle paints over the central search form.
 - In the final layer, force the direct-child `.md-tabs` background and backdrop to transparent in
   both themes, without removing the individual tab-pill backgrounds.

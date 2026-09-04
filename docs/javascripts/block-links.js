@@ -1,9 +1,11 @@
 /**
  * Obsidian / MkDocs fragment links
  *
+ * Owns fragment/hash navigation after build-time block-anchor generation.
  * When a URL contains a hash (for example #d098de or a heading slug), highlight
  * the actual target sentence, paragraph, list item, table row, code block, or
- * heading instead of leaving readers on a visually ambiguous full page.
+ * heading instead of leaving readers on a visually ambiguous full page. It
+ * also realigns the current target after layout-changing runtimes settle.
  */
 (function () {
   "use strict";
@@ -14,6 +16,7 @@
   var HIGHLIGHT_FADING_CLASS = "block-highlight--fading";
   var TOC_SELECTED_CLASS = "edwinos-toc-link--selected";
   var CONTENT_SELECTOR = ".md-content__inner";
+  var HASH_LAYOUT_SETTLED_EVENT = "edwinos:hash-layout-settled";
   var HEADING_SCROLL_MIN_DURATION = 420;
   var HEADING_SCROLL_MAX_DURATION = 1500;
   var HEADING_SCROLL_DURATION_PER_ROOT_VIEWPORT = 180;
@@ -432,34 +435,35 @@
     }, 520));
   }
 
-  function upgradeLegacyBlockAnchors() {
-    var root = contentRoot();
-    if (!root || root.dataset.blockAnchorsUpgraded === "true") return;
+  /**
+   * Re-align the exact fragment target after a runtime reports layout settling.
+   *
+   * MathJax used to duplicate this hash-scroll implementation. Keeping the
+   * double animation-frame delay, header offset, and instant behavior here
+   * preserves that hand-off while making fragment positioning single-owner.
+   */
+  function realignHashAfterLayout(event) {
+    var hash = event && event.detail && event.detail.hash;
+    if (!hash || hash !== window.location.hash) return;
 
-    // The build hook now creates these anchors. This fallback only covers older
-    // already-rendered pages or manually written HTML that still exposes ^ids.
-    var html = root.innerHTML;
-    var next = html
-      .replace(/(\S)\s*\^([a-zA-Z0-9_-]+)(\s*<br\s*\/?>|\s*<\/p>|\s*$)/gi, function (match, before, blockId, after) {
-        return document.getElementById(blockId)
-          ? match
-          : before + "<span id=\"" + blockId + "\" class=\"block-anchor\"></span>" + after;
-      })
-      .replace(/(<\/(?:strong|em|code|b|i|span|mark|u)>)\s*\^([a-zA-Z0-9_-]+)/gi, function (match, closingTag, blockId) {
-        return document.getElementById(blockId)
-          ? match
-          : closingTag + "<span id=\"" + blockId + "\" class=\"block-anchor\"></span>";
-      })
-      .replace(/<p>\s*\^([a-zA-Z0-9_-]+)\s*<\/p>/gi, function (match, blockId) {
-        return document.getElementById(blockId)
-          ? match
-          : "<p><span id=\"" + blockId + "\" class=\"block-anchor\"></span></p>";
+    var target = findTarget(hash);
+    if (!target) return;
+
+    var sequence = documentSequence;
+    var expectedLocation = window.location.pathname + window.location.search + hash;
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        if (
+          sequence !== documentSequence ||
+          expectedLocation !== window.location.pathname + window.location.search + window.location.hash
+        ) return;
+
+        var header = document.querySelector(".md-header");
+        var offset = (header ? header.getBoundingClientRect().height : 0) + 40;
+        var top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
       });
-
-    if (next !== html) {
-      root.innerHTML = next;
-    }
-    root.dataset.blockAnchorsUpgraded = "true";
+    });
   }
 
   function run() {
@@ -472,11 +476,11 @@
     window.clearTimeout(tocSelectionClearTimer);
     clearHighlights();
     clearTocSelection();
-    upgradeLegacyBlockAnchors();
     highlightCurrentHash();
   }
 
   document.addEventListener("click", handleHashLinkClick, true);
+  document.addEventListener(HASH_LAYOUT_SETTLED_EVENT, realignHashAfterLayout);
   window.addEventListener("hashchange", function () {
     // Material's scrollspy can expose an intermediate heading hash while our
     // distance-aware TOC animation is still in flight. Keep the animation
