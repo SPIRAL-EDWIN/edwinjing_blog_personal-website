@@ -129,6 +129,90 @@ class PublisherTest(unittest.TestCase):
         self.assertIn(encoded_name, one)
         self.assertIn(encoded_name, two)
 
+    def test_copies_and_rewrites_standard_markdown_images(self):
+        image = b"markdown image bytes"
+        image_path = self.vault / "attachments" / "实验 图.png"
+        image_path.parent.mkdir()
+        image_path.write_bytes(image)
+        source = (
+            "# Source\n\n"
+            '![实验图](<../attachments/实验 图.png> "caption"){width="420"}\n'
+        )
+        self.write_note("notes/Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "notes/Source.md", "docs/Notes/Source.md", source),
+        ])
+        plan = self.plan(manifest)
+        output = plan.outputs[Path("docs/Notes/Source.md")].decode()
+        asset_name = next(iter(plan.asset_sources)).name
+
+        self.assertEqual(plan.markdown_image_count, 1)
+        self.assertEqual(len(plan.asset_sources), 1)
+        self.assertIn(quote(asset_name, safe="._-"), output)
+        self.assertIn('"caption")', output)
+        self.assertIn('{width="420"}', output)
+
+    def test_percent_encoded_markdown_image_is_resolved(self):
+        image = b"encoded image"
+        image_path = self.vault / "attachments" / "image one.png"
+        image_path.parent.mkdir()
+        image_path.write_bytes(image)
+        source = "# Source\n\n![diagram](../attachments/image%20one.png)\n"
+        self.write_note("notes/Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "notes/Source.md", "docs/Notes/Source.md", source),
+        ])
+        plan = self.plan(manifest)
+        output = plan.outputs[Path("docs/Notes/Source.md")].decode()
+
+        self.assertEqual(plan.markdown_image_count, 1)
+        self.assertIn("docs/assets/lab-projects", str(next(iter(plan.asset_sources))))
+        self.assertNotIn("image%20one.png", output)
+
+    def test_remote_and_code_example_markdown_images_are_untouched(self):
+        source = (
+            "# Source\n\n"
+            "![remote](https://example.com/image.png)\n"
+            "`![inline](missing.png)`\n"
+            "```markdown\n![fenced](missing.png)\n```\n"
+        )
+        self.write_note("Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "Source.md", "docs/Source.md", source),
+        ])
+        plan = self.plan(manifest)
+        output = plan.outputs[Path("docs/Source.md")].decode()
+
+        self.assertEqual(plan.markdown_image_count, 0)
+        self.assertEqual(len(plan.asset_sources), 0)
+        self.assertIn("![remote](https://example.com/image.png)", output)
+        self.assertIn("`![inline](missing.png)`", output)
+        self.assertIn("![fenced](missing.png)", output)
+
+    def test_copies_local_html_images_and_preserves_attributes(self):
+        image = b"html image"
+        image_path = self.vault / "images" / "diagram.png"
+        image_path.parent.mkdir()
+        image_path.write_bytes(image)
+        source = (
+            "# Source\n\n"
+            '<figure><img class="wide" src="images/diagram.png" alt="Diagram"></figure>\n'
+            '<img src="https://example.com/remote.png" alt="Remote">\n'
+        )
+        self.write_note("Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "Source.md", "docs/Source.md", source),
+        ])
+        plan = self.plan(manifest)
+        output = plan.outputs[Path("docs/Source.md")].decode()
+        asset_name = next(iter(plan.asset_sources)).name
+
+        self.assertEqual(plan.html_image_count, 1)
+        self.assertIn(quote(asset_name, safe="._-"), output)
+        self.assertIn('class="wide"', output)
+        self.assertIn('alt="Diagram"', output)
+        self.assertIn('src="https://example.com/remote.png"', output)
+
     def test_duplicate_stem_is_hard_failure_without_path(self):
         a = "# A\n"
         b = "# B\n"
@@ -258,6 +342,15 @@ class PublisherTest(unittest.TestCase):
         with self.assertRaisesRegex(publisher.PublishError, "unsafe destination"):
             publisher.load_config(manifest)
 
+    def test_rejects_unknown_manifest_state(self):
+        source = "# Source\n"
+        self.write_note("Source.md", source)
+        entry = self.entry("source", "Source.md", "docs/Source.md", source)
+        entry["state"] = "publsih"
+        manifest = self.manifest([entry])
+        with self.assertRaisesRegex(publisher.PublishError, "state"):
+            publisher.load_config(manifest)
+
     def test_normalizes_image_followed_by_list(self):
         image = b"image"
         image_path = self.vault / "image.png"
@@ -312,6 +405,7 @@ class PublisherTest(unittest.TestCase):
         )
 
     def test_normalizes_nested_image_followed_by_sibling_list_items(self):
+        (self.vault / "image.png").write_bytes(b"image")
         source = (
             "# Source\n\n- parent\n"
             "\t![](image.png)\n"
@@ -323,7 +417,10 @@ class PublisherTest(unittest.TestCase):
             self.entry("source", "Source.md", "docs/Source.md", source),
         ])
         output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
-        self.assertIn("    ![](image.png)\n\n    - first", output)
+        self.assertRegex(
+            output,
+            r"    !\[\]\(assets/lab-projects/[a-f0-9]{16}-image\.png\)\n\n    - first",
+        )
         self.assertIn("    - first\n\n    - second", output)
 
     def test_normalizes_table_termination(self):
@@ -461,6 +558,38 @@ class PublisherTest(unittest.TestCase):
         ])
         output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
         self.assertIn("    Intuition:\n\n    - zero is best", output)
+
+    def test_preserves_two_space_and_callout_tab_list_hierarchy(self):
+        source = (
+            "- root\n"
+            "  - two-space child\n"
+            "    - four-space child\n"
+            "> [!note] Quoted hierarchy\n"
+            "> - quoted root\n"
+            "> \t- quoted child\n"
+            "> \t\t- quoted grandchild\n"
+        )
+        self.write_note("Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "Source.md", "docs/Source.md", source),
+        ])
+        output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
+
+        self.assertIn("\n    - two-space child", output)
+        self.assertIn("\n    - four-space child", output)
+        self.assertIn("\n>     - quoted child", output)
+        self.assertIn("\n>         - quoted grandchild", output)
+        self.assertNotRegex(output, r"(?m)^>[^\n]*\t+[-+*] ")
+
+    def test_canonicalizes_nonbreaking_list_marker_spacing(self):
+        source = "Paragraph\n-\u00a0first\n-\u202fsecond\n"
+        self.write_note("Source.md", source)
+        manifest = self.manifest([
+            self.entry("source", "Source.md", "docs/Source.md", source),
+        ])
+        output = self.plan(manifest).outputs[Path("docs/Source.md")].decode()
+
+        self.assertIn("Paragraph\n\n- first\n- second", output)
 
     def test_closes_list_display_math_before_next_root_item(self):
         source = (

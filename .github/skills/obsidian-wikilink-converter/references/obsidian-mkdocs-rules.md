@@ -4,6 +4,11 @@
 
 Use this file when conversion results are ambiguous, unresolved, or produce unstable anchors in web output.
 
+For formal publication, these rules are applied by
+`tools/publish_obsidian_notes.py`. The standalone wikilink script is a legacy
+repair/debugging entrypoint for existing files under `docs/`, not an additional
+step after unified conversion.
+
 ## Source Pattern Mapping
 
 - [[Page]]: resolve to page URL and keep page name as link text.

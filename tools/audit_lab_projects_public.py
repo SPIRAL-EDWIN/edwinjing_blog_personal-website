@@ -15,6 +15,7 @@ from urllib.parse import unquote
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+MANIFEST_PATH = REPO_ROOT / ".codex/obsidian-publishing-manifest.json"
 PUBLIC_ROOTS = (
     REPO_ROOT / "docs/OsdNotes/Embodied AI",
     REPO_ROOT / "docs/经验分享/Phi Lab",
@@ -65,14 +66,13 @@ def source_secret_values() -> tuple[str, ...]:
     sys.path.insert(0, str(REPO_ROOT))
     from tools import publish_lab_projects as publisher
 
-    config = publisher.load_config(REPO_ROOT / ".codex/lab-projects-publishing-manifest.json")
-    source_root = config.source_root
-    tensor = (
-        source_root / "配置｜训练｜数据处理/补充插件：Tensorboard & WandB.md"
+    config = publisher.load_config(MANIFEST_PATH)
+    by_id = {note.note_id: note for note in config.notes}
+    tensor = publisher.manifest_source_path(
+        config, by_id["tensorboard-wandb"]
     ).read_text(encoding="utf-8").splitlines()
-    matrix = (
-        source_root
-        / "配置｜训练｜数据处理/Diffusion Policy/🦾UMI_Matrix-Studio配置架构.md"
+    matrix = publisher.manifest_source_path(
+        config, by_id["matrix-studio"]
     ).read_text(encoding="utf-8").splitlines()
     values = (
         tensor[3].strip(),
@@ -182,7 +182,7 @@ def audit_assets(paths: list[Path]) -> list[str]:
     sys.path.insert(0, str(REPO_ROOT))
     from tools import publish_lab_projects as publisher
 
-    config = publisher.load_config(REPO_ROOT / ".codex/lab-projects-publishing-manifest.json")
+    config = publisher.load_config(MANIFEST_PATH)
     plan = publisher.resolve_plan(config)
     source_by_name = {Path(dest).name: source for dest, source in plan.asset_sources.items()}
     for name, public in files.items():

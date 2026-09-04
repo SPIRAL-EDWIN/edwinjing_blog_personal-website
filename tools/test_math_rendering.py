@@ -55,6 +55,22 @@ class MathRenderingTests(unittest.TestCase):
             1,
         )
 
+    def test_unbalanced_display_math_is_rejected(self):
+        with self.assertRaisesRegex(checks.MathRenderingError, "balanced"):
+            checks.validate_markdown_items((("note.md", "$$\nx=1\n"),))
+
+    def test_escaped_display_delimiter_in_prose_is_ignored(self):
+        self.assertEqual(
+            checks.validate_markdown_items(
+                (("note.md", r"A literal delimiter looks like \$\$ in prose."),)
+            ),
+            1,
+        )
+
+    def test_display_delimiters_inside_quoted_fences_are_ignored(self):
+        markdown = "> ```text\n> $$not math$$\n> ```\n"
+        self.assertEqual(checks.validate_markdown_items((("note.md", markdown),)), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

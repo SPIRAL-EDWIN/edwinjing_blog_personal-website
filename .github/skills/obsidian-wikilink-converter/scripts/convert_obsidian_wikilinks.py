@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Convert Obsidian wikilinks to web-stable HTML/Markdown links.
 
+Compatibility/debugging utility for existing docs trees. Formal website
+publication uses ``tools/publish_obsidian_notes.py``.
+
 Examples:
   python convert_obsidian_wikilinks.py --docs-root docs --format html --dry-run
   python convert_obsidian_wikilinks.py --docs-root docs --format html --in-place
@@ -16,6 +19,13 @@ import re
 import sys
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
+
+
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[4]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from tools.publish_lab_projects import overlaps, protected_spans, target_fingerprint
 
 WIKILINK_RE = re.compile(r"(!?)\[\[([^\]]+)\]\]")
 BLOCK_ID_LINE_RE = re.compile(r"^(?P<prefix>.*?)(?:\s+|\s*<br>\s*)\^(?P<id>[A-Za-z0-9_-]+)\s*$")
@@ -39,6 +49,10 @@ class LinkParts:
     heading: Optional[str]
     block_id: Optional[str]
     alias: Optional[str]
+
+
+class ConversionError(RuntimeError):
+    """A deterministic conversion failure safe to print."""
 
 
 def parse_args() -> argparse.Namespace:
@@ -132,8 +146,14 @@ def first_heading(path: pathlib.Path) -> Optional[str]:
     return None
 
 
-def build_note_index(docs_root: pathlib.Path) -> Dict[str, pathlib.Path]:
-    index: Dict[str, pathlib.Path] = {}
+def add_index(index: Dict[str, List[pathlib.Path]], key: str, path: pathlib.Path) -> None:
+    bucket = index.setdefault(key, [])
+    if path not in bucket:
+        bucket.append(path)
+
+
+def build_note_index(docs_root: pathlib.Path) -> Dict[str, List[pathlib.Path]]:
+    index: Dict[str, List[pathlib.Path]] = {}
     for p in collect_md_files(docs_root):
         rel = p.relative_to(docs_root)
         rel_no_ext = rel.with_suffix("")
@@ -153,12 +173,12 @@ def build_note_index(docs_root: pathlib.Path) -> Dict[str, pathlib.Path]:
             candidates.add(title.lower())
 
         for key in candidates:
-            index.setdefault(key, p)
+            add_index(index, key, p)
     return index
 
 
-def build_image_index(docs_root: pathlib.Path) -> Dict[str, pathlib.Path]:
-    index: Dict[str, pathlib.Path] = {}
+def build_image_index(docs_root: pathlib.Path) -> Dict[str, List[pathlib.Path]]:
+    index: Dict[str, List[pathlib.Path]] = {}
     for p in collect_image_files(docs_root):
         rel = p.relative_to(docs_root)
         candidates = {
@@ -168,12 +188,19 @@ def build_image_index(docs_root: pathlib.Path) -> Dict[str, pathlib.Path]:
             to_posix(rel).lower(),
         }
         for key in candidates:
-            index.setdefault(key, p)
+            add_index(index, key, p)
     return index
 
 
+def unique_path(candidates: List[pathlib.Path], kind: str) -> Optional[pathlib.Path]:
+    unique = sorted(set(candidates))
+    if len(unique) > 1:
+        raise ConversionError(f"ambiguous {kind}")
+    return unique[0] if unique else None
+
+
 def resolve_note_path(
-    note_index: Dict[str, pathlib.Path],
+    note_index: Dict[str, List[pathlib.Path]],
     current_file: pathlib.Path,
     docs_root: pathlib.Path,
     target: str,
@@ -185,10 +212,6 @@ def resolve_note_path(
     # Normalize .md suffix in query keys.
     key = key[:-3] if key.lower().endswith(".md") else key
 
-    direct = note_index.get(key) or note_index.get(key.lower())
-    if direct:
-        return direct
-
     # Try relative resolution from current file.
     candidate = (current_file.parent / f"{key}.md").resolve()
     try:
@@ -198,20 +221,17 @@ def resolve_note_path(
     except ValueError:
         pass
 
-    return None
+    direct = note_index.get(key, []) + note_index.get(key.lower(), [])
+    return unique_path(direct, "note link")
 
 
 def resolve_image_path(
-    image_index: Dict[str, pathlib.Path],
+    image_index: Dict[str, List[pathlib.Path]],
     current_file: pathlib.Path,
     docs_root: pathlib.Path,
     target: str,
 ) -> Optional[pathlib.Path]:
     key = target.strip()
-    direct = image_index.get(key) or image_index.get(key.lower())
-    if direct:
-        return direct
-
     rel_try = (current_file.parent / key).resolve()
     try:
         rel = rel_try.relative_to(docs_root.resolve())
@@ -220,7 +240,8 @@ def resolve_image_path(
     except ValueError:
         pass
 
-    return None
+    direct = image_index.get(key, []) + image_index.get(key.lower(), [])
+    return unique_path(direct, "image embed")
 
 
 def relative_href(from_file: pathlib.Path, to_file: pathlib.Path) -> str:
@@ -259,8 +280,8 @@ def render_link(
     is_embed: bool,
     current_file: pathlib.Path,
     docs_root: pathlib.Path,
-    note_index: Dict[str, pathlib.Path],
-    image_index: Dict[str, pathlib.Path],
+    note_index: Dict[str, List[pathlib.Path]],
+    image_index: Dict[str, List[pathlib.Path]],
     output_format: str,
     unresolved: List[str],
 ) -> str:
@@ -305,8 +326,8 @@ def inject_block_anchors(text: str) -> str:
 def convert_file(
     file_path: pathlib.Path,
     docs_root: pathlib.Path,
-    note_index: Dict[str, pathlib.Path],
-    image_index: Dict[str, pathlib.Path],
+    note_index: Dict[str, List[pathlib.Path]],
+    image_index: Dict[str, List[pathlib.Path]],
     output_format: str,
     inject_anchors: bool,
 ) -> Tuple[str, int, List[str]]:
@@ -331,7 +352,15 @@ def convert_file(
         count += 1
         return rendered
 
-    converted = WIKILINK_RE.sub(repl, text)
+    spans = protected_spans(text, ())
+    matches = [
+        match
+        for match in WIKILINK_RE.finditer(text)
+        if not overlaps(match.start(), match.end(), spans)
+    ]
+    converted = text
+    for match in reversed(matches):
+        converted = converted[: match.start()] + repl(match) + converted[match.end() :]
 
     if inject_anchors:
         converted = inject_block_anchors(converted)
@@ -370,14 +399,18 @@ def main() -> int:
 
         total_files += 1
         original = path.read_text(encoding="utf-8")
-        converted, replaced_count, unresolved = convert_file(
-            file_path=path,
-            docs_root=docs_root,
-            note_index=note_index,
-            image_index=image_index,
-            output_format=args.format,
-            inject_anchors=args.inject_block_anchors,
-        )
+        try:
+            converted, replaced_count, unresolved = convert_file(
+                file_path=path,
+                docs_root=docs_root,
+                note_index=note_index,
+                image_index=image_index,
+                output_format=args.format,
+                inject_anchors=args.inject_block_anchors,
+            )
+        except ConversionError as exc:
+            print(f"ERROR: {exc}; file={path}", file=sys.stderr)
+            return 2
 
         total_links += replaced_count
 
@@ -399,9 +432,9 @@ def main() -> int:
     if unresolved_total:
         print("\\nUnresolved details:")
         for p, raw in unresolved_total[:200]:
-            print(f"- {p}: [[{raw}]]")
+            print(f"- {p}: target_fingerprint={target_fingerprint(raw)}")
 
-    return 0
+    return 1 if unresolved_total else 0
 
 
 if __name__ == "__main__":

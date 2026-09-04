@@ -9,15 +9,25 @@ Convert Obsidian vault Markdown files to MkDocs Material-compatible format for w
 
 ## Quick Start
 
-1. Run conversion script on source file(s):
+1. Use the unified reviewed workflow for every formal website note:
    ```bash
-   python .skills/obsidian-to-mkdocs/scripts/convert_obsidian.py <source.md> --output <dest.md>
+   .venv/bin/python tools/publish_obsidian_notes.py list
+   .venv/bin/python tools/publish_obsidian_notes.py check --note-id NOTE_ID
    ```
 
-2. Or convert entire directory:
+2. The old scripts remain compatibility/debugging entrypoints, but they are
+   not a second publication workflow:
    ```bash
-   python .skills/obsidian-to-mkdocs/scripts/convert_obsidian.py <source_dir/> --output <docs_dir/> --recursive
+   .venv/bin/python .github/skills/obsidian-to-mkdocs/scripts/convert_obsidian.py \
+     <source.md> --output <dest.md>
    ```
+
+The unified command owns registration, source hashes, attachment upload, link
+resolution, four-column list indentation, display-math normalization, isolated
+staging, strict local preview, review receipts, promotion, and rollback. Git
+commit/push are deliberately separate. Do not chain `normalize_tabs.py` or the
+standalone wikilink converter after it; those transformations are already in
+the canonical conversion pass.
 
 ## Conversion Rules Summary
 
@@ -56,6 +66,28 @@ However, the `roamlinks` plugin may still misparse `[[]]` inside code blocks and
 |----------|--------|
 | `![[image.png]]` | `![](images/image.png)` |
 | `![[image.png\|300]]` | `![](images/image.png){ width="300" }` |
+| `![Alt](<folder/image one.png> "Title")` | Copied and rewritten by the canonical publisher; alt/title/attributes are preserved |
+
+Referenced local images are content-addressed and copied into the manifest's
+asset root. The current compatibility location is `docs/assets/lab-projects/`;
+its name is historical and does not classify a note. Remote and root-relative
+images remain unchanged.
+
+### Lists and indentation
+
+- A Tab is one nested level and becomes four spaces.
+- Two/three-space child markers are promoted to four spaces instead of being
+  flattened to the root.
+- Marker gaps using NBSP-like Unicode spaces become one normal space.
+- Paragraph/list, image/list, formula/list, heading/list and callout boundaries
+  are normalized outside fenced code.
+
+### Display math
+
+Inline `$$...$$` accepted by Obsidian is split into a real display block.
+Displays inside lists and callouts become explicit `arithmatex--display`
+containers so MathJax receives the TeX unchanged. The publication gate rejects
+missing extensions, malformed delimiters and unbalanced `$$` blocks.
 
 ### Callouts
 
@@ -66,30 +98,37 @@ Handled automatically by `mkdocs-callouts` plugin. No conversion needed.
 > Content
 ```
 
-## Workflow
-
-### Manual Conversion Steps
-
-1. **Copy file to docs/**
-2. **Fix image paths**: Move images to `images/` subfolder, update references
-3. **Verify links**: Ensure internal links point to correct `.md` files
-4. **Check front matter**: Remove Obsidian-specific fields (`cssclass`, `aliases`)
-5. **Test locally**: Run `mkdocs serve` to preview
-
-### Using Conversion Script
+## Formal publication workflow
 
 ```bash
-# Single file
-python .skills/obsidian-to-mkdocs/scripts/convert_obsidian.py \
-    "vault/Notes/MyNote.md" \
-    --output "docs/Notes/MyNote.md"
+# First publication only: add provenance to the publication ledger.
+.venv/bin/python tools/publish_obsidian_notes.py register \
+  --source "化学/CHEM 102.md" \
+  --destination "docs/OsdNotes/CHEM/CHEM 102.md"
 
-# Directory (recursive)
-python .skills/obsidian-to-mkdocs/scripts/convert_obsidian.py \
-    "vault/Notes/" \
-    --output "docs/Notes/" \
-    --recursive
+# When source bytes change, explicitly accept the new inventory.
+.venv/bin/python tools/publish_obsidian_notes.py accept-source --note-id chem-102
+
+# Convert and validate entirely in memory.
+.venv/bin/python tools/publish_obsidian_notes.py check --note-id chem-102
+
+# After content/privacy review, bind approval to this exact source hash.
+.venv/bin/python tools/publish_obsidian_notes.py approve-source \
+  --note-id chem-102 --confirm-public-safe
+
+# Write only ignored review staging, then build a complete strict preview.
+.venv/bin/python tools/publish_obsidian_notes.py stage --note-id chem-102 --replace
+.venv/bin/python tools/publish_obsidian_notes.py preview --note-id chem-102 --serve
+
+# After visual review, promote only the receipt-bound files into docs/.
+.venv/bin/python tools/publish_obsidian_notes.py promote \
+  --note-id chem-102 --confirm-reviewed
 ```
+
+The manifest is a publication ledger, not a category or tag. A source edit
+invalidates its approval; a converter, manifest, staged-file, destination, CSS,
+JavaScript, hook, or MkDocs configuration change invalidates the corresponding
+receipt. `promote` never stages Git changes and never commits or pushes.
 
 ## Post-Conversion Checklist
 
@@ -99,7 +138,7 @@ python .skills/obsidian-to-mkdocs/scripts/convert_obsidian.py \
 - [ ] Code blocks render correctly
 - [ ] Callouts display as admonitions
 - [ ] Front matter valid YAML
-- [ ] `mkdocs build` completes without errors
+- [ ] `mkdocs build --strict` completes without errors
 
 ## Troubleshooting
 

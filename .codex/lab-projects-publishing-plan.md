@@ -1,5 +1,11 @@
 # Lab Projects Publishing Execution Plan
 
+> Historical migration plan. The active publication ledger is now
+> `.codex/obsidian-publishing-manifest.json`, and the only recommended workflow
+> entrypoint is `tools/publish_obsidian_notes.py`. The Lab-specific converter
+> remains an internal compatibility engine; this document still governs the
+> unresolved Lab redaction and derived-asset requirements.
+
 Status: approved outline only; implementation has not started.
 
 Source scope:

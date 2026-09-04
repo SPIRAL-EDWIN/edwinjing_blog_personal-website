@@ -11,12 +11,24 @@ RUNTIME_RE = re.compile(
     r'"(?P<path>vendor/mathjax/(?P<version>\d+\.\d+\.\d+)/es5/tex-mml-chtml\.js)"'
 )
 UNVENDORED_EXTENSION_RE = re.compile(r"\\(?:require|ce|cancel|bbox)\b")
-FENCE_RE = re.compile(r"^[ \t]*(?:`{3,}|~{3,})")
+FENCE_RE = re.compile(r"^[ \t]*(?:>[ \t]*)*(?:`{3,}|~{3,})")
 INLINE_CODE_RE = re.compile(r"`+[^`\n]*`+")
 
 
 class MathRenderingError(ValueError):
     """The converted notes cannot be rendered by the vendored MathJax set."""
+
+
+def unescaped_display_delimiters(line: str) -> Tuple[int, ...]:
+    """Locate real ``$$`` tokens while ignoring escaped prose examples."""
+
+    positions = []
+    for match in re.finditer(r"\$\$", line):
+        prefix = line[: match.start()]
+        backslashes = len(prefix) - len(prefix.rstrip("\\"))
+        if backslashes % 2 == 0:
+            positions.append(match.start())
+    return tuple(positions)
 
 
 def prose_without_code(markdown: str) -> str:
@@ -50,8 +62,23 @@ def malformed_display_math(markdown_items: Iterable[Tuple[str, str]]) -> Tuple[s
         prose = prose_without_code(markdown)
         for line_number, line in enumerate(prose.splitlines(), 1):
             candidate = re.sub(r"^[ \t]*(?:>[ \t]*)+", "", line).strip()
-            if "$$" in candidate and candidate != "$$":
+            if unescaped_display_delimiters(candidate) and candidate != "$$":
                 failures.append(f"{label}:{line_number}")
+    return tuple(failures)
+
+
+def unbalanced_display_math(markdown_items: Iterable[Tuple[str, str]]) -> Tuple[str, ...]:
+    """Return documents with an unmatched isolated display delimiter."""
+
+    failures = []
+    for label, markdown in markdown_items:
+        prose = prose_without_code(markdown)
+        count = sum(
+            len(unescaped_display_delimiters(line))
+            for line in prose.splitlines()
+        )
+        if count % 2:
+            failures.append(label)
     return tuple(failures)
 
 
@@ -67,6 +94,9 @@ def validate_markdown_items(markdown_items: Iterable[Tuple[str, str]]) -> int:
     malformed = malformed_display_math(items)
     if malformed:
         raise MathRenderingError("display math delimiters must be on separate lines")
+    unbalanced = unbalanced_display_math(items)
+    if unbalanced:
+        raise MathRenderingError("display math delimiters must be balanced")
     return len(items)
 
 

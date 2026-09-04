@@ -5,6 +5,10 @@ Obsidian to MkDocs Markdown Converter
 Converts Obsidian-flavored Markdown to MkDocs Material-compatible format.
 Handles wiki links, image embeds, and file organization.
 
+Compatibility/debugging utility only. Formal website publication uses
+``tools/publish_obsidian_notes.py`` so conversion, review, preview and
+promotion remain one receipt-bound workflow.
+
 Usage:
     python convert_obsidian.py <source> [--output <dest>] [--recursive]
 
@@ -25,6 +29,32 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 
+REPO_ROOT = Path(__file__).resolve().parents[4]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from tools.publish_lab_projects import (
+    normalize_display_math_blocks,
+    normalize_obsidian_blocks,
+    overlaps,
+    protected_spans,
+)
+
+
+def replace_unprotected(content: str, pattern: str, replacement) -> str:
+    """Apply a regex replacement outside front matter, code, comments and math."""
+
+    spans = protected_spans(content, ())
+    matches = [
+        match
+        for match in re.finditer(pattern, content)
+        if not overlaps(match.start(), match.end(), spans)
+    ]
+    for match in reversed(matches):
+        content = content[: match.start()] + replacement(match) + content[match.end() :]
+    return content
+
+
 def convert_wiki_links(content: str) -> str:
     """
     Convert Obsidian wiki links to standard Markdown links.
@@ -39,24 +69,6 @@ def convert_wiki_links(content: str) -> str:
           NOT wiki-links. These are protected and not converted.
     """
     
-    # Step 1: Protect code blocks and inline code from conversion.
-    # [[]] inside code is array/list syntax (e.g. Python/NumPy), not wiki-links.
-    # We also insert zero-width space to prevent roamlinks from misinterpreting them.
-    placeholders = []
-    
-    def protect_code(match):
-        """Replace code with placeholder, also fix [[]] inside for roamlinks."""
-        code = match.group(0)
-        # Insert zero-width space between [[ to prevent roamlinks warnings
-        code = code.replace('[[', '[\u200b[')
-        placeholders.append(code)
-        return f'\x00CODE{len(placeholders) - 1}\x00'
-    
-    # Protect fenced code blocks first (``` ... ```), then inline code (` ... `)
-    protected = re.sub(r'```[\s\S]*?```', protect_code, content)
-    protected = re.sub(r'`[^`\n]+`', protect_code, protected)
-    
-    # Step 2: Convert wiki links in non-code text
     def replace_wiki_link(match):
         full_match = match.group(1)
         
@@ -90,13 +102,7 @@ def convert_wiki_links(content: str) -> str:
     
     # Match [[...]] but not ![[...]] (images)
     pattern = r'(?<!!)\[\[([^\]]+)\]\]'
-    result = re.sub(pattern, replace_wiki_link, protected)
-    
-    # Step 3: Restore code placeholders
-    for i, code in enumerate(placeholders):
-        result = result.replace(f'\x00CODE{i}\x00', code)
-    
-    return result
+    return replace_unprotected(content, pattern, replace_wiki_link)
 
 
 def convert_image_embeds(content: str, images_dir: str = "images") -> str:
@@ -137,7 +143,7 @@ def convert_image_embeds(content: str, images_dir: str = "images") -> str:
         return f"![]({img_path}){attrs}"
     
     pattern = r'!\[\[([^\]]+)\]\]'
-    return re.sub(pattern, replace_image, content)
+    return replace_unprotected(content, pattern, replace_image)
 
 
 def clean_front_matter(content: str) -> str:
@@ -192,6 +198,8 @@ def convert_file(source_path: Path, dest_path: Path, images_dir: str = "images")
     content = clean_front_matter(content)
     content = convert_wiki_links(content)
     content = convert_image_embeds(content, images_dir)
+    content, _ = normalize_display_math_blocks(content)
+    content, _ = normalize_obsidian_blocks(content, close_obsidian_lists=True)
     
     # Ensure destination directory exists
     dest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -221,13 +229,15 @@ def copy_images(source_dir: Path, dest_dir: Path, extensions: tuple = ('.png', '
     """
     Copy image files from source to destination, preserving structure.
     """
-    for ext in extensions:
-        for img_path in source_dir.rglob(f'*{ext}'):
-            rel_path = img_path.relative_to(source_dir)
-            dest_path = dest_dir / rel_path
-            dest_path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(img_path, dest_path)
-            print(f"  Copied: {rel_path}")
+    allowed = {extension.casefold() for extension in extensions}
+    for img_path in sorted(source_dir.rglob('*')):
+        if not img_path.is_file() or img_path.is_symlink() or img_path.suffix.casefold() not in allowed:
+            continue
+        rel_path = img_path.relative_to(source_dir)
+        dest_path = dest_dir / rel_path
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(img_path, dest_path)
+        print(f"  Copied: {rel_path}")
 
 
 def main():

@@ -33,9 +33,16 @@ Read the reference file when you need:
 
 ## Recommended Workflow
 
+For formal Obsidian publication, use
+`tools/publish_obsidian_notes.py`; it resolves manifest-aware links, uploads
+assets, normalizes lists/formulas, and binds the result to review receipts.
+
+Use this standalone script only to diagnose or repair wikilinks already inside
+an existing `docs/` tree:
+
 1. Run a dry-run conversion first.
 2. Review unresolved links in the report.
-3. Run in-place conversion.
+3. Run in-place conversion only for the targeted repair.
 4. Build with MkDocs and validate jumps.
 
 ## Commands
@@ -66,4 +73,9 @@ Single file:
 
 - The script builds a note index from all `.md` files under `docs`.
 - For block links like `[[#^abcd]]`, it can inject explicit anchors so web jumping is stable.
-- Unresolved wikilinks are preserved as plain text and listed in the summary.
+- Front matter, fenced/inline code, comments and math are protected from link conversion.
+- Duplicate note/image matches fail instead of selecting an arbitrary file.
+- Unresolved wikilinks are preserved, reported by non-reversible fingerprints,
+  and cause a non-zero exit status.
+- Do not run it after the unified publication converter; that would create an
+  unreceipted second transformation pass.

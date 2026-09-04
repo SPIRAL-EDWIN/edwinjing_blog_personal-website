@@ -289,9 +289,17 @@ body[data-md-color-scheme="slate"]
    Markdown Lists
    ========================================================================== */
 
-/* Only classless nested Markdown lists receive the tighter rhythm. Keeping
-   markers outside and a small gutter preserves each level without starving
-   third- and fourth-level text of line width. */
+/* Root Markdown lists start at the article edge. Material's own direct-li
+   margin already supplies the marker gutter, so the legacy list margin and
+   padding only waste horizontal space. Nested lists keep a compact, visible
+   hierarchy without starving third- and fourth-level text of line width. */
+.md-content__inner.md-typeset
+> :is(ul:not([class]), ol:not([class])) {
+    margin-inline-start: 0 !important;
+    padding-inline-start: 0 !important;
+    list-style-position: outside !important;
+}
+
 .md-content__inner.md-typeset
 li > :is(ul:not([class]), ol:not([class])) {
     margin-inline-start: 0.2em !important;

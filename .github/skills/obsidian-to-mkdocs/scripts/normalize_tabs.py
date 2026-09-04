@@ -2,15 +2,18 @@
 """
 Normalise converted Obsidian Markdown for MkDocs compatibility.
 
+Compatibility/debugging utility only. The formal publisher already runs this
+normalization as part of its single conversion pass; do not run it afterward.
+
 Two passes are applied in order (both idempotent):
 
-PASS 1 — Leading TAB to 2 spaces
+PASS 1 — Leading TAB to canonical 4-column list indentation
     Obsidian renders a leading ``\\t`` as a 1-step indent and treats it as a
     list-item continuation. Python-Markdown (used by MkDocs) interprets a TAB
-    as 4 spaces of indentation, and 4+ spaces inside a list = a CODE BLOCK.
-    This causes TAB-indented continuation paragraphs in Obsidian notes to
-    render as fenced code in MkDocs. We replace each leading TAB with 2
-    spaces (canonical Markdown indent for list-item continuation).
+    as 4 spaces of indentation. The website's canonical converter uses four
+    columns per nested list level, so this pass applies the same policy rather
+    than the former conflicting two-space rewrite. It also handles list
+    indentation inside explicit blockquotes/callouts.
 
 PASS 2 — Blank line before list-start
     Obsidian renders ``paragraph\\n- item`` as a list directly. Standard
@@ -22,8 +25,7 @@ PASS 2 — Blank line before list-start
 
 Both passes:
     - Skip lines inside fenced code blocks (``` or ~~~).
-    - Skip lines that start with ``>`` (blockquote/callout content has its
-      own list-handling rules and Material/pymdownx handle it).
+    - Preserve fenced code, including fences nested inside blockquotes.
     - Preserve any non-leading TABs and other whitespace.
     - Are idempotent: running twice produces identical output.
 
@@ -41,6 +43,14 @@ import argparse
 import re
 import sys
 from pathlib import Path
+from typing import Optional
+
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from tools.publish_lab_projects import normalize_list_prefix, split_blockquote_prefix
 
 
 FENCE_RE = re.compile(r"^\s*(```|~~~)")
@@ -55,30 +65,34 @@ THEMATIC_BREAK_RE = re.compile(r"^[-_*]{3,}\s*$")
 
 
 # --------------------------------------------------------------------------- #
-# Pass 1 — leading TABs → 2 spaces
+# Pass 1 — leading TABs → canonical four-column indentation
 # --------------------------------------------------------------------------- #
 def normalize_leading_tabs(lines: list[str]) -> tuple[list[str], int]:
     """Return (new_lines, changed_count). Idempotent."""
     out: list[str] = []
-    in_fence = False
+    fence_char: Optional[str] = None
+    fence_length = 0
     changed = 0
 
     for line in lines:
-        if FENCE_RE.match(line):
-            in_fence = not in_fence
+        _quote_prefix, content = split_blockquote_prefix(line)
+        fence = FENCE_RE.match(content)
+        if fence_char is not None:
+            out.append(line)
+            marker = fence.group(1) if fence else ""
+            if marker and marker[0] == fence_char and len(marker) >= fence_length:
+                fence_char = None
+                fence_length = 0
+            continue
+        if fence:
+            marker = fence.group(1)
+            fence_char = marker[0]
+            fence_length = len(marker)
             out.append(line)
             continue
 
-        if in_fence or not line.startswith("\t"):
-            out.append(line)
-            continue
-
-        # Count leading tabs only; preserve any other internal tabs.
-        i = 0
-        while i < len(line) and line[i] == "\t":
-            i += 1
-        new_line = ("  " * i) + line[i:]
-        if new_line != line:
+        new_line, did_change = normalize_list_prefix(line)
+        if did_change:
             changed += 1
         out.append(new_line)
 

@@ -38,12 +38,16 @@ HTML_IMAGE_RE = re.compile(r"<img\b[^>]*?\bsrc\s*=\s*([\"'])(.*?)\1", re.I | re.
 OBSIDIAN_IMAGE_RE = re.compile(r"!\[\[([^\]]+)\]\]")
 FENCED_CODE_RE = re.compile(r"(^|\n)(?:```|~~~).*?(?:\n(?:```|~~~)(?=\n|$)|$)", re.S)
 H1_RE = re.compile(r"^#\s+(.+?)\s*$", re.M)
-OBSIDIAN_BLOCK_ID_RE = re.compile(r"(?<![#A-Za-z0-9_-])\^([A-Za-z0-9_-]{4,})[ \t]*$")
-OBSIDIAN_QUOTED_BLOCK_ID_RE = re.compile(r"(?<![#A-Za-z0-9_-])\^([A-Za-z0-9_-]{4,})([ \t]*[\"'])$")
+OBSIDIAN_BLOCK_ID_RE = re.compile(r"(?<![#A-Za-z0-9_-])\^([A-Za-z0-9_-]+)[ \t]*$")
+OBSIDIAN_QUOTED_BLOCK_ID_RE = re.compile(r"(?<![#A-Za-z0-9_-])\^([A-Za-z0-9_-]+)([ \t]*[\"'])$")
 FENCE_START_RE = re.compile(r"^[ \t]*(?P<fence>`{3,}|~{3,})")
 BLOCKQUOTE_LINE_RE = re.compile(r"^[ \t]{0,3}>")
 OBSIDIAN_MARK_RE = re.compile(r"(?<![=<])==(?=\S)(?!>)(.+?)(?<=\S)==(?![=>])")
-INLINE_PROTECTED_RE = re.compile(r"(`+[^`\n]*`+)")
+INLINE_PROTECTED_RE = re.compile(
+    r"(`+[^`\n]*`+)"
+    r"|((?<!\\)\$(?!\$)(?:\\.|[^\n$])*?(?<!\\)\$)"
+    r"|(\\\((?:\\.|[^\n])*?\\\))"
+)
 
 
 @dataclass(frozen=True)

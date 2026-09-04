@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Safely stage manifest-selected Obsidian notes for MkDocs.
+"""Compatibility converter for manifest-selected Obsidian notes.
+
+Use ``tools/publish_obsidian_notes.py`` for the reviewed end-to-end workflow.
+This module remains the conversion engine and preserves the former CLI.
 
 The default mode is a read-only dry run.  ``--apply`` writes only to the
 isolated staging root declared by the manifest; it never writes to the vault
@@ -22,7 +25,7 @@ import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple
-from urllib.parse import quote
+from urllib.parse import quote, unquote, urlsplit
 
 try:
     from tools.math_rendering_checks import (
@@ -97,10 +100,22 @@ PUBLIC_NOTE_PREFIXES: Dict[str, str] = {
     ),
 }
 WIKILINK_RE = re.compile(r"(!?)\[\[([^\]]+)\]\]")
+MARKDOWN_IMAGE_RE = re.compile(
+    r"!\[(?P<alt>(?:\\.|[^\]\\])*)\]\("
+    r"(?P<target><[^>\n]+>|(?:\\.|[^()\s])+)"
+    r"(?P<title>[ \t]+(?:\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\)))?"
+    r"\)(?P<attrs>\{[^{}\n]*\})?"
+)
+HTML_IMAGE_RE = re.compile(
+    r"<img\b(?P<prefix>[^>]*?\bsrc\s*=\s*)(?P<quote>[\"'])"
+    r"(?P<target>.*?)(?P=quote)(?P<suffix>[^>]*)>",
+    re.I | re.S,
+)
 HEADING_RE = re.compile(r"^ {0,3}(#{1,6})[ \t]+(.+?)[ \t]*#*[ \t]*$", re.M)
 BLOCK_ID_RE = re.compile(r"(?<!\S)\^([A-Za-z0-9_-]+)[ \t]*$")
 HIGHLIGHT_RE = re.compile(r"(?<!\\)==(.+?)(?<!\\)==")
-LIST_ITEM_RE = re.compile(r"^[ \t]*(?:[-+*]|\d+[.)])[ \t]+\S")
+LIST_GAP = r"[ \t\u00a0\u2007\u202f]+"
+LIST_ITEM_RE = re.compile(rf"^[ \t]*(?:[-+*]|\d+[.)]){LIST_GAP}\S")
 IMAGE_ONLY_RE = re.compile(
     r'^[ \t]*!\[[^\n]*\]\([^\n]+\)(?:\{[^\n]*\})?[ \t]*$'
 )
@@ -112,7 +127,10 @@ TABLE_SEPARATOR_RE = re.compile(
 )
 FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 INLINE_CODE_SPAN_RE = re.compile(r"`+[^`\n]*`+")
-LIST_PREFIX_RE = re.compile(r"^([ \t]*)(?:[-+*]|\d+[.)])[ \t]+")
+LIST_PREFIX_RE = re.compile(rf"^([ \t]*)(?:[-+*]|\d+[.)]){LIST_GAP}")
+LIST_PREFIX_CAPTURE_RE = re.compile(
+    rf"^([ \t]*)(?P<marker>[-+*]|\d+[.)]){LIST_GAP}"
+)
 
 
 class PublishError(RuntimeError):
@@ -210,6 +228,13 @@ class LinkOccurrence:
     asset_destination: Optional[PurePosixPath] = None
     heading_anchor: Optional[str] = None
     block_anchor: Optional[str] = None
+    is_markdown_image: bool = False
+    image_alt: Optional[str] = None
+    image_title: Optional[str] = None
+    image_attrs: Optional[str] = None
+    is_html_image: bool = False
+    image_html_prefix: Optional[str] = None
+    image_html_suffix: Optional[str] = None
 
 
 @dataclass
@@ -226,6 +251,8 @@ class Plan:
     outputs: Dict[PurePosixPath, bytes]
     asset_sources: Dict[PurePosixPath, Path]
     link_count: int
+    markdown_image_count: int
+    html_image_count: int
     highlight_count: int
     format_fix_count: int
 
@@ -234,7 +261,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--manifest",
-        default=".codex/lab-projects-publishing-manifest.json",
+        default=".codex/obsidian-publishing-manifest.json",
         help="publication manifest (default: %(default)s)",
     )
     parser.add_argument(
@@ -285,7 +312,9 @@ def load_config(
     if not within(source_root, vault_root) or not source_root.is_dir():
         raise PublishError("source root must be an existing child of vault_root")
 
-    staging_raw = staging_override or raw.get("staging_root", ".codex/staging/lab-projects")
+    staging_raw = staging_override or raw.get(
+        "staging_root", ".codex/staging/obsidian-notes/legacy-all"
+    )
     staging_root = Path(staging_raw)
     if not staging_root.is_absolute():
         staging_root = repo_root / staging_root
@@ -326,7 +355,10 @@ def load_config(
                 raise PublishError("duplicate source/source alias in manifest")
             seen_sources.add(alias)
             aliases.append(alias)
-        publish = item.get("state", "publish") == "publish"
+        state = item.get("state", "publish")
+        if state not in {"publish", "skip"}:
+            raise PublishError("manifest note state must be publish or skip")
+        publish = state == "publish"
         destination_rel: Optional[PurePosixPath] = None
         if publish:
             destination_rel = safe_relpath(item.get("destination", ""), field_name="destination")
@@ -553,6 +585,47 @@ def parse_link(raw: str) -> LinkParts:
     return LinkParts(target=target.strip(), heading=heading, block_id=block_id, alias=alias)
 
 
+def markdown_image_target(raw: str) -> Optional[str]:
+    """Return a vault-relative image target, or ``None`` for public URLs.
+
+    Obsidian can emit either wiki embeds or ordinary Markdown images.  The
+    latter often contain percent-encoded spaces or use ``<...>`` around a
+    destination with literal spaces.  Only local raster/vector images belong
+    to the publication asset pipeline; remote, data, root-relative, and
+    fragment-only references remain untouched.
+    """
+
+    target = raw.strip()
+    if target.startswith("<") and target.endswith(">"):
+        target = target[1:-1].strip()
+    target = target.replace(r"\ ", " ")
+    target = re.sub(r"\\([\\()])", r"\1", target)
+    parsed = urlsplit(target)
+    if (
+        parsed.scheme
+        or parsed.netloc
+        or target.startswith(("/", "#", "//"))
+    ):
+        return None
+    decoded = unquote(parsed.path)
+    if Path(decoded).suffix.casefold() not in IMAGE_EXTENSIONS:
+        return None
+    return decoded
+
+
+def line_number_at(offsets: Sequence[int], position: int) -> int:
+    """Return the one-based line containing ``position``."""
+
+    lo, hi = 0, len(offsets)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if offsets[mid] <= position:
+            lo = mid + 1
+        else:
+            hi = mid
+    return lo
+
+
 def line_offsets(text: str) -> List[int]:
     offsets = [0]
     offsets.extend(match.end() for match in re.finditer("\n", text))
@@ -605,16 +678,7 @@ def occurrences_for(note: ManifestNote, source: NoteFile) -> List[LinkOccurrence
     for match in WIKILINK_RE.finditer(source.text):
         if overlaps(match.start(), match.end(), protected):
             continue
-        line = 1
-        # A short, dependency-free bisect.
-        lo, hi = 0, len(offsets)
-        while lo < hi:
-            mid = (lo + hi) // 2
-            if offsets[mid] <= match.start():
-                lo = mid + 1
-            else:
-                hi = mid
-        line = lo
+        line = line_number_at(offsets, match.start())
         try:
             parts = parse_link(match.group(2))
         except PublishError as exc:
@@ -631,7 +695,63 @@ def occurrences_for(note: ManifestNote, source: NoteFile) -> List[LinkOccurrence
                 parts=parts,
             )
         )
-    return found
+    for match in MARKDOWN_IMAGE_RE.finditer(source.text):
+        if overlaps(match.start(), match.end(), protected):
+            continue
+        target = markdown_image_target(match.group("target"))
+        if target is None:
+            continue
+        line = line_number_at(offsets, match.start())
+        found.append(
+            LinkOccurrence(
+                start=match.start(),
+                end=match.end(),
+                line=line,
+                is_embed=True,
+                raw=match.group(0),
+                parts=LinkParts(
+                    target=target,
+                    heading=None,
+                    block_id=None,
+                    alias=None,
+                ),
+                is_markdown_image=True,
+                image_alt=match.group("alt"),
+                image_title=(match.group("title") or "").strip() or None,
+                image_attrs=match.group("attrs"),
+            )
+        )
+    for match in HTML_IMAGE_RE.finditer(source.text):
+        if overlaps(match.start(), match.end(), protected):
+            continue
+        target = markdown_image_target(match.group("target"))
+        if target is None:
+            continue
+        line = line_number_at(offsets, match.start())
+        quote_character = match.group("quote")
+        found.append(
+            LinkOccurrence(
+                start=match.start(),
+                end=match.end(),
+                line=line,
+                is_embed=True,
+                raw=match.group(0),
+                parts=LinkParts(
+                    target=target,
+                    heading=None,
+                    block_id=None,
+                    alias=None,
+                ),
+                is_html_image=True,
+                image_html_prefix=(
+                    "<img" + match.group("prefix") + quote_character
+                ),
+                image_html_suffix=(
+                    quote_character + match.group("suffix") + ">"
+                ),
+            )
+        )
+    return sorted(found, key=lambda occurrence: occurrence.start)
 
 
 def heading_map(text: str, spans: Sequence[Tuple[int, int]]) -> Dict[str, List[Tuple[int, str]]]:
@@ -729,8 +849,9 @@ def resolve_plan(config: Config, *, require_hashes: bool = True) -> Plan:
                         raise PublishError("embedded note/transclusion is unsupported")
                     if occurrence.parts.heading or occurrence.parts.block_id:
                         raise PublishError("image embeds cannot contain heading or block fragments")
-                    width, height = image_dimensions(occurrence.parts.alias)
-                    del width, height
+                    if not occurrence.is_markdown_image and not occurrence.is_html_image:
+                        width, height = image_dimensions(occurrence.parts.alias)
+                        del width, height
                     asset = resolve_asset(
                         occurrence.parts.target,
                         planned_note.source,
@@ -809,7 +930,21 @@ def resolve_plan(config: Config, *, require_hashes: bool = True) -> Plan:
         notes=planned,
         outputs=outputs,
         asset_sources=asset_sources,
-        link_count=sum(len(item.occurrences) for item in planned),
+        link_count=sum(
+            not occurrence.is_markdown_image and not occurrence.is_html_image
+            for item in planned
+            for occurrence in item.occurrences
+        ),
+        markdown_image_count=sum(
+            occurrence.is_markdown_image
+            for item in planned
+            for occurrence in item.occurrences
+        ),
+        html_image_count=sum(
+            occurrence.is_html_image
+            for item in planned
+            for occurrence in item.occurrences
+        ),
         highlight_count=highlight_count,
         format_fix_count=format_fix_count,
     )
@@ -819,22 +954,33 @@ def render_occurrence(planned: PlannedNote, occurrence: LinkOccurrence) -> str:
     assert planned.manifest.destination_rel is not None
     if occurrence.is_embed:
         assert occurrence.asset_destination is not None
-        width, height = image_dimensions(occurrence.parts.alias)
         href = markdown_href(planned.manifest.destination_rel, occurrence.asset_destination)
-        alt = escape_label(Path(occurrence.parts.target).stem)
+        if occurrence.is_html_image:
+            assert occurrence.image_html_prefix is not None
+            assert occurrence.image_html_suffix is not None
+            return occurrence.image_html_prefix + href + occurrence.image_html_suffix
         attrs: List[str] = []
-        if width:
-            attrs.append(f'width="{width}"')
-        if height:
-            attrs.append(f'height="{height}"')
+        if occurrence.is_markdown_image:
+            alt = occurrence.image_alt or ""
+            if occurrence.image_attrs:
+                attrs.extend(occurrence.image_attrs[1:-1].strip().split())
+        else:
+            width, height = image_dimensions(occurrence.parts.alias)
+            alt = escape_label(Path(occurrence.parts.target).stem)
+            if width:
+                attrs.append(f'width="{width}"')
+            if height:
+                attrs.append(f'height="{height}"')
         attrs.extend(
             f".{class_name}"
             for class_name in IMAGE_PRESENTATION_CLASSES.get(
                 occurrence.asset_destination.name, ()
             )
+            if f".{class_name}" not in attrs
         )
         suffix = "{" + " ".join(attrs) + "}" if attrs else ""
-        return f"![{alt}]({href}){suffix}"
+        title = f" {occurrence.image_title}" if occurrence.image_title else ""
+        return f"![{alt}]({href}{title}){suffix}"
     assert occurrence.note_target is not None
     assert occurrence.note_target.destination_rel is not None
     fragment = ""
@@ -922,6 +1068,65 @@ def inject_anchors(
     return "".join(output)
 
 
+def split_blockquote_prefix(line: str) -> Tuple[str, str]:
+    """Split explicit Markdown quote markers from their contained content.
+
+    A single ASCII space after each ``>`` is syntax, while a following tab or
+    additional spaces belong to the quoted block's own indentation.  Keeping
+    that distinction lets us normalize nested Obsidian lists inside callouts
+    without moving the callout itself.
+    """
+
+    match = re.match(r"^[ ]{0,3}", line)
+    assert match is not None
+    position = match.end()
+    prefix = line[:position]
+    if position >= len(line) or line[position] != ">":
+        return "", line
+    while position < len(line) and line[position] == ">":
+        prefix += ">"
+        position += 1
+        if position < len(line) and line[position] == " ":
+            prefix += " "
+            position += 1
+        if position >= len(line) or line[position] != ">":
+            break
+    return prefix, line[position:]
+
+
+def normalize_list_prefix(line: str) -> Tuple[str, bool]:
+    """Canonicalize list indentation and marker spacing outside code fences."""
+
+    quote_prefix, content = split_blockquote_prefix(line)
+    leading = re.match(r"^[ \t]+", content)
+    changed = False
+    if leading and "\t" in leading.group(0):
+        expanded = leading.group(0).expandtabs(4)
+        content = expanded + content[leading.end() :]
+        changed = True
+
+    list_prefix = LIST_PREFIX_CAPTURE_RE.match(content)
+    if list_prefix:
+        raw_indent = list_prefix.group(1)
+        indent = len(raw_indent.expandtabs(4))
+        # Python-Markdown requires four columns for each nested level.  A
+        # single leading space is a common accidental root indent, while two
+        # or three spaces usually express the first child level in editors.
+        # Snap ambiguous indentation to the nearest four-column level instead
+        # of flooring 2/3 spaces to zero and silently flattening hierarchy.
+        normalized_indent = 0 if indent <= 1 else ((indent + 2) // 4) * 4
+        canonical = (
+            " " * normalized_indent
+            + list_prefix.group("marker")
+            + " "
+            + content[list_prefix.end() :]
+        )
+        if canonical != content:
+            content = canonical
+            changed = True
+    return quote_prefix + content, changed
+
+
 def normalize_obsidian_blocks(
     text: str, *, close_obsidian_lists: bool = False
 ) -> Tuple[str, int]:
@@ -951,21 +1156,8 @@ def normalize_obsidian_blocks(
         return stripped_value.startswith("|") and stripped_value.endswith("|")
 
     for line in source_lines:
-        if fence_char is None:
-            leading = re.match(r"^[ \t]+", line)
-            if leading and "\t" in leading.group(0):
-                expanded = leading.group(0).expandtabs(4)
-                line = expanded + line[leading.end() :]
-                changes += 1
-            if close_obsidian_lists:
-                list_prefix = LIST_PREFIX_RE.match(line)
-                if list_prefix:
-                    indent = len(list_prefix.group(1).expandtabs(4))
-                    normalized_indent = indent - (indent % 4)
-                    if normalized_indent != indent:
-                        line = " " * normalized_indent + line[len(list_prefix.group(1)) :]
-                        changes += 1
-        fence = FENCE_RE.match(line)
+        _quote_prefix, fence_content = split_blockquote_prefix(line)
+        fence = FENCE_RE.match(fence_content)
         if fence_char is not None:
             output.append(line)
             marker = fence.group(1) if fence else ""
@@ -979,6 +1171,11 @@ def normalize_obsidian_blocks(
             fence_length = len(marker)
             output.append(line)
             continue
+
+        normalized_line, changed = normalize_list_prefix(line)
+        if changed:
+            line = normalized_line
+            changes += 1
 
         stripped = line.strip()
         current_indent = len(line) - len(line.lstrip(" "))
@@ -1132,6 +1329,15 @@ def normalize_display_math_blocks(text: str) -> Tuple[str, int]:
             match.start()
             for match in re.finditer(r"\$\$", line)
             if not any(start <= match.start() < end for start, end in protected)
+            and (
+                match.start() == 0
+                or (
+                    len(line[: match.start()])
+                    - len(line[: match.start()].rstrip("\\"))
+                )
+                % 2
+                == 0
+            )
         ]
 
     def container_marker(prefix: str) -> Tuple[str, str]:
@@ -1310,6 +1516,8 @@ def report_bytes(plan: Plan) -> bytes:
         "published_notes": len(plan.notes),
         "unique_assets": len(plan.asset_sources),
         "wikilinks": plan.link_count,
+        "markdown_images": plan.markdown_image_count,
+        "html_images": plan.html_image_count,
         "highlights": plan.highlight_count,
         "format_fixes": plan.format_fix_count,
         "outputs": [
@@ -1391,6 +1599,8 @@ def print_summary(plan: Plan, mode: str, math_note_count: int) -> None:
     print(f"Published notes: {len(plan.notes)}")
     print(f"Unique referenced assets: {len(plan.asset_sources)}")
     print(f"Converted wikilinks/embeds: {plan.link_count}")
+    print(f"Converted Markdown image paths: {plan.markdown_image_count}")
+    print(f"Converted HTML image paths: {plan.html_image_count}")
     print(f"Converted highlights: {plan.highlight_count}")
     print(f"Normalized Markdown block boundaries: {plan.format_fix_count}")
     print(f"Planned output files: {len(plan.outputs)}")

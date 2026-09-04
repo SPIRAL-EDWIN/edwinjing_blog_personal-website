@@ -440,17 +440,17 @@
     // already-rendered pages or manually written HTML that still exposes ^ids.
     var html = root.innerHTML;
     var next = html
-      .replace(/(\S)\s*\^([a-zA-Z0-9_-]{4,})(\s*<br\s*\/?>|\s*<\/p>|\s*$)/gi, function (match, before, blockId, after) {
+      .replace(/(\S)\s*\^([a-zA-Z0-9_-]+)(\s*<br\s*\/?>|\s*<\/p>|\s*$)/gi, function (match, before, blockId, after) {
         return document.getElementById(blockId)
           ? match
           : before + "<span id=\"" + blockId + "\" class=\"block-anchor\"></span>" + after;
       })
-      .replace(/(<\/(?:strong|em|code|b|i|span|mark|u)>)\s*\^([a-zA-Z0-9_-]{4,})/gi, function (match, closingTag, blockId) {
+      .replace(/(<\/(?:strong|em|code|b|i|span|mark|u)>)\s*\^([a-zA-Z0-9_-]+)/gi, function (match, closingTag, blockId) {
         return document.getElementById(blockId)
           ? match
           : closingTag + "<span id=\"" + blockId + "\" class=\"block-anchor\"></span>";
       })
-      .replace(/<p>\s*\^([a-zA-Z0-9_-]{4,})\s*<\/p>/gi, function (match, blockId) {
+      .replace(/<p>\s*\^([a-zA-Z0-9_-]+)\s*<\/p>/gi, function (match, blockId) {
         return document.getElementById(blockId)
           ? match
           : "<p><span id=\"" + blockId + "\" class=\"block-anchor\"></span></p>";
