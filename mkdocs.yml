@@ -197,7 +197,7 @@ extra_javascript:
   - javascripts/ui-perf.js?v=20260906a
 
 extra_css:
-  - stylesheets/edwinos.css?v=20260906a  # Unified EdwinOS cascade
+  - stylesheets/edwinos.css?v=20260906b  # Unified EdwinOS cascade
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。

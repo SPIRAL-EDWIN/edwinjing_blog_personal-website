@@ -4976,6 +4976,21 @@ body[data-md-color-scheme] .md-header .md-tabs.md-tabs,
         display: none !important;
     }
 
+    /* The section title is intentionally hidden, so its list no longer inherits
+       Material's native top bar. Place the first row's 0.6rem text inset just
+       beyond the header glass's 74% fade boundary, and keep the viewport-height
+       drawer border-box. */
+    .md-nav--primary[data-edwinos-drawer-section]
+    .edwinos-drawer-section-nav
+    > .md-nav__list {
+        --edwinos-drawer-glass-clearance: calc(
+            var(--edwinos-mobile-header-height, 3.5rem)
+            + 0.42rem
+        );
+        box-sizing: border-box !important;
+        padding-top: var(--edwinos-drawer-glass-clearance) !important;
+    }
+
     .md-nav--primary[data-edwinos-drawer-section]
     .edwinos-drawer-section-nav
     > .edwinos-drawer-section-title

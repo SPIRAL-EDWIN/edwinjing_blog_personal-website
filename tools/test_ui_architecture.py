@@ -175,5 +175,25 @@ class UiArchitectureContractTests(unittest.TestCase):
             self.assertRegex(selectors, r'\.md-header__button\[for="__drawer"\]')
             self.assertNotRegex(selectors, r"\.(?:md-tabs|md-search|md-source)(?:\b|__)")
 
+    def test_section_drawer_reserves_the_header_glass_clearance(self):
+        stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")
+        _, _, drawer_owner = section_span(
+            stylesheet,
+            "Drawer Navigation and Article TOC",
+            "Profile Card and HOME shell",
+        )
+
+        self.assertRegex(
+            drawer_owner,
+            r"--edwinos-drawer-glass-clearance:\s*calc\(\s*"
+            r"var\(--edwinos-mobile-header-height, 3\.5rem\)\s*\+\s*0\.42rem\s*\)",
+        )
+        self.assertRegex(
+            drawer_owner,
+            r"\.edwinos-drawer-section-nav\s*>\s*\.md-nav__list\s*\{[^}]*"
+            r"box-sizing:\s*border-box\s*!important;[^}]*"
+            r"padding-top:\s*var\(--edwinos-drawer-glass-clearance\)\s*!important;",
+        )
+
 if __name__ == "__main__":
     unittest.main()
