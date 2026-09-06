@@ -222,22 +222,29 @@
     window.addEventListener("pageshow", clearArchiveNavigationFeedback);
   }
 
+  function classifyUiRoute(pathname, logoHref) {
+    var normalizedPath = (pathname || "").replace(/\/+$/, "");
+    var normalizedLogoHref = (logoHref || "").trim();
+    var isRootPath = normalizedPath === "" || /^\/index\.html$/i.test(normalizedPath);
+    var isRootLogo = normalizedLogoHref === "." || normalizedLogoHref === "./";
+
+    return {
+      isHomepage: isRootPath || isRootLogo,
+      isHomeProfilePage: /\/HOME\/(?:Archive|friends)(?:\/index\.html)?$/i.test(normalizedPath)
+    };
+  }
+
   function updateHomepageClass() {
     if (!document.body) return;
 
-    var pathname = (window.location.pathname || "").replace(/\/+$/, "");
-    var isByPath = pathname === "" || pathname === "/" || pathname.endsWith("/index.html");
-    var isHomeProfilePage = /\/HOME\/(?:Archive|friends)(?:\/index\.html)?$/i.test(pathname);
-
     var logo = document.querySelector(".md-header__button.md-logo");
-    var logoHref = logo ? (logo.getAttribute("href") || "").trim() : "";
-    var isByLogo = logoHref === "." || logoHref === "./";
+    var logoHref = logo ? logo.getAttribute("href") : "";
+    var route = classifyUiRoute(window.location.pathname, logoHref);
 
-    var isHomepage = isByPath || isByLogo;
-    document.body.classList.toggle("is-homepage", isHomepage);
-    document.body.classList.toggle("is-home-profile-page", isHomeProfilePage);
+    document.body.classList.toggle("is-homepage", route.isHomepage);
+    document.body.classList.toggle("is-home-profile-page", route.isHomeProfilePage);
 
-    if (isHomepage) {
+    if (route.isHomepage) {
       document.title = "Chen Jing (经宸) | Zhejiang University";
     }
   }
@@ -1234,9 +1241,8 @@
   }
 
   function ensureHomeProfileLayout() {
-    var pathname = (window.location.pathname || "").replace(/\/+$/, "");
-    var shouldUseProfileShell = /\/HOME\/(?:Archive|friends)(?:\/index\.html)?$/i.test(pathname);
-    if (!shouldUseProfileShell) return;
+    var route = classifyUiRoute(window.location.pathname, "");
+    if (!route.isHomeProfilePage) return;
 
     var contentInner = document.querySelector(".md-content__inner");
     if (!contentInner) return;

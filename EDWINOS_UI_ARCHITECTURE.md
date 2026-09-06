@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-09-04
+Last updated: 2026-09-06
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -29,7 +29,7 @@ Do not change any of these orders without a browser regression pass.
 two Google Font imports must remain before every non-import rule. Relative font
 and image URLs assume that the file stays in `docs/stylesheets/`.
 
-The stylesheet currently preserves two cascade zones inside one file:
+The stylesheet still preserves two cascade zones inside one file:
 
 1. Historical Material/site baseline.
 2. EdwinOS final component rules.
@@ -54,6 +54,23 @@ Keep each component's responsive and reduced-motion rules beside that
 component once the component is migrated. Never introduce `@layer` as a
 cleanup shortcut: Material's unlayered CSS would change the current priority
 model.
+
+The following components have completed this verified ownership migration and
+must not regain an earlier historical patch block:
+
+- Markdown list primitives, with explicit component-owned exceptions for News,
+  Awards, and Experiences.
+- Header, tabs, search, and repository source facts.
+- Drawer navigation and Article TOC.
+- Profile Card and the HOME profile shell.
+- Overview section-title primitives. The rest of Overview remains a separate
+  incremental migration target.
+- Friends Page.
+
+The Header owner intentionally retains a few unscoped `.md-source*` primitives:
+Material also renders the repository source inside the mobile drawer, so those
+rules have a proven non-Header consumer. Treat them as shared source primitives,
+not dead Header leftovers.
 
 ## Runtime ownership
 
@@ -97,6 +114,12 @@ For every UI component migration:
 6. Check light/dark and desktop/mobile behavior, plus the nearest breakpoint.
 7. Keep the local preview at `http://127.0.0.1:8000/` available for review.
 
+For CSS-only equivalence work, `tools/check_ui_equivalence.cjs` can compare the
+baseline and candidate in a reset same-page DOM or in separately initialized
+fresh pages. Its usage and limitations are in `tools/UI_REGRESSION.md`. A
+zero-difference report is supporting evidence, not a substitute for the
+specificity/media/consumer audit required by step 3.
+
 The minimum global smoke set is Overview, Friends, Archive, ENotes, More
 Experiences, and one long article containing code/math/callouts. Header/search
 work must also exercise open/query/close states and instant navigation.
@@ -111,7 +134,8 @@ cleanup:
 - HOME subpages are wrapped into their profile layout at runtime.
 - Search depends on a template config adapter, an exact-match worker wrapper,
   and UI timing hooks.
-- Route classification still has an existing explicit `/index.html` ambiguity.
+- Route classification is centralized in `ui-perf.js`; keep its root,
+  article-index, Archive, and Friends cases covered by runtime contract tests.
 - Repository facts have JSON, cache/API, and Material-DOM compatibility paths.
 - Several Material breakpoint rules remain historically ordered inside the
   unified stylesheet and should be migrated component by component.

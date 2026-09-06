@@ -194,10 +194,10 @@ extra_javascript:
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
   - javascripts/mathjax.js?v=20260904a
   - javascripts/block-links.js?v=20260904a  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js?v=20260904a
+  - javascripts/ui-perf.js?v=20260906a
 
 extra_css:
-  - stylesheets/edwinos.css?v=20260904b  # Unified EdwinOS cascade
+  - stylesheets/edwinos.css?v=20260906a  # Unified EdwinOS cascade
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。

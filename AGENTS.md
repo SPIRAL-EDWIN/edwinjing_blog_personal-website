@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-09-04
+Last updated: 2026-09-06
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -15,6 +15,10 @@ Current stylesheet policy:
 - `docs/stylesheets/edwinos.css` is the single custom CSS entry point.
 - Its source order is part of the visual contract. It currently preserves a
   historical baseline zone followed by the EdwinOS final component zone.
+- Markdown Lists, Header/Tabs/Search/Source, Drawer/Article TOC, Profile
+  Card/HOME shell, Overview section-title primitives, and Friends Page are
+  verified single-owner components in the final zone. Do not add a historical
+  or tail copy of their rules.
 - Do not recreate `extra.css`, `edwinos-overrides.css`, or another tail-patch
   stylesheet.
 - `docs/javascripts/ui-perf.js` is the runtime adaptation layer. It owns body
@@ -46,7 +50,10 @@ When adding new UI rules:
 The old/new two-file split was retired on 2026-09-04. Continue the gradual
 component migration inside `edwinos.css`; do not perform a full reorder merely
 to make the file look cleaner. The goal is one owner per component, reached
-through verified component-sized changes.
+through verified component-sized changes. The first verified owners were
+completed on 2026-09-05 and expanded on 2026-09-06; see
+`EDWINOS_UI_ARCHITECTURE.md` for their boundaries and the intentionally shared
+typography, motion, frame, and mobile-drawer primitives.
 
 ## If the User Requests a Systematic UI Refactor
 
@@ -113,6 +120,8 @@ For small CSS-only changes:
 - Run `.venv/bin/mkdocs build --strict`.
 - If the local server is running, rely on MkDocs hot reload for review.
 - For alignment-sensitive fixes, measure the relevant DOM geometry.
+- For cascade migrations, use `tools/check_ui_equivalence.cjs` as described in
+  `tools/UI_REGRESSION.md`, and retain its stated limitations in the conclusion.
 
 For JS/runtime changes:
 
