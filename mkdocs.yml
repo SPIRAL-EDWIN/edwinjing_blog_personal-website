@@ -20,7 +20,7 @@ copyright: >-
   
 # --- 2. 代码仓库链接 (Repository) ---
 # 配置后，页面右上角会出现 GitHub 图标，方便快速跳转到源码或编辑页面 [13]
-repo_name: "GitHub: SPIRAL-EDWIN"
+repo_name: "SPIRAL-EDWIN"
 repo_url: https://github.com/SPIRAL-EDWIN/edwinjing_blog_personal-website
 
 # --- 3. 主题配置 (Theme Configuration) ---
@@ -197,7 +197,7 @@ extra_javascript:
   - javascripts/ui-perf.js?v=20260906a
 
 extra_css:
-  - stylesheets/edwinos.css?v=20260906b  # Unified EdwinOS cascade
+  - stylesheets/edwinos.css?v=20260913a  # Unified EdwinOS cascade
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。

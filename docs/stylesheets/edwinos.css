@@ -3879,7 +3879,7 @@ html.edwinos-search-transitioning .md-header .md-search {
         + var(--edwinos-header-tabs-search-gap)
     );
     --edwinos-header-search-stage-width: 190px;
-    --edwinos-header-source-max-width: 204px;
+    --edwinos-header-source-max-width: 138.4px;
     --edwinos-header-source-right: calc(
         var(--edwinos-header-right-edge)
         + var(--edwinos-header-control-size)
@@ -4169,14 +4169,14 @@ html.edwinos-search-transitioning .md-header .md-search {
 .md-header .md-source__repository {
     position: absolute !important;
     top: 7px !important;
-    right: 0 !important;
+    right: 3px !important;
     left: auto !important;
     z-index: 1 !important;
     display: block !important;
     width: calc(
         var(--edwinos-header-source-max-width)
         - var(--edwinos-header-control-size)
-        - 8px
+        - 6px
     ) !important;
     min-width: 0 !important;
     max-width: none !important;
@@ -4187,6 +4187,7 @@ html.edwinos-search-transitioning .md-header .md-search {
     font-size: 12px !important;
     font-weight: 500 !important;
     line-height: 1.08 !important;
+    text-align: right !important;
     white-space: nowrap !important;
     text-overflow: clip !important;
     transform: none !important;
@@ -4200,6 +4201,7 @@ html.edwinos-search-transitioning .md-header .md-search {
     display: flex !important;
     min-height: 14.4px !important;
     align-items: center !important;
+    justify-content: flex-end !important;
     gap: 11.2px !important;
     margin-top: 2.4px !important;
     overflow: hidden !important;
