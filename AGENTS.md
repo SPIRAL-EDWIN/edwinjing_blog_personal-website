@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-09-06
+Last updated: 2026-09-16
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -13,6 +13,9 @@ Read `EDWINOS_UI_ARCHITECTURE.md` before changing UI code.
 Current stylesheet policy:
 
 - `docs/stylesheets/edwinos.css` is the single custom CSS entry point.
+- Site typography uses same-origin WOFF2 assets in `docs/assets/fonts/`;
+  `theme.font: false` disables Material's Google Fonts injection. Do not add
+  remote font imports or a new stylesheet for font overrides.
 - Its source order is part of the visual contract. It currently preserves a
   historical baseline zone followed by the EdwinOS final component zone.
 - Markdown Lists, Header/Tabs/Search/Source, Drawer/Article TOC, Profile

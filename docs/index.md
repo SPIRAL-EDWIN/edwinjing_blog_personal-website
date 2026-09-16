@@ -11,7 +11,7 @@ description: "Official personal website of Chen Jing (经宸; name also written 
   <aside class="academic-sidebar">
     <div class="profile-card">
       <div class="profile-avatar">
-        <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Edwin&backgroundColor=f0f4f8" alt="Chen Jing (经宸)">
+        <img src="./assets/images/avatar-edwin-notionists.svg" alt="Chen Jing (经宸)">
       </div>
 
       <div class="profile-details">
@@ -77,25 +77,6 @@ description: "Official personal website of Chen Jing (经宸; name also written 
     </section>
 
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.3s;">
-      <h2 class="section-title"><span class="title-dash"></span>Publications</h2>
-      <!-- OVERVIEW_PUBLICATIONS_AUTO -->
-    </section>
-
-    <section class="academic-section animate-slide-up" style="--anim-delay: 0.4s;">
-      <h2 class="section-title"><span class="title-dash"></span>Selected Projects</h2>
-      <div class="grid-cards">
-        <div class="project-card hover-lift">
-          <div class="proj-header">
-            <h3>Personal Website &amp; Knowledge Garden</h3>
-            <span class="proj-year">2025 - 2026</span>
-          </div>
-          <p>Built and iteratively redesigned a MkDocs + Obsidian personal website, including a GitHub-inspired profile homepage, dark-mode palette, searchable archive, friends page, and responsive information layout.</p>
-          <div class="proj-tags"><span>MkDocs</span><span>UI Refactor</span><span>Knowledge Garden</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="academic-section animate-slide-up" style="--anim-delay: 0.5s;">
       <h2 class="section-title"><span class="title-dash"></span>Education</h2>
       <div class="education-card hover-lift">
         <div class="education-logo">
@@ -106,6 +87,26 @@ description: "Official personal website of Chen Jing (经宸; name also written 
           <p class="education-degree">B.S. in Mechanical Engineering</p>
           <p class="education-time">2025 - 2029 (expected)</p>
         </div>
+      </div>
+    </section>
+
+    <section class="academic-section animate-slide-up" style="--anim-delay: 0.4s;">
+      <h2 class="section-title"><span class="title-dash"></span>Publications</h2>
+      <!-- OVERVIEW_PUBLICATIONS_AUTO -->
+    </section>
+
+    <section class="academic-section animate-slide-up" style="--anim-delay: 0.5s;">
+      <h2 class="section-title"><span class="title-dash"></span>Workshop Contributions &amp; Presentations</h2>
+      <div class="overview-workshop">
+        <p class="overview-workshop__event"><a href="https://mobile-manipulation.net/events/moma-iros26/" target="_blank" rel="noopener noreferrer">MoMA.v5 Workshop <span aria-hidden="true">·</span> IEEE/RSJ IROS 2026</a></p>
+        <h3 class="overview-workshop__title">Learning Holistic Whole-Body Loco-Manipulation with a Bipedal Mobile Manipulator</h3>
+        <p class="overview-workshop__authors">
+            <span class="overview-workshop__authors-short">Zhongyu Chen*, Yuxuan Nai*, <span class="authors-ellipsis">…</span>, <strong>Chen Jing</strong>, <span class="authors-ellipsis">…</span>, Leixin Chang†, Hua Chen</span>
+            <span class="overview-workshop__authors-full" id="moma-v5-authors-full">Zhongyu Chen*, Yuxuan Nai*, Qian Chen, Yidong Zhu, <strong>Chen Jing</strong>, Qihan Wang, Xudong Li, Zhizhan Li, Leixin Chang†, Hua Chen</span>
+            <button type="button" class="overview-workshop__authors-toggle" aria-expanded="false" aria-controls="moma-v5-authors-full"><span class="when-closed">Detailed author list</span><span class="when-open">Hide detailed author list</span></button>
+        </p>
+        <p class="overview-workshop__status">Our short paper was accepted for a poster session and a 2-minute spotlight presentation.</p>
+        <p class="overview-workshop__meta">Pittsburgh, USA <span aria-hidden="true">·</span> <time datetime="2026-09-27">September 27, 2026</time></p>
       </div>
     </section>
 
@@ -128,11 +129,11 @@ description: "Official personal website of Chen Jing (经宸; name also written 
     </section>
 
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.7s;">
-      <h2 class="section-title"><span class="title-dash"></span>Selected Awards</h2>
+      <h2 class="section-title"><span class="title-dash"></span>Honors &amp; Awards</h2>
       <ul class="award-list">
-        <li><span class="award-year">APR 2026</span><span class="award-copy"><strong>Third Prize</strong> <span class="award-separator">·</span> <span class="award-name">31st Zhejiang University Mechanical Design Competition</span></span></li>
-        <li><span class="award-year">JAN 2024</span><span class="award-copy"><strong>Gold Medal &amp; First Prize</strong> <span class="award-separator">·</span> <span class="award-name">World Robot Contest Finals (WRCF)</span></span></li>
-        <li><span class="award-year">AUG 2023</span><span class="award-copy"><strong>Second Prize</strong> <span class="award-separator">·</span> <span class="award-name">National VEX Robotics Elite Competition (Hosted by SJTU)</span></span></li>
+        <li><span class="award-year">04/2026</span><span class="award-copy"><strong>Third Prize</strong> <span class="award-separator">·</span> <span class="award-name">31st Zhejiang University Mechanical Design Competition</span></span></li>
+        <li><span class="award-year">01/2024</span><span class="award-copy"><strong>Gold Medal &amp; First Prize</strong> <span class="award-separator">·</span> <span class="award-name">World Robot Contest Finals (WRCF)</span></span></li>
+        <li><span class="award-year">08/2023</span><span class="award-copy"><strong>Second Prize</strong> <span class="award-separator">·</span> <span class="award-name">National VEX Robotics Elite Competition (Hosted by SJTU)</span></span></li>
       </ul>
     </section>
 

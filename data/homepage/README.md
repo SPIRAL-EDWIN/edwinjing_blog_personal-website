@@ -65,6 +65,18 @@
 ```
 
 最新的 `visible_count` 条会直接显示，更早的条目自动进入 `Show more`。
+页面日期统一自动显示为 `MM/YYYY`，原始 `date` 仍填写完整的 `YYYY-MM-DD`，
+用于正确排序和机器可读的日期。
+如果链接应直接落在句子中的某个短语上，可用 `inline_link`；其 `label` 必须在
+`text` 中恰好出现一次：
+
+```yaml
+  - date: "2026-09-16"
+    text: "Our short paper was accepted at the MoMA.v5 Workshop at IROS 2026."
+    inline_link:
+      label: "MoMA.v5 Workshop at IROS 2026"
+      url: "https://example.com/workshop"
+```
 
 ## 本地预览、检查和发布
 

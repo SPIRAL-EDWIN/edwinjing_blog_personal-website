@@ -27,6 +27,7 @@
   var mathJaxLoadPromise = null;
   var navigationSequence = 0;
   var typesetQueue = Promise.resolve();
+  var mathResizeFrame = 0;
   var HASH_LAYOUT_SETTLED_EVENT = "edwinos:hash-layout-settled";
 
   window.MathJax = {
@@ -183,6 +184,8 @@ function typesetCurrentDocument() {
         window.MathJax.typesetClear();
         window.MathJax.texReset();
         return window.MathJax.typesetPromise().then(function () {
+          if (sequence !== navigationSequence) return;
+          classifyWideInlineMath();
           announceHashLayoutSettled(sequence);
         });
       });
@@ -196,6 +199,39 @@ function typesetCurrentDocument() {
     // Keep raw TeX readable if the local optional runtime cannot be loaded.
   });
 }
+
+function classifyWideInlineMath() {
+  var formulas = document.querySelectorAll(
+    ".md-content__inner span.arithmatex:not(.arithmatex--display)"
+  );
+  var updates = [];
+
+  formulas.forEach(function (formula) {
+    var math = formula.querySelector("mjx-container");
+    if (!math) return;
+    var prose = formula.closest("p, li, td, th, blockquote") || formula.parentElement;
+    if (!prose) return;
+
+    // Use the actual typeset width, not the current scroll pane width. This
+    // also removes the class when a wider viewport makes the formula fit.
+    updates.push({
+      formula: formula,
+      wide: math.getBoundingClientRect().width > prose.clientWidth + 1
+    });
+  });
+
+  updates.forEach(function (item) {
+    item.formula.classList.toggle("edwinos-math-overflow", item.wide);
+  });
+}
+
+window.addEventListener("resize", function () {
+  if (mathResizeFrame) window.cancelAnimationFrame(mathResizeFrame);
+  mathResizeFrame = window.requestAnimationFrame(function () {
+    mathResizeFrame = 0;
+    classifyWideInlineMath();
+  });
+});
 
 function announceHashLayoutSettled(sequence) {
   if (sequence !== navigationSequence || !window.location.hash) return;

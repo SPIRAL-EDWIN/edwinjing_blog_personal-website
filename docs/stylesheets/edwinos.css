@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Lato:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
-@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap");
 
 /*
  * EdwinOS unified stylesheet
@@ -2038,6 +2036,80 @@ body:has(.academic-home-layout) .academic-section li {
  * after the historical baseline unless a verified migration changes both.
  */
 
+/* Site-hosted Latin subsets remove first-visit Google Fonts dependencies. The
+   Chinese glyphs intentionally use the local overview subset and OS fallbacks. */
+@font-face {
+    font-family: "Source Serif 4";
+    src: url("../assets/fonts/source-serif-4/source-serif-4-latin.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Source Serif 4";
+    src: url("../assets/fonts/source-serif-4/source-serif-4-latin-italic.woff2") format("woff2");
+    font-style: italic;
+    font-weight: 300 600;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("../assets/fonts/jetbrains-mono/jetbrains-mono-latin.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400 500;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url("../assets/fonts/inter/inter-latin.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 300 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("../assets/fonts/playfair-display/playfair-display-latin.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("../assets/fonts/playfair-display/playfair-display-latin-italic.woff2") format("woff2");
+    font-style: italic;
+    font-weight: 400 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Cinzel";
+    src: url("../assets/fonts/cinzel/cinzel-latin.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 500 600;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Cormorant Garamond";
+    src: url("../assets/fonts/cormorant-garamond/cormorant-garamond-latin.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 500 600;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Cormorant Garamond";
+    src: url("../assets/fonts/cormorant-garamond/cormorant-garamond-latin-italic.woff2") format("woff2");
+    font-style: italic;
+    font-weight: 500 600;
+    font-display: swap;
+}
+
 @font-face {
     font-family: "Caveat";
     src: url("../assets/fonts/caveat/caveat-latin.woff2") format("woff2");
@@ -2087,9 +2159,11 @@ body:has(.academic-home-layout) .academic-section li {
    ========================================================================== */
 
 :root {
-    --edwinos-font-serif: "Source Serif 4", Georgia, "Noto Serif SC", serif;
+    --edwinos-font-serif: "Source Serif 4", Georgia, "Noto Serif SC",
+        "Microsoft YaHei", "PingFang SC", serif;
     --edwinos-font-hand: "Caveat", cursive;
-    --edwinos-font-mono: "JetBrains Mono", "Courier New", monospace;
+    --edwinos-font-mono: "JetBrains Mono", "Noto Sans SC EdwinOS",
+        "Microsoft YaHei", "PingFang SC", "Courier New", monospace;
     --edwinos-font-reading-sans: "Outfit EdwinOS", "Noto Sans SC EdwinOS",
         "PingFang SC", "Microsoft YaHei", sans-serif;
 }
@@ -2103,6 +2177,15 @@ body,
 .archive-note,
 .friend-desc {
     font-family: var(--edwinos-font-serif) !important;
+}
+
+body.is-homepage .academic-home-layout .academic-content {
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.65;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
 }
 
 /* Overview section titles: base layout, final typeface, then route density. */
@@ -2151,6 +2234,14 @@ body:has(.academic-home-layout) .md-typeset .friend-name {
     letter-spacing: 0 !important;
 }
 
+body.is-homepage .md-typeset .proj-header h3,
+body.is-homepage .md-typeset .education-school,
+body.is-homepage .md-typeset .education-school a,
+body.is-homepage .md-typeset .cv-title {
+    font-family: var(--edwinos-font-reading-sans) !important;
+    letter-spacing: -0.01em !important;
+}
+
 body.is-homepage .section-title,
 body.is-home-profile-page .section-title,
 body:has(.academic-home-layout) .section-title {
@@ -2177,6 +2268,15 @@ body:has(.academic-home-layout) .md-typeset .cv-title {
     font-size: 1.04rem !important;
     font-weight: 600 !important;
     line-height: 1.28 !important;
+}
+
+body.is-homepage .md-typeset .proj-header h3,
+body.is-homepage .md-typeset .education-school,
+body.is-homepage .md-typeset .education-school a,
+body.is-homepage .md-typeset .cv-title {
+    font-size: 17px !important;
+    font-weight: 500 !important;
+    line-height: 1.3 !important;
 }
 
 .md-header,
@@ -2211,6 +2311,82 @@ body.is-homepage .cv-desc,
 body.is-homepage .award-copy {
     font-family: var(--edwinos-font-reading-sans) !important;
     letter-spacing: 0 !important;
+}
+
+body.is-homepage .academic-home-layout :is(
+    .news-date,
+    .education-time,
+    .cv-time,
+    .proj-year,
+    .award-year,
+    .proj-tags,
+    .visitor-meta-footer__signature,
+    .visitor-badge-fallback
+) {
+    font-family: var(--edwinos-font-reading-sans) !important;
+}
+
+body.is-homepage .academic-home-layout .education-degree {
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+}
+
+body.is-homepage .academic-home-layout :is(.education-time, .cv-time) {
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1.4 !important;
+}
+
+body.is-homepage .academic-home-layout .cv-subtitle {
+    font-size: 13.5px !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+}
+
+body.is-homepage .academic-home-layout :is(.cv-desc, .cv-desc li, .project-card p) {
+    font-size: 13.5px !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+}
+
+body.is-homepage .academic-home-layout :is(.proj-year, .award-year) {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1.65 !important;
+}
+
+body.is-homepage .academic-home-layout .proj-tags span {
+    font-family: inherit !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.45 !important;
+}
+
+body.is-homepage .academic-home-layout .award-copy {
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    line-height: 1.45 !important;
+}
+
+body.is-homepage .academic-home-layout .award-copy strong {
+    font-family: inherit !important;
+    font-weight: 600 !important;
+}
+
+@media screen and (max-width: 42.5rem) {
+    body.is-homepage .md-typeset .proj-header h3,
+    body.is-homepage .md-typeset .education-school,
+    body.is-homepage .md-typeset .education-school a,
+    body.is-homepage .md-typeset .cv-title {
+        font-size: 15.5px !important;
+    }
+
+    body.is-homepage .academic-home-layout .award-copy {
+        font-size: 12.5px !important;
+    }
 }
 
 /* Bold marked text needs a quiet surface in dark articles; the legacy yellow
@@ -4587,7 +4763,8 @@ html.edwinos-search-transitioning .md-header .md-search {
     height: 100% !important;
     min-height: 0 !important;
     margin-block: 0 !important;
-    padding-block: 0 !important;
+    /* Segoe UI's visual baseline sits below the centered icon on Windows. */
+    padding-block: 0 4px !important;
     line-height: normal !important;
 }
 
@@ -5127,6 +5304,12 @@ body[data-md-color-scheme] .md-header .md-tabs.md-tabs,
 /* Keep article navigation geometry stable across hover, focus, and active
    states. Preserve hierarchy through nested lists and communicate interaction
    with color alone, without shifting long titles onto another line. */
+.md-sidebar--primary .md-nav__link {
+    /* JetBrains covers Latin, while Windows' generic monospace CJK fallback
+       otherwise switches to a visibly unrelated serif face. */
+    font-family: var(--edwinos-font-mono) !important;
+}
+
 .md-sidebar--primary .md-nav__list
 .md-nav__link:not(.md-nav__title):not(.edwinos-drawer-back-title):not(.edwinos-drawer-section-title),
 .md-sidebar--secondary [data-md-component="toc"] .md-nav__link {
@@ -6705,15 +6888,15 @@ body:has(.academic-home-layout) .academic-content > .academic-section:first-of-t
 body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type li {
     color: #1a1a1a !important;
     font-family: var(--edwinos-font-reading-sans) !important;
-    font-size: 0.96rem !important;
+    font-size: 15px !important;
     font-weight: 400 !important;
     letter-spacing: 0 !important;
-    line-height: 1.75 !important;
+    line-height: 1.65 !important;
 }
 
 body.is-homepage .academic-content > .academic-section:first-of-type .about-name-cn,
 body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type .about-name-cn {
-    font-family: var(--edwinos-font-serif) !important;
+    font-family: inherit !important;
 }
 
 body.is-homepage .academic-content > .academic-section:first-of-type p,
@@ -6738,7 +6921,8 @@ body:has(.academic-home-layout) .academic-content > .academic-section:first-of-t
 body.is-homepage .academic-content > .academic-section:first-of-type a:hover,
 body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type a:hover {
     color: #1d4ed8 !important;
-    text-decoration: none !important;
+    text-decoration: underline 1px !important;
+    text-underline-offset: 3px;
     border-bottom: 0 !important;
 }
 
@@ -6843,11 +7027,12 @@ body.is-homepage .news-list li,
 body.is-home-profile-page .news-list li,
 body:has(.academic-home-layout) .news-list li {
     display: grid !important;
-    grid-template-columns: 5.2rem minmax(0, 1fr) !important;
-    column-gap: 0.8rem !important;
+    grid-template-columns: 72px minmax(0, 1fr) !important;
+    column-gap: 14px !important;
     row-gap: 0 !important;
     align-items: baseline !important;
     align-items: first baseline !important;
+    padding: 7px 0 !important;
 }
 
 body.is-homepage .news-date,
@@ -6865,6 +7050,12 @@ body.is-home-profile-page .news-date,
 body:has(.academic-home-layout) .news-date {
     align-self: baseline !important;
     align-self: first baseline !important;
+    color: var(--academic-date) !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1.65 !important;
     white-space: nowrap !important;
 }
 
@@ -6874,6 +7065,25 @@ body:has(.academic-home-layout) .news-text {
     align-self: baseline !important;
     align-self: first baseline !important;
     min-width: 0 !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 13.5px !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+}
+
+.academic-home-layout .overview-news-inline-link {
+    color: var(--academic-accent) !important;
+    font: inherit;
+    font-weight: 500;
+    text-decoration: none !important;
+    border-bottom: 0 !important;
+}
+
+.academic-home-layout .overview-news-inline-link:hover {
+    color: var(--academic-accent) !important;
+    text-decoration: underline 1px !important;
+    text-underline-offset: 3px;
+    background: transparent !important;
 }
 
 .academic-home-layout .overview-news-links {
@@ -6899,8 +7109,8 @@ body:has(.academic-home-layout) .news-text {
     width: fit-content;
     margin-left: 6rem;
     color: var(--academic-muted);
-    font-family: var(--edwinos-font-mono);
-    font-size: 0.72rem;
+    font-family: var(--edwinos-font-reading-sans);
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     list-style: none;
@@ -6929,6 +7139,13 @@ body:has(.academic-home-layout) .news-text {
     }
 }
 
+@media screen and (max-width: 42.5rem) {
+    body.is-homepage .academic-home-layout .news-list li {
+        grid-template-columns: 56px minmax(0, 1fr) !important;
+        column-gap: 10px !important;
+    }
+}
+
 /* ==========================================================================
    Overview Publications
    ========================================================================== */
@@ -6947,7 +7164,7 @@ body:has(.academic-home-layout) .news-text {
     gap: 1rem !important;
     align-items: center !important;
     margin: 0 !important;
-    padding: 0.78rem 0.62rem !important;
+    padding: 12px 10px !important;
     border-bottom: 1px solid var(--academic-card-border);
     background: transparent;
     list-style: none !important;
@@ -7002,10 +7219,10 @@ body:has(.academic-home-layout) .news-text {
             color-mix(in srgb, var(--academic-accent) 3%, transparent)
         ),
         var(--academic-soft);
-    font-family: var(--edwinos-font-mono);
-    font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    font-family: var(--edwinos-font-reading-sans);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
 }
 
 .academic-home-layout .overview-publication__body {
@@ -7014,21 +7231,22 @@ body:has(.academic-home-layout) .news-text {
 
 .academic-home-layout .md-typeset .overview-publication__title,
 .academic-home-layout .overview-publication__title {
-    margin: 0 0 0.24rem !important;
+    margin: 0 !important;
     color: var(--academic-ink) !important;
-    font-family: var(--edwinos-font-serif) !important;
-    font-size: 1rem !important;
-    font-weight: 600 !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
     line-height: 1.3 !important;
-    letter-spacing: -0.01em !important;
+    letter-spacing: -0.015em !important;
 }
 
-.academic-home-layout .overview-publication__authors,
-.academic-home-layout .overview-publication__authors-full {
-    margin: 0 !important;
+body.is-homepage .academic-home-layout .overview-publication__authors,
+body.is-homepage .academic-home-layout .overview-publication__authors-full {
+    margin: 3px 0 0 !important;
     color: var(--academic-muted) !important;
-    font-family: var(--edwinos-font-serif) !important;
-    font-size: 0.79rem !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 12.5px !important;
+    font-weight: 400 !important;
     line-height: 1.45 !important;
 }
 
@@ -7065,15 +7283,23 @@ body:has(.academic-home-layout) .news-text {
 }
 
 .academic-home-layout .overview-publication__authors-toggle {
-    display: inline-block;
-    margin-left: 0.45rem;
-    color: var(--academic-accent);
-    font-family: var(--edwinos-font-mono);
-    font-size: 0.66rem;
+    display: inline;
+    margin-left: 6px;
+    color: var(--academic-ink);
+    font-family: inherit;
+    font-size: 12px;
     font-weight: 500;
-    text-decoration: underline;
+    line-height: inherit;
+    white-space: nowrap;
+    text-decoration: none;
     text-decoration-thickness: 1px;
-    text-underline-offset: 0.18em;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.academic-home-layout .overview-publication__authors-toggle:hover {
+    color: var(--academic-ink);
+    text-decoration: underline;
 }
 
 .academic-home-layout .overview-publication__authors-details .when-open,
@@ -7081,7 +7307,12 @@ body:has(.academic-home-layout) .news-text {
     display: none;
 }
 
-.academic-home-layout .overview-publication__authors-details[open] .when-open {
+.academic-home-layout .overview-publication__authors-full {
+    display: none;
+}
+
+.academic-home-layout .overview-publication__authors-details[open] .when-open,
+.academic-home-layout .overview-publication__authors-details[open] .overview-publication__authors-full {
     display: inline;
 }
 
@@ -7089,41 +7320,37 @@ body:has(.academic-home-layout) .news-text {
     display: none;
 }
 
-.academic-home-layout .overview-publication__authors-full {
-    margin-top: 0.15rem !important;
-}
-
 .academic-home-layout .overview-publication__venue {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     gap: 0.28rem 0.5rem;
-    margin-top: 0.2rem;
-    font-family: var(--edwinos-font-mono);
+    margin-top: 4px;
+    font-family: var(--edwinos-font-reading-sans);
     line-height: 1.35;
 }
 
 .academic-home-layout .overview-publication__venue-name {
     color: var(--academic-accent);
-    font-size: 0.69rem;
-    font-weight: 700;
-    letter-spacing: 0.045em;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
 }
 
 .academic-home-layout .overview-publication__venue-meta {
     color: var(--academic-muted);
-    font-size: 0.7rem;
-    font-weight: 500;
+    font-size: 11.5px;
+    font-weight: 400;
 }
 
 .academic-home-layout .overview-publication__award {
-    margin: 0.16rem 0 0 !important;
+    margin: 4px 0 0 !important;
     color: #cf222e !important;
-    font-family: var(--edwinos-font-serif) !important;
-    font-size: 0.78rem !important;
-    font-weight: 600 !important;
-    line-height: 1.4 !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+    line-height: 1.35 !important;
 }
 
 [data-md-color-scheme="slate"] .academic-home-layout .overview-publication__award {
@@ -7134,22 +7361,28 @@ body:has(.academic-home-layout) .news-text {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    margin-top: 0.32rem;
-    font-family: var(--edwinos-font-mono);
-    font-size: 0.71rem;
+    gap: 2px 0;
+    margin-top: 6px;
+    font-family: var(--edwinos-font-reading-sans);
+    font-size: 12.5px;
     font-weight: 500;
 }
 
-.academic-home-layout .overview-publication__links a {
+body.is-homepage .academic-home-layout .overview-publication__links a {
     position: relative;
+    display: inline-block !important;
     color: var(--academic-ink) !important;
-    text-decoration: underline !important;
+    line-height: 1.65 !important;
+    text-decoration-line: underline !important;
     text-decoration-thickness: 1px !important;
-    text-underline-offset: 0.2em;
+    letter-spacing: 0.01em;
+    text-decoration-color: color-mix(in srgb, var(--academic-ink) 22%, transparent) !important;
+    text-underline-offset: 3px;
 }
 
-.academic-home-layout .overview-publication__links a:hover {
-    color: var(--academic-accent) !important;
+body.is-homepage .academic-home-layout .overview-publication__links a:hover {
+    color: var(--academic-ink) !important;
+    text-decoration-color: var(--academic-ink) !important;
 }
 
 .academic-home-layout .overview-publication__links a + a {
@@ -7171,16 +7404,17 @@ body:has(.academic-home-layout) .news-text {
 .academic-home-layout .overview-section-empty {
     margin: 0.52rem 0 0 !important;
     color: var(--academic-muted) !important;
-    font-size: 0.74rem !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 12px !important;
     line-height: 1.45 !important;
 }
 
 @media screen and (max-width: 42.5rem) {
     .academic-home-layout .overview-publication {
         grid-template-columns: 6rem minmax(0, 1fr) !important;
-        gap: 0.75rem !important;
+        gap: 12px !important;
         align-items: start !important;
-        padding: 0.74rem 0.5rem !important;
+        padding: 12px 8px !important;
     }
 
     .academic-home-layout .overview-publication__media {
@@ -7189,12 +7423,12 @@ body:has(.academic-home-layout) .news-text {
 
     .academic-home-layout .md-typeset .overview-publication__title,
     .academic-home-layout .overview-publication__title {
-        font-size: 0.92rem !important;
+        font-size: 14.5px !important;
     }
 
-    .academic-home-layout .overview-publication__authors,
-    .academic-home-layout .overview-publication__authors-full {
-        font-size: 0.74rem !important;
+    body.is-homepage .academic-home-layout .overview-publication__authors,
+    body.is-homepage .academic-home-layout .overview-publication__authors-full {
+        font-size: 12px !important;
     }
 
     .academic-home-layout .overview-news-more > summary {
@@ -7205,17 +7439,178 @@ body:has(.academic-home-layout) .news-text {
 @media screen and (max-width: 26.25rem) {
     .academic-home-layout .overview-publication {
         grid-template-columns: 5rem minmax(0, 1fr) !important;
-        gap: 0.62rem !important;
-        padding: 0.64rem 0.25rem !important;
+        gap: 10px !important;
+        padding: 10px 0 !important;
     }
 
     .academic-home-layout .overview-publication__media {
         width: 5rem;
     }
 
-    .academic-home-layout .md-typeset .overview-publication__title,
-    .academic-home-layout .overview-publication__title {
-        font-size: 0.86rem !important;
+}
+
+/* ==========================================================================
+   Workshop Contributions & Presentations
+   ========================================================================== */
+
+.academic-home-layout .overview-workshop {
+    min-width: 0;
+    padding: 12px 10px;
+    border-top: 1px solid var(--academic-card-border);
+    border-bottom: 1px solid var(--academic-card-border);
+}
+
+body.is-homepage .academic-home-layout .overview-workshop__event {
+    margin: 0 0 4px !important;
+    color: var(--academic-accent) !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    line-height: 1.35 !important;
+}
+
+body.is-homepage .academic-home-layout .overview-workshop__event a {
+    color: inherit !important;
+    font: inherit;
+    padding: 0 !important;
+    text-decoration: none !important;
+    border-bottom: 0 !important;
+    background: transparent !important;
+}
+
+body.is-homepage .academic-home-layout .overview-workshop__event a:hover {
+    color: inherit !important;
+    text-decoration: underline 1px !important;
+    text-underline-offset: 3px;
+    border-bottom: 0 !important;
+    background: transparent !important;
+}
+
+.academic-home-layout .md-typeset .overview-workshop__title,
+.academic-home-layout .overview-workshop__title {
+    margin: 0 !important;
+    color: var(--academic-ink) !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    line-height: 1.3 !important;
+    letter-spacing: -0.015em !important;
+}
+
+.md-typeset .academic-home-layout .overview-workshop__authors {
+    display: block;
+    margin: 3px 0 0 !important;
+    padding: 0;
+    overflow: visible;
+    color: var(--academic-muted) !important;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 12.5px !important;
+    font-weight: 400 !important;
+    line-height: 1.45 !important;
+}
+
+.academic-home-layout .overview-workshop__authors,
+.academic-home-layout .overview-workshop__authors-full {
+    margin: 3px 0 0 !important;
+    color: var(--academic-muted) !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 12.5px !important;
+    font-weight: 400 !important;
+    line-height: 1.45 !important;
+}
+
+.academic-home-layout .overview-workshop__authors strong {
+    color: var(--academic-ink) !important;
+    padding: 0.05em 0.3em;
+    border-radius: 0.24rem;
+    background: color-mix(in srgb, var(--academic-muted) 22%, transparent);
+    font-family: inherit !important;
+    font-weight: 600 !important;
+    white-space: nowrap;
+}
+
+.academic-home-layout :is(
+    .overview-publication__authors-ellipsis,
+    .overview-workshop .authors-ellipsis
+) {
+    color: var(--academic-muted);
+    letter-spacing: 0.06em;
+    user-select: none;
+}
+
+.academic-home-layout .overview-workshop__authors-toggle {
+    display: inline;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    cursor: pointer;
+    vertical-align: baseline;
+    margin-left: 6px;
+    color: var(--academic-ink);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: inherit;
+    white-space: nowrap;
+    text-decoration: none;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+.academic-home-layout .overview-workshop__authors-toggle:hover {
+    text-decoration: underline;
+}
+
+.academic-home-layout .overview-workshop__authors-full,
+.academic-home-layout .overview-workshop__authors .when-open,
+.academic-home-layout .overview-workshop__authors.is-expanded .when-closed,
+.academic-home-layout .overview-workshop__authors.is-expanded .overview-workshop__authors-short {
+    display: none;
+}
+
+.academic-home-layout .overview-workshop__authors.is-expanded .when-open,
+.academic-home-layout .overview-workshop__authors.is-expanded .overview-workshop__authors-full {
+    display: inline;
+}
+
+body.is-homepage .academic-home-layout .overview-workshop__status {
+    margin: 6px 0 0 !important;
+    color: var(--academic-ink) !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 13.5px !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+}
+
+body.is-homepage .academic-home-layout .overview-workshop__meta {
+    margin: 4px 0 0 !important;
+    color: var(--academic-muted) !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1.4 !important;
+}
+
+@media screen and (max-width: 42.5rem) {
+    .academic-home-layout .overview-workshop {
+        padding: 12px 8px;
+    }
+
+    .academic-home-layout .md-typeset .overview-workshop__title,
+    .academic-home-layout .overview-workshop__title {
+        font-size: 14.5px !important;
+    }
+
+    body.is-homepage .academic-home-layout .overview-workshop__authors,
+    body.is-homepage .academic-home-layout .overview-workshop__authors-full {
+        font-size: 12px !important;
     }
 }
 
@@ -7528,8 +7923,14 @@ body .md-content__inner > .md-typeset__scrollwrap + h2#matlab-python {
     min-width: 0;
 }
 
-.md-content__inner.md-typeset span.arithmatex {
+.md-content__inner.md-typeset span.arithmatex:not(.arithmatex--display) {
     box-sizing: border-box;
+    display: inline;
+    max-width: none;
+    overflow: visible;
+}
+
+.md-content__inner.md-typeset span.arithmatex.edwinos-math-overflow {
     display: inline-block;
     max-width: 100%;
     overflow-x: auto;
@@ -7541,6 +7942,10 @@ body .md-content__inner > .md-typeset__scrollwrap + h2#matlab-python {
 .md-content__inner.md-typeset span.arithmatex.arithmatex--display {
     display: block;
     width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
     text-align: center;
 }
 
@@ -8277,11 +8682,11 @@ body[data-md-color-scheme="slate"]
     gap: 0.5rem;
     margin: 0;
     color: var(--academic-muted);
-    font-family: var(--edwinos-font-mono);
-    font-size: 0.68rem;
+    font-family: var(--edwinos-font-reading-sans);
+    font-size: 12px;
     font-weight: 400;
     letter-spacing: 0;
-    line-height: 1.3;
+    line-height: 1.45;
     text-align: center;
     white-space: nowrap;
 }
@@ -8354,8 +8759,8 @@ body[data-md-color-scheme="slate"]
     max-width: none;
     padding: 0;
     color: var(--academic-muted);
-    font-family: var(--edwinos-font-mono);
-    font-size: 0.68rem;
+    font-family: var(--edwinos-font-reading-sans);
+    font-size: 12px;
     font-weight: 400;
     line-height: 1.35;
     text-align: center;
@@ -8375,7 +8780,7 @@ body[data-md-color-scheme="slate"]
     .academic-home-layout .academic-content .visitor-meta-footer__signature {
         justify-content: center;
         gap: 0.32rem;
-        font-size: 0.66rem;
+        font-size: 12px;
         text-align: center;
     }
 

@@ -1,11 +1,18 @@
 # Overview > Recent News
 # Add a new entry anywhere in this list; the build sorts entries newest-first.
-# Use quoted YYYY-MM-DD dates. Optional links appear after the text.
+# Use quoted YYYY-MM-DD dates. An optional inline_link can link one exact
+# phrase inside text; optional links appear after the text.
 
 settings:
   visible_count: 5
 
 entries:
+  - date: "2026-09-16"
+    text: "Our short paper was accepted for a 2-minute spotlight presentation at the MoMA.v5 Workshop at IROS 2026."
+    inline_link:
+      label: "MoMA.v5 Workshop at IROS 2026"
+      url: "https://mobile-manipulation.net/events/moma-iros26/"
+
   - date: "2026-07-29"
     text: "Refined EdwinOS across desktop, tablet, and mobile window widths, improving responsive usability and polishing the header, search, and profile animations."
 

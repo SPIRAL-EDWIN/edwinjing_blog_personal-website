@@ -970,7 +970,7 @@
     return [
       '<div class="profile-card">',
       '  <div class="profile-avatar">',
-      '    <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Edwin&backgroundColor=f0f4f8" alt="Chen Jing (经宸)">',
+      '    <img src="' + siteHref("assets/images/avatar-edwin-notionists.svg") + '" alt="Chen Jing (经宸)">',
       '  </div>',
       '  <div class="profile-details">',
       '  <div class="profile-name-wrap">',
@@ -1792,6 +1792,20 @@
     });
   }
 
+  // Keep author text selectable; only the trailing button controls disclosure.
+  function setupWorkshopAuthorToggle() {
+    document.querySelectorAll(".overview-workshop__authors-toggle").forEach(function (button) {
+      if (button.dataset.workshopToggleBound) return;
+      button.dataset.workshopToggleBound = "true";
+      button.addEventListener("click", function () {
+        var authors = button.closest(".overview-workshop__authors");
+        if (!authors) return;
+        var expanded = authors.classList.toggle("is-expanded");
+        button.setAttribute("aria-expanded", String(expanded));
+      });
+    });
+  }
+
   function runAll() {
     clearArchiveNavigationFeedback();
     updateHomepageClass();
@@ -1811,6 +1825,7 @@
     openExternalContentLinksInNewTabs();
     labelCodeBlockLanguages();
     setupCollapsibleCallouts();
+    setupWorkshopAuthorToggle();
     setupVisitorBadge();
     updateVisitorDeploymentTime();
     fixOrderedListContinuity();

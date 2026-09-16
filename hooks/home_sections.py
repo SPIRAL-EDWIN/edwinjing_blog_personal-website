@@ -132,10 +132,27 @@ def _render_links(links: Any, label: str, css_class: str) -> str:
 
 def _render_news_item(entry: Mapping[str, Any], index: int) -> tuple[date, str]:
     published = _date_value(entry.get("date"), f"news.entries[{index}].date")
-    display_date = _text(entry.get("display_date"), f"news.entries[{index}].display_date", required=False)
-    if not display_date:
-        display_date = published.strftime("%b %d").upper()
-    body = html.escape(_text(entry.get("text"), f"news.entries[{index}].text"))
+    display_date = published.strftime("%m/%Y")
+    plain_text = _text(entry.get("text"), f"news.entries[{index}].text")
+    inline_link = entry.get("inline_link")
+    if inline_link in (None, ""):
+        body = html.escape(plain_text)
+    else:
+        link = _mapping(inline_link, f"news.entries[{index}].inline_link")
+        link_label = _text(link.get("label"), f"news.entries[{index}].inline_link.label")
+        link_url = _url(link.get("url"), f"news.entries[{index}].inline_link.url")
+        if plain_text.count(link_label) != 1:
+            raise HomeSectionError(
+                f"news.entries[{index}].inline_link.label must appear exactly once in text"
+            )
+        before, after = plain_text.split(link_label)
+        body = (
+            html.escape(before)
+            + f'<a class="overview-news-inline-link" href="{html.escape(link_url, quote=True)}"'
+            + _external_link_attributes(link_url)
+            + f">{html.escape(link_label)}</a>"
+            + html.escape(after)
+        )
     links = _render_links(entry.get("links"), f"news.entries[{index}].links", "overview-news-links")
     markup = (
         "<li>"
@@ -235,12 +252,11 @@ def _render_authors(authors: Sequence[Mapping[str, Any]], collapse_after: int) -
         '<details class="overview-publication__authors overview-publication__authors-details">'
         '<summary>'
         f'<span class="overview-publication__authors-short">{short}</span>'
+        f'<span class="overview-publication__authors-full">{full}</span>'
         '<span class="overview-publication__authors-toggle">'
         '<span class="when-closed">Detailed author list</span>'
         '<span class="when-open">Hide detailed author list</span>'
-        "</span></summary>"
-        f'<p class="overview-publication__authors-full">{full}</p>'
-        "</details>"
+        "</span></summary></details>"
     )
 
 

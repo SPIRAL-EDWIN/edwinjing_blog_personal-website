@@ -52,6 +52,39 @@ class HomeSectionsTests(unittest.TestCase):
         self.assertLess(markup.index("Newer"), markup.index("Older"))
         self.assertIn("Newer &lt;unsafe&gt;", markup)
         self.assertIn("overview-news-more", markup)
+        self.assertIn('datetime="2026-02-01">02/2026</time>', markup)
+        self.assertIn('datetime="2026-01-01">01/2026</time>', markup)
+
+    def test_news_inline_link_wraps_the_named_phrase(self):
+        markup = HOME_SECTIONS.render_news({
+            "entries": [{
+                "date": "2026-09-16",
+                "text": "Accepted at the MoMA.v5 Workshop at IROS 2026.",
+                "inline_link": {
+                    "label": "MoMA.v5 Workshop at IROS 2026",
+                    "url": "https://example.com/workshop",
+                },
+            }],
+        })
+        self.assertIn(
+            '<a class="overview-news-inline-link" href="https://example.com/workshop" '
+            'target="_blank" rel="noopener noreferrer">MoMA.v5 Workshop at IROS 2026</a>.',
+            markup,
+        )
+        self.assertNotIn("overview-news-links", markup)
+
+    def test_news_inline_link_label_must_match_once(self):
+        with self.assertRaises(HOME_SECTIONS.HomeSectionError):
+            HOME_SECTIONS.render_news({
+                "entries": [{
+                    "date": "2026-09-16",
+                    "text": "Accepted.",
+                    "inline_link": {
+                        "label": "Workshop",
+                        "url": "https://example.com/workshop",
+                    },
+                }],
+            })
 
     def test_long_author_list_compacts_and_keeps_self(self):
         authors = [
@@ -73,6 +106,12 @@ class HomeSectionsTests(unittest.TestCase):
         self.assertIn("Second Author", markup)
         self.assertIn("* Equal contribution", markup)
         self.assertIn("† Corresponding author", markup)
+        author_summary = markup.split("<summary>", 1)[1].split("</summary>", 1)[0]
+        self.assertLess(
+            author_summary.index("overview-publication__authors-full"),
+            author_summary.index("overview-publication__authors-toggle"),
+        )
+        self.assertNotIn('<p class="overview-publication__authors-full">', markup)
 
     def test_long_list_without_self_stays_expanded(self):
         authors = [{"name": f"Author {index}"} for index in range(1, 7)]

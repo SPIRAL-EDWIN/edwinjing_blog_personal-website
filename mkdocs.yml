@@ -85,10 +85,8 @@ theme:
         icon: material/weather-sunny
         name: 切换至浅色模式
 
-  # 字体配置 (Font) - 自动引用 Google Fonts
-  font:
-    text: Source Serif 4       # 正文字体：参考 TianxingChen 主页
-    code: JetBrains Mono       # 代码字体
+  # 字体由 edwinos.css 的本地 WOFF2 @font-face 管理，避免访问 Google Fonts。
+  font: false
 
 # --- 4. 插件系统 (Plugins) ---
 plugins:
@@ -192,12 +190,12 @@ markdown_extensions:
 extra_javascript:
   # MathJax 3 配置：实现 LaTeX 公式的浏览器端渲染 
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
-  - javascripts/mathjax.js?v=20260904a
+  - javascripts/mathjax.js?v=20260916a
   - javascripts/block-links.js?v=20260904a  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js?v=20260906a
+  - javascripts/ui-perf.js?v=20260916a
 
 extra_css:
-  - stylesheets/edwinos.css?v=20260913a  # Unified EdwinOS cascade
+  - stylesheets/edwinos.css?v=20260916a  # Unified EdwinOS cascade
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。

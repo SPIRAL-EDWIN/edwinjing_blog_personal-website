@@ -1,0 +1,21 @@
+Locally hosted EdwinOS fonts
+=============================
+
+The site serves these Latin-subset WOFF2 files from its own origin so a first
+visit does not depend on Google Fonts access. The files were obtained from the
+WOFF2 URLs in Google Fonts CSS (fonts.googleapis.com / fonts.gstatic.com) on
+2026-09-16. Each directory contains the font's original SIL Open Font License
+(OFL.txt) from the official Google Fonts repository:
+https://github.com/google/fonts/tree/main/ofl
+
+Source Serif 4       source-serif-4/       normal and italic, variable 300-600,
+                                           optical size 8-60
+JetBrains Mono       jetbrains-mono/       normal, variable 400-500
+Inter                inter/                normal, variable 300-700
+Playfair Display     playfair-display/     normal and italic, variable 400-700
+Cinzel               cinzel/               normal, variable 500-600
+Cormorant Garamond   cormorant-garamond/   normal and italic, variable 500-600
+
+Previously bundled Caveat, Outfit, and a narrowly scoped Noto Sans SC subset
+remain in their existing directories. The Noto subset is not a general Chinese
+font; the site's Chinese fallback chain must include system fonts.

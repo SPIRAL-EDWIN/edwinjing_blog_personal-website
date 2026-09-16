@@ -47,14 +47,18 @@ class UiArchitectureContractTests(unittest.TestCase):
         self.assertFalse((STYLES_DIR / "edwinos-overrides.css").exists())
         self.assertTrue(EDWINOS_PATH.is_file())
 
-    def test_all_font_imports_precede_non_import_rules(self):
+    def test_fonts_are_site_hosted_without_remote_imports(self):
         stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")
-        imports = list(re.finditer(r"(?m)^@import\s+[^;]+;", stylesheet))
-
-        self.assertEqual(2, len(imports))
-        prefix = stylesheet[: imports[-1].end()]
-        self.assertEqual(2, len(re.findall(r"(?m)^@import\s+", prefix)))
-        self.assertNotRegex(stylesheet[imports[-1].end() :], r"(?m)^@import\s+")
+        config = MKDOCS_PATH.read_text(encoding="utf-8")
+        self.assertNotRegex(stylesheet, r"(?m)^@import\s+")
+        self.assertNotIn("fonts.googleapis.com", stylesheet)
+        self.assertRegex(config, r"(?m)^\s+font:\s+false\s*$")
+        for family in (
+            "source-serif-4", "jetbrains-mono", "inter", "playfair-display",
+            "cinzel", "cormorant-garamond",
+        ):
+            self.assertIn(f"../assets/fonts/{family}/{family}-latin.woff2", stylesheet)
+            self.assertTrue((ROOT / "docs" / "assets" / "fonts" / family / f"{family}-latin.woff2").is_file())
 
     def test_stylesheet_documents_its_cascade_contract(self):
         stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")

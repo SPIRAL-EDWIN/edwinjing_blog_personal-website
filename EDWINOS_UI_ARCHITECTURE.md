@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-09-06
+Last updated: 2026-09-16
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -25,9 +25,14 @@ Do not change any of these orders without a browser regression pass.
 
 ## CSS ownership
 
-`docs/stylesheets/edwinos.css` is the only custom stylesheet entry point. Its
-two Google Font imports must remain before every non-import rule. Relative font
-and image URLs assume that the file stays in `docs/stylesheets/`.
+`docs/stylesheets/edwinos.css` is the only custom stylesheet entry point.
+Material's automatic Google Fonts injection is disabled with `theme.font:
+false` in `mkdocs.yml`. The font faces in the stylesheet load same-origin
+WOFF2 assets from `docs/assets/fonts/`; do not reintroduce remote CSS/font
+imports for site typography. Relative font and image URLs assume that the
+stylesheet stays in `docs/stylesheets/`. The bundled faces are Latin subsets;
+Chinese text uses local/system fallbacks rather than a network font request.
+Each redistributed font keeps its own OFL license in its asset directory.
 
 The stylesheet still preserves two cascade zones inside one file:
 
