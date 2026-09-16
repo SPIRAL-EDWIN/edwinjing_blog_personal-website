@@ -1324,7 +1324,7 @@ body[data-md-color-scheme="slate"] .md-content__inner {
     align-items: start;
     padding: 0.6rem 0 !important;
     margin: 0 !important;
-    border-bottom: 1px dashed var(--academic-card-border) !important;
+    border-bottom: 1px solid var(--academic-card-border) !important;
 }
 
 .news-list li:last-child {
@@ -2250,7 +2250,7 @@ body.is-homepage .section-title,
 body.is-home-profile-page .section-title,
 body:has(.academic-home-layout) .section-title {
     gap: 0.55rem !important;
-    margin-bottom: 0.85rem !important;
+    margin-bottom: 10px !important;
     font-size: 1.48rem !important;
     font-weight: 700 !important;
     line-height: 1.08 !important;
@@ -6968,6 +6968,7 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
 .academic-home-layout .overview-education-item {
     display: grid; grid-template-columns: 200px minmax(0, 1fr) max-content;
     gap: 16px 28px; align-items: center; padding: 16px 0;
+    border-top: 1px solid var(--academic-card-border);
 }
 .academic-home-layout .overview-education-logo { width: 200px; }
 .academic-home-layout .overview-education-logo img { display: block; width: 180px; max-width: 100%; height: auto; object-fit: contain; }
@@ -7007,6 +7008,7 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
     margin-left: 1.5em !important;
     padding-left: 1em !important;
     list-style-type: disc !important;
+    border-top: 1px solid var(--academic-card-border);
 }
 
 body.is-homepage .news-list li,
@@ -7442,6 +7444,7 @@ body.is-homepage .academic-home-layout .overview-publication__links a:hover {
 .academic-home-layout .overview-workshop {
     min-width: 0;
     padding: 12px 10px;
+    border-top: 1px solid var(--academic-card-border);
 }
 
 body.is-homepage .academic-home-layout .overview-workshop__event {
@@ -7606,7 +7609,10 @@ body.is-homepage .academic-home-layout .overview-workshop__meta {
     margin-left: 1.5em !important;
     padding-left: 1em !important;
     list-style-type: disc !important;
+    border-top: 1px solid var(--academic-card-border);
 }
+
+.academic-home-layout .award-list li:last-child { border-bottom: 0; }
 
 @media screen and (max-width: 600px) {
     .academic-home-layout .award-list {
