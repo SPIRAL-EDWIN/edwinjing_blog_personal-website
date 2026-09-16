@@ -21,6 +21,27 @@ SPEC.loader.exec_module(ARCHIVE)
 
 
 class RuntimeUiContractTests(unittest.TestCase):
+    def test_archive_feedback_tracks_content_not_an_elapsed_timeout_or_address(self):
+        source = UI_PERF_PATH.read_text(encoding="utf-8")
+        self.assertNotIn("setTimeout(clearArchiveNavigationFeedback", source)
+        self.assertIn("setTimeout(showArchiveNavigationHelp, 10000)", source)
+        self.assertIn('document.querySelector(".md-content__inner") === activeArchiveNavigation.content', source)
+        self.assertIn('window.addEventListener("popstate", clearArchiveNavigationFeedback)', source)
+        self.assertIn("window.location.assign(pending.destination.href)", source)
+        self.assertIn("cancelArchiveNavigation()", source)
+        run_all = source.split("function runAll() {", 1)[1].split("\n  }", 1)[0]
+        self.assertIn("finishArchiveNavigationFeedback();", run_all)
+        self.assertNotIn("clearArchiveNavigationFeedback();", run_all)
+
+    def test_prefetch_has_one_material_owner_without_archive_batch_downloads(self):
+        config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+        source = UI_PERF_PATH.read_text(encoding="utf-8")
+        self.assertIn("- navigation.instant.prefetch", config)
+        self.assertNotIn("warmLatestArchiveEntries", source)
+        self.assertNotIn("warmArchiveDestination", source)
+        self.assertNotIn('hint.rel = "prefetch"', source)
+        self.assertIn("beginArchiveNavigationFeedback", source)
+
     def test_ui_route_classification_distinguishes_root_from_article_index(self):
         source = UI_PERF_PATH.read_text(encoding="utf-8")
         self.assertIn("function classifyUiRoute(pathname, logoHref)", source)

@@ -8530,6 +8530,38 @@ body.is-archive-navigating::after {
     }
 }
 
+.archive-navigation-help {
+    position: fixed;
+    top: calc(50% + 4rem);
+    left: 50%;
+    z-index: 10001;
+    width: min(90vw, 28rem);
+    transform: translateX(-50%);
+    color: #f0f6fc;
+    text-align: center;
+    font: 400 0.65rem/1.6 var(--edwinos-font-mono);
+}
+
+.archive-navigation-help p {
+    margin: 0 0 0.8rem;
+}
+
+.archive-navigation-help button {
+    margin: 0 0.3rem;
+    padding: 0.45rem 0.65rem;
+    border: 1px solid #58a6ff;
+    border-radius: 0.35rem;
+    background: #161b22;
+    color: #f0f6fc;
+    font: inherit;
+    cursor: pointer;
+}
+
+.archive-navigation-help button:focus-visible {
+    outline: 2px solid #f0f6fc;
+    outline-offset: 3px;
+}
+
 @media screen and (max-width: 36rem) {
     body.is-home-profile-page:has(.archive-grid) .archive-card__title-row {
         display: grid;

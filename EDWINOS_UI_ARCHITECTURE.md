@@ -19,7 +19,7 @@ The order below is a runtime contract:
 
 `overrides/main.html` configures the exact-search worker before Material's
 runtime is loaded. The build hooks run in this order: `archive.py`,
-`home_sections.py`, then `search_scope.py`.
+`home_sections.py`, `search_scope.py`, `note_assets.py`, then `archive_assets.py`.
 
 Do not change any of these orders without a browser regression pass.
 
@@ -88,6 +88,10 @@ not dead Header leftovers.
 | Archive markup and article metadata | `hooks/archive.py` | CSS and runtime may consume generated classes but must not duplicate generation. |
 | Homepage news/publications markup | `hooks/home_sections.py` | Content comes from `data/homepage/*.yml`. |
 | Search index scope | `hooks/search_scope.py` | Worker/UI code must not duplicate build-time scope policy. |
+| Note image loading and intrinsic dimensions | `hooks/note_assets.py` | Build-time native lazy loading; preserve original image URLs, explicit attributes, and lightbox behavior. |
+| Internal page prefetch | Material `navigation.instant.prefetch` | Hover/focus-triggered HTML prefetch; no duplicate runtime Archive prefetch or automatic batch downloads. |
+| Archive opening feedback | `ui-perf.js`, Archive CSS owner | Clear only after content replacement or explicit cancellation; 10 seconds reveals recovery controls, never pretends a pending navigation is complete. |
+| Archive cover thumbnails | `hooks/archive_assets.py` | Build-time Pillow output under `assets/archive-thumbnails`; same-origin raster covers only, originals and third-party URLs preserved. |
 
 ## UI data sources
 

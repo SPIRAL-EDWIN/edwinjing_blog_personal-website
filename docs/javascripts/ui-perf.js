@@ -19,7 +19,7 @@
   var sectionNavigationDepthTimer = null;
   var archiveNavigationFeedbackReady = false;
   var archiveNavigationFallbackTimer = null;
-  var warmedArchiveTargets = Object.create(null);
+  var activeArchiveNavigation = null;
 
   function navigationPageKey(value) {
     try {
@@ -145,12 +145,61 @@
       window.clearTimeout(archiveNavigationFallbackTimer);
       archiveNavigationFallbackTimer = null;
     }
+    activeArchiveNavigation = null;
     if (!document.body) return;
     document.body.classList.remove("is-archive-navigating");
+    var help = document.getElementById("archive-navigation-help");
+    if (help) help.remove();
     document.querySelectorAll(".archive-card__link.is-opening").forEach(function (link) {
       link.classList.remove("is-opening");
       link.removeAttribute("aria-busy");
     });
+  }
+
+  function finishArchiveNavigationFeedback() {
+    // Material changes the address before the HTML arrives. Only a replaced
+    // content node proves that the next document is actually on screen.
+    if (activeArchiveNavigation &&
+        document.querySelector(".md-content__inner") === activeArchiveNavigation.content) return;
+    clearArchiveNavigationFeedback();
+  }
+
+  function cancelArchiveNavigation() {
+    var pending = activeArchiveNavigation;
+    if (!pending) return;
+    clearArchiveNavigationFeedback();
+    if (navigationPageKey(window.location.href) !== pending.sourceKey) {
+      // Material's popstate handler cancels the outstanding request.
+      window.history.back();
+    }
+  }
+
+  function showArchiveNavigationHelp() {
+    if (!activeArchiveNavigation || !document.body) return;
+    archiveNavigationFallbackTimer = null;
+    var pending = activeArchiveNavigation;
+    var help = document.createElement("div");
+    help.id = "archive-navigation-help";
+    help.className = "archive-navigation-help";
+    help.setAttribute("role", "status");
+    help.setAttribute("aria-live", "polite");
+    var message = document.createElement("p");
+    message.textContent = "仍在加载笔记。可以直接打开，或返回 Archive 后重试。";
+    var retry = document.createElement("button");
+    retry.type = "button";
+    retry.textContent = "直接打开";
+    retry.addEventListener("click", function () {
+      // Bypass a stalled instant-navigation request, not the HTTP cache.
+      window.location.assign(pending.destination.href);
+    });
+    var cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = "返回 Archive";
+    cancel.addEventListener("click", cancelArchiveNavigation);
+    help.appendChild(message);
+    help.appendChild(retry);
+    help.appendChild(cancel);
+    document.body.appendChild(help);
   }
 
   function beginArchiveNavigationFeedback(event) {
@@ -163,43 +212,21 @@
     var link = target && target.closest
       ? target.closest(".archive-card__link[href]")
       : null;
-    if (!archiveDestination(link) || !document.body) return;
+    var destination = archiveDestination(link);
+    if (!destination || !document.body) return;
 
     clearArchiveNavigationFeedback();
+    activeArchiveNavigation = {
+      destination: destination,
+      sourceKey: navigationPageKey(window.location.href),
+      content: document.querySelector(".md-content__inner")
+    };
     link.classList.add("is-opening");
     link.setAttribute("aria-busy", "true");
     document.body.classList.add("is-archive-navigating");
-    archiveNavigationFallbackTimer = window.setTimeout(clearArchiveNavigationFeedback, 10000);
-  }
-
-  function warmArchiveDestination(link) {
-    var destination = archiveDestination(link);
-    if (!destination || warmedArchiveTargets[destination.href] || !document.head) return;
-
-    warmedArchiveTargets[destination.href] = true;
-    var hint = document.createElement("link");
-    hint.rel = "prefetch";
-    hint.href = destination.href;
-    hint.setAttribute("data-edwinos-archive-prefetch", "");
-    document.head.appendChild(hint);
-  }
-
-  function warmLatestArchiveEntries() {
-    var links = Array.prototype.slice.call(
-      document.querySelectorAll(".archive-grid .archive-card__link[href]"),
-      0,
-      3
-    );
-    if (!links.length) return;
-
-    var warm = function () {
-      links.forEach(warmArchiveDestination);
-    };
-    if (typeof window.requestIdleCallback === "function") {
-      window.requestIdleCallback(warm, { timeout: 1200 });
-    } else {
-      window.setTimeout(warm, 500);
-    }
+    // A slow request is not a completed request. Keep the spinner until actual
+    // content replacement, and offer recovery instead of silently dismissing it.
+    archiveNavigationFallbackTimer = window.setTimeout(showArchiveNavigationHelp, 10000);
   }
 
   function setupArchiveNavigationFeedback() {
@@ -207,19 +234,13 @@
     archiveNavigationFeedbackReady = true;
 
     document.addEventListener("click", beginArchiveNavigationFeedback, true);
-    document.addEventListener("pointerover", function (event) {
-      var target = event.target && event.target.closest
-        ? event.target.closest(".archive-card__link[href]")
-        : null;
-      warmArchiveDestination(target);
-    }, { passive: true });
-    document.addEventListener("focusin", function (event) {
-      var target = event.target && event.target.closest
-        ? event.target.closest(".archive-card__link[href]")
-        : null;
-      warmArchiveDestination(target);
+    window.addEventListener("pageshow", finishArchiveNavigationFeedback);
+    window.addEventListener("popstate", clearArchiveNavigationFeedback);
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Escape" || !activeArchiveNavigation) return;
+      event.preventDefault();
+      cancelArchiveNavigation();
     });
-    window.addEventListener("pageshow", clearArchiveNavigationFeedback);
   }
 
   function classifyUiRoute(pathname, logoHref) {
@@ -1807,7 +1828,7 @@
   }
 
   function runAll() {
-    clearArchiveNavigationFeedback();
+    finishArchiveNavigationFeedback();
     updateHomepageClass();
     ensureHeaderGlass();
     ensureTocGlass();
@@ -1829,7 +1850,6 @@
     setupVisitorBadge();
     updateVisitorDeploymentTime();
     fixOrderedListContinuity();
-    warmLatestArchiveEntries();
   }
 
   runAll();

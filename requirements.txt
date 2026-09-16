@@ -4,6 +4,7 @@
 # 核心：MkDocs + Material 主题（内置 blog / search 插件）
 mkdocs
 mkdocs-material
+Pillow>=10.4,<12 # 构建 Archive 缩略图；正文原图保持不变
 
 # Markdown 扩展（mkdocs.yml markdown_extensions 使用）
 pymdown-extensions
