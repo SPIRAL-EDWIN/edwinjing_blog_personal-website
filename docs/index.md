@@ -105,8 +105,8 @@ description: "Official personal website of Chen Jing (经宸; name also written 
         <p class="overview-workshop__event"><a href="https://mobile-manipulation.net/events/moma-iros26/" target="_blank" rel="noopener noreferrer">MoMA.v5 Workshop <span aria-hidden="true">·</span> IEEE/RSJ IROS 2026</a></p>
         <h3 class="overview-workshop__title">Learning Holistic Whole-Body Loco-Manipulation with a Bipedal Mobile Manipulator</h3>
         <p class="overview-workshop__authors">
-            <span class="overview-workshop__authors-short">Zhongyu Chen*, Yuxuan Nai*, <span class="authors-ellipsis">…</span>, <strong>Chen Jing</strong>, <span class="authors-ellipsis">…</span>, Leixin Chang†, Hua Chen</span>
-            <span class="overview-workshop__authors-full" id="moma-v5-authors-full">Zhongyu Chen*, Yuxuan Nai*, Qian Chen, Yidong Zhu, <strong>Chen Jing</strong>, Qihan Wang, Xudong Li, Zhizhan Li, Leixin Chang†, Hua Chen</span>
+            <span class="overview-workshop__authors-short">Zhongyu Chen*, Yuxuan Nai*, <span class="authors-ellipsis">…</span>, <strong>Chen Jing</strong>, <span class="authors-ellipsis">…</span>, Leixin Chang, Hua Chen†</span>
+            <span class="overview-workshop__authors-full" id="moma-v5-authors-full">Zhongyu Chen*, Yuxuan Nai*, Qian Chen, Yidong Zhu, <strong>Chen Jing</strong>, Qihan Wang, Xudong Li, Zhizhan Li, Leixin Chang, Hua Chen†</span>
             <button type="button" class="overview-workshop__authors-toggle" aria-expanded="false" aria-controls="moma-v5-authors-full"><span class="when-closed">Detailed author list</span><span class="when-open">Hide detailed author list</span></button>
         </p>
         <p class="overview-workshop__status">Our short paper was accepted for a poster session and a 2-minute spotlight presentation.</p>

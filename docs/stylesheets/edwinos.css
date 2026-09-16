@@ -6993,11 +6993,20 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
     .academic-home-layout .overview-education-logo { width: 5.4rem; }
     .academic-home-layout .overview-education-logo img { width: 4.8rem; }
 }
-@media screen and (max-width: 36rem) {
-    .academic-home-layout .overview-education-item { grid-template-columns: 1fr max-content; gap: 4px 12px; }
-    .academic-home-layout .overview-education-logo { display: none; }
-    .academic-home-layout .overview-education-content { grid-column: 1; }
-    .academic-home-layout .overview-education-side { grid-column: 2; grid-row: 1; }
+@media screen and (max-width: 680px) {
+    .academic-home-layout .overview-education-item { grid-template-columns: minmax(0, 1fr) max-content; gap: 16px 1em; }
+    .academic-home-layout .overview-education-side {
+        grid-column: 2; grid-row: 1; justify-self: end; max-width: 100%;
+        gap: 4px;
+    }
+    .academic-home-layout .overview-education-years { white-space: normal; }
+    .academic-home-layout .overview-education-logo { display: block; grid-column: 1; grid-row: 1; width: 100%; }
+    .academic-home-layout .overview-education-logo img {
+        width: 80%; margin-left: 0;
+        /* Align the visible seal: the source has 22px of left padding in 1458px. */
+        transform: translateX(-1.509%);
+    }
+    .academic-home-layout .overview-education-content { grid-column: 1 / -1; grid-row: 2; }
 }
 
 /* ==========================================================================
