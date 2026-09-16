@@ -80,7 +80,7 @@ description: "Official personal website of Chen Jing (经宸; name also written 
       <h2 class="section-title"><span class="title-dash"></span>Education</h2>
       <ul class="overview-education-list">
         <li class="overview-education-item">
-          <div class="overview-education-logo"><img src="./assets/images/zhejiang-university-logo.png" alt="Zhejiang University logo"></div>
+          <div class="overview-education-logo"><img class="off-glb" src="./assets/images/zhejiang-university-logo.png" alt="Zhejiang University logo"></div>
           <div class="overview-education-content">
             <div class="overview-education-school"><a href="https://www.zju.edu.cn/" target="_blank" rel="noopener">Zhejiang University (ZJU)</a></div>
             <div class="overview-education-dept"><a href="https://zjui.intl.zju.edu.cn/" target="_blank" rel="noopener">ZJU-UIUC Institute (ZJUI)</a></div>
