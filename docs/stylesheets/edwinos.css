@@ -1148,7 +1148,7 @@ body,
     --academic-card-border: rgba(15, 23, 42, 0.1);
     --academic-muted: #64748b;
     --academic-ink: #111827;
-    --academic-accent: #003F88;
+    --academic-accent: #2563eb;
     --academic-date: #14796d;
     --academic-rule: #b45f16;
     --academic-soft: rgba(0, 63, 136, 0.06);
@@ -1260,15 +1260,17 @@ body[data-md-color-scheme="slate"] .md-content__inner {
     color: var(--academic-accent) !important;
     font-weight: 500;
     text-decoration: none !important;
-    border-bottom: 1px solid rgba(0, 63, 136, 0.2);
-    padding-bottom: 1px;
+    border-bottom: 0;
+    padding-bottom: 0;
     transition: all 0.25s ease;
 }
 
 .academic-section p a:hover {
-    color: var(--md-primary-fg-color--light) !important;
-    border-bottom-color: var(--academic-accent);
-    background: rgba(0, 63, 136, 0.04);
+    color: #1d4ed8 !important;
+    border-bottom: 0;
+    text-decoration: underline !important;
+    text-underline-offset: 3px;
+    background: transparent;
 }
 
 /* --- 4. 暗色模式 (Slate) 深度优化 --- */
@@ -1278,14 +1280,16 @@ body[data-md-color-scheme="slate"] .md-content__inner {
 }
 
 [data-md-color-scheme="slate"] .academic-section p a {
-    color: #93c5fd !important;
-    border-bottom: 1px solid rgba(147, 197, 253, 0.2);
+    color: #58a6ff !important;
+    border-bottom: 0;
 }
 
 [data-md-color-scheme="slate"] .academic-section p a:hover {
-    color: #bfdbfe !important;
-    border-bottom-color: #93c5fd;
-    background: rgba(147, 197, 253, 0.08);
+    color: #79c0ff !important;
+    border-bottom: 0;
+    text-decoration: underline !important;
+    text-underline-offset: 3px;
+    background: transparent;
 }
 
 .animate-slide-up {
@@ -6958,59 +6962,41 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
 
 
 /* ========================================================================
-   Education card responsive image
+   Education rows (Tianxing Chen reference layout)
    ======================================================================== */
-
-@media screen and (min-width: 36.0625rem) and (max-width: 48em) {
-    body.is-homepage .education-card,
-    body.is-home-profile-page .education-card,
-    body:has(.academic-home-layout) .education-card {
-        grid-template-columns: 5.4rem minmax(0, 1fr) !important;
-        gap: 0.95rem !important;
-        align-items: center !important;
-        justify-items: stretch !important;
-        text-align: left !important;
-    }
-
-    body.is-homepage .education-logo,
-    body.is-home-profile-page .education-logo,
-    body:has(.academic-home-layout) .education-logo {
-        display: flex !important;
-        width: 4.4rem !important;
-        height: 4.4rem !important;
-        margin: 0 !important;
-    }
-
-    body.is-homepage .education-info,
-    body.is-home-profile-page .education-info,
-    body:has(.academic-home-layout) .education-info {
-        width: auto !important;
-        min-width: 0 !important;
-    }
+.academic-home-layout .overview-education-list { margin: 0; padding: 0; list-style: none; }
+.academic-home-layout .overview-education-item {
+    display: grid; grid-template-columns: 200px minmax(0, 1fr) max-content;
+    gap: 16px 28px; align-items: center; padding: 16px 0;
 }
-
+.academic-home-layout .overview-education-logo { width: 200px; }
+.academic-home-layout .overview-education-logo img { display: block; width: 180px; max-width: 100%; height: auto; object-fit: contain; }
+.academic-home-layout .overview-education-content { display: grid; gap: 3px; min-width: 0; }
+.academic-home-layout .overview-education-school { font-size: 17px; font-weight: 500; line-height: 1.65; }
+.academic-home-layout .overview-education-school a,
+.academic-home-layout .overview-education-dept a {
+    color: var(--academic-accent) !important; text-decoration: none !important; border-bottom: 0 !important; transition: color .2s ease, text-decoration-color .2s ease;
+}
+.academic-home-layout .overview-education-school a:hover,
+.academic-home-layout .overview-education-dept a:hover {
+    color: #1d4ed8 !important; text-decoration: underline !important; text-underline-offset: 3px; border-bottom: 0 !important; background: transparent !important;
+}
+.academic-home-layout .overview-education-dept { color: var(--academic-ink); font-size: 13.5px; line-height: 1.5; }
+.academic-home-layout .overview-education-degree { color: var(--academic-muted); font-size: 13px; line-height: 1.65; }
+.academic-home-layout .overview-education-side { display: grid; align-self: center; gap: 4px; text-align: right; }
+.academic-home-layout .overview-education-years,
+.academic-home-layout .overview-education-place { color: var(--academic-muted); font-size: 12.5px; font-weight: 400; line-height: 1.55; white-space: nowrap; }
+.academic-home-layout .overview-education-place { line-height: 1.4; }
+@media screen and (max-width: 48em) {
+    .academic-home-layout .overview-education-item { grid-template-columns: 5.4rem minmax(0, 1fr) max-content; gap: 12px 16px; }
+    .academic-home-layout .overview-education-logo { width: 5.4rem; }
+    .academic-home-layout .overview-education-logo img { width: 4.8rem; }
+}
 @media screen and (max-width: 36rem) {
-    body.is-homepage .education-card,
-    body.is-home-profile-page .education-card,
-    body:has(.academic-home-layout) .education-card {
-        grid-template-columns: minmax(0, 1fr) !important;
-        gap: 0.9rem !important;
-        justify-items: stretch !important;
-        text-align: left !important;
-    }
-
-    body.is-homepage .education-logo,
-    body.is-home-profile-page .education-logo,
-    body:has(.academic-home-layout) .education-logo {
-        display: none !important;
-    }
-
-    body.is-homepage .education-info,
-    body.is-home-profile-page .education-info,
-    body:has(.academic-home-layout) .education-info {
-        width: 100% !important;
-        min-width: 0 !important;
-    }
+    .academic-home-layout .overview-education-item { grid-template-columns: 1fr max-content; gap: 4px 12px; }
+    .academic-home-layout .overview-education-logo { display: none; }
+    .academic-home-layout .overview-education-content { grid-column: 1; }
+    .academic-home-layout .overview-education-side { grid-column: 2; grid-row: 1; }
 }
 
 /* ==========================================================================
@@ -7456,8 +7442,6 @@ body.is-homepage .academic-home-layout .overview-publication__links a:hover {
 .academic-home-layout .overview-workshop {
     min-width: 0;
     padding: 12px 10px;
-    border-top: 1px solid var(--academic-card-border);
-    border-bottom: 1px solid var(--academic-card-border);
 }
 
 body.is-homepage .academic-home-layout .overview-workshop__event {

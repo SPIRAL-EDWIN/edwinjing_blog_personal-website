@@ -78,16 +78,20 @@ description: "Official personal website of Chen Jing (经宸; name also written 
 
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.3s;">
       <h2 class="section-title"><span class="title-dash"></span>Education</h2>
-      <div class="education-card hover-lift">
-        <div class="education-logo">
-          <img src="./assets/images/zhejiang-university-logo.png" alt="Zhejiang University logo">
-        </div>
-        <div class="education-info">
-          <h3 class="education-school"><a href="https://www.zju.edu.cn/" target="_blank" rel="noopener">ZJU-UIUC Institute, Zhejiang University</a></h3>
-          <p class="education-degree">B.S. in Mechanical Engineering</p>
-          <p class="education-time">2025 - 2029 (expected)</p>
-        </div>
-      </div>
+      <ul class="overview-education-list">
+        <li class="overview-education-item">
+          <div class="overview-education-logo"><img src="./assets/images/zhejiang-university-logo.png" alt="Zhejiang University logo"></div>
+          <div class="overview-education-content">
+            <div class="overview-education-school"><a href="https://www.zju.edu.cn/" target="_blank" rel="noopener">Zhejiang University (ZJU)</a></div>
+            <div class="overview-education-dept"><a href="https://zjui.intl.zju.edu.cn/" target="_blank" rel="noopener">ZJU-UIUC Institute (ZJUI)</a></div>
+            <div class="overview-education-degree">B.Eng. in Mechanical Engineering</div>
+          </div>
+          <div class="overview-education-side">
+            <div class="overview-education-years">Sep. 2025 — Jul. 2029 (Expected)</div>
+            <div class="overview-education-place">Hangzhou</div>
+          </div>
+        </li>
+      </ul>
     </section>
 
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.4s;">
