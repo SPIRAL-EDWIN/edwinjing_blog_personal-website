@@ -5882,6 +5882,20 @@ body[data-md-color-scheme="slate"] .md-typeset .btn-github-action:focus {
     fill: currentColor;
 }
 
+.profile-social-left .social-icon--scholar {
+    overflow: hidden;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+.profile-social-left .social-icon--scholar::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: url("../assets/icons/google-scholar-glyph.png") center / contain no-repeat;
+}
+
 .academic-home-layout .profile-card .profile-name,
 .academic-home-layout .profile-card .profile-pronouns,
 .academic-home-layout .profile-card .profile-role {
