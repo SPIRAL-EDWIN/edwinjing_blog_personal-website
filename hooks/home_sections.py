@@ -16,6 +16,7 @@ from urllib.parse import urlsplit
 
 import yaml
 from mkdocs.exceptions import PluginError
+from PIL import Image, UnidentifiedImageError
 
 
 HOME_PAGE = "index.md"
@@ -24,6 +25,8 @@ PUBLICATIONS_MARKER = "<!-- OVERVIEW_PUBLICATIONS_AUTO -->"
 NEWS_DATA = Path("data/homepage/news.yml")
 PUBLICATIONS_DATA = Path("data/homepage/publications.yml")
 PUBLICATION_IMAGE_ROOT = "assets/images/publications/"
+PUBLICATION_IMAGE_MAX_BYTES = 256 * 1024
+PUBLICATION_IMAGE_MAX_PIXELS = 2_000_000
 SAFE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 AUTHOR_MARKS = frozenset("*†§")
 
@@ -260,7 +263,35 @@ def _render_authors(authors: Sequence[Mapping[str, Any]], collapse_after: int) -
     )
 
 
-def _render_publication_media(entry: Mapping[str, Any], label: str) -> str:
+def _publication_image_dimensions(path: Path, label: str) -> tuple[int, int]:
+    if path.stat().st_size > PUBLICATION_IMAGE_MAX_BYTES:
+        raise HomeSectionError(
+            f"{label}.image must be no larger than "
+            f"{PUBLICATION_IMAGE_MAX_BYTES // 1024} KiB"
+        )
+    try:
+        with Image.open(path) as image:
+            width, height = image.size
+            image.verify()
+    except (OSError, UnidentifiedImageError) as exc:
+        raise HomeSectionError(f"{label}.image is not a readable raster image") from exc
+    if width <= 0 or height <= 0:
+        raise HomeSectionError(f"{label}.image has invalid dimensions")
+    if width * height > PUBLICATION_IMAGE_MAX_PIXELS:
+        raise HomeSectionError(
+            f"{label}.image must contain no more than "
+            f"{PUBLICATION_IMAGE_MAX_PIXELS:,} pixels"
+        )
+    return width, height
+
+
+def _render_publication_media(
+    entry: Mapping[str, Any],
+    label: str,
+    *,
+    dimensions: tuple[int, int] | None = None,
+    eager: bool = False,
+) -> str:
     image = _text(entry.get("image"), f"{label}.image", required=False)
     if image:
         if not image.startswith(PUBLICATION_IMAGE_ROOT) or ".." in Path(image).parts:
@@ -268,9 +299,15 @@ def _render_publication_media(entry: Mapping[str, Any], label: str) -> str:
                 f"{label}.image must be inside docs/{PUBLICATION_IMAGE_ROOT}"
             )
         image_alt = _text(entry.get("image_alt"), f"{label}.image_alt")
+        dimensions_markup = ""
+        if dimensions is not None:
+            dimensions_markup = f' width="{dimensions[0]}" height="{dimensions[1]}"'
+        loading = "eager" if eager else "lazy"
         return (
             '<div class="overview-publication__media">'
-            f'<img src="{html.escape(image, quote=True)}" alt="{html.escape(image_alt, quote=True)}" loading="lazy">'
+            f'<img class="off-glb" src="{html.escape(image, quote=True)}" '
+            f'alt="{html.escape(image_alt, quote=True)}"{dimensions_markup} '
+            f'loading="{loading}" decoding="async">'
             "</div>"
         )
     placeholder = _text(entry.get("placeholder", "PAPER"), f"{label}.placeholder")
@@ -306,6 +343,7 @@ def render_publications(data: Mapping[str, Any], repo_root: Path | None = None) 
     seen_ids = set()
     rendered_entries = []
     used_marks = set()
+    eager_image_used = False
 
     for index, raw_entry in enumerate(raw_entries):
         label = f"publications.entries[{index}]"
@@ -325,12 +363,26 @@ def render_publications(data: Mapping[str, Any], repo_root: Path | None = None) 
         used_marks.update(mark for author in authors for mark in author["marks"])
 
         image = _text(entry.get("image"), f"{label}.image", required=False)
-        if image and repo_root is not None and not (repo_root / "docs" / image).is_file():
-            raise HomeSectionError(f"publication image does not exist: docs/{image}")
+        if image and (not image.startswith(PUBLICATION_IMAGE_ROOT) or ".." in Path(image).parts):
+            raise HomeSectionError(
+                f"{label}.image must be inside docs/{PUBLICATION_IMAGE_ROOT}"
+            )
+        image_dimensions = None
+        if image and repo_root is not None:
+            image_path = repo_root / "docs" / image
+            if not image_path.is_file():
+                raise HomeSectionError(f"publication image does not exist: docs/{image}")
+            image_dimensions = _publication_image_dimensions(image_path, label)
 
         is_lead = _boolean(entry.get("lead"), f"{label}.lead")
         item_classes = "overview-publication" + (" is-lead" if is_lead else "")
-        media = _render_publication_media(entry, label)
+        media = _render_publication_media(
+            entry,
+            label,
+            dimensions=image_dimensions,
+            eager=bool(image) and not eager_image_used,
+        )
+        eager_image_used = eager_image_used or bool(image)
         authors_markup = _render_authors(authors, collapse_after)
         venue = _render_venue(entry.get("venue"), f"{label}.venue")
         award = _text(entry.get("award"), f"{label}.award", required=False)

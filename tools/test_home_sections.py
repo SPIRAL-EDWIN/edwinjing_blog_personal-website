@@ -6,6 +6,8 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
+from PIL import Image
+
 
 HOOK_PATH = Path(__file__).parents[1] / "hooks" / "home_sections.py"
 SPEC = importlib.util.spec_from_file_location("home_sections", HOOK_PATH)
@@ -143,6 +145,64 @@ class HomeSectionsTests(unittest.TestCase):
             )
             with self.assertRaises(HOME_SECTIONS.HomeSectionError):
                 HOME_SECTIONS.render_publications(data, Path(directory))
+
+    def test_publication_image_opts_out_of_lightbox(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            image = root / "docs/assets/images/publications/paper.webp"
+            image.parent.mkdir(parents=True)
+            Image.new("RGB", (480, 328), "white").save(image, "WEBP")
+            data = publication_data(
+                [{"name": "Chen Jing", "self": True}],
+                image="assets/images/publications/paper.webp",
+                image_alt="Paper teaser",
+            )
+            markup = HOME_SECTIONS.render_publications(data, root)
+            self.assertIn('<img class="off-glb"', markup)
+            self.assertNotIn('<a class="glightbox"', markup)
+            self.assertIn('width="480" height="328"', markup)
+            self.assertIn('loading="eager" decoding="async"', markup)
+
+    def test_only_first_available_publication_image_loads_eagerly(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            image_dir = root / "docs/assets/images/publications"
+            image_dir.mkdir(parents=True)
+            for name in ("first.webp", "second.webp"):
+                Image.new("RGB", (24, 16), "white").save(image_dir / name, "WEBP")
+
+            data = publication_data(
+                [{"name": "Chen Jing", "self": True}],
+                image="",
+            )
+            template = data["entries"][0]
+            data["entries"] = [
+                dict(template, id="placeholder", image=""),
+                dict(template, id="first-image", image="assets/images/publications/first.webp", image_alt="First"),
+                dict(template, id="second-image", image="assets/images/publications/second.webp", image_alt="Second"),
+            ]
+
+            markup = HOME_SECTIONS.render_publications(data, root)
+            first = markup.split('src="assets/images/publications/first.webp"', 1)[1].split(">", 1)[0]
+            second = markup.split('src="assets/images/publications/second.webp"', 1)[1].split(">", 1)[0]
+            self.assertIn('loading="eager"', first)
+            self.assertIn('loading="lazy"', second)
+            self.assertIn('decoding="async"', first)
+            self.assertIn('decoding="async"', second)
+
+    def test_oversized_publication_image_fails_the_build(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            image = root / "docs/assets/images/publications/too-large.png"
+            image.parent.mkdir(parents=True)
+            Image.new("RGB", (1500, 1500), "white").save(image, "PNG")
+            data = publication_data(
+                [{"name": "Chen Jing", "self": True}],
+                image="assets/images/publications/too-large.png",
+                image_alt="Oversized teaser",
+            )
+            with self.assertRaisesRegex(HOME_SECTIONS.HomeSectionError, "no more than"):
+                HOME_SECTIONS.render_publications(data, root)
 
     def test_hook_only_replaces_the_homepage_markers(self):
         with tempfile.TemporaryDirectory() as directory:
