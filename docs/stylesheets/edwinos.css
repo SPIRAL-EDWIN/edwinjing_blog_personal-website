@@ -6121,7 +6121,7 @@ body:has(.academic-home-layout) .md-typeset .btn-github-action:focus {
     min-height: 26px !important;
     height: 26px !important;
     padding: 0 12px !important;
-    font-family: var(--edwinos-font-mono) !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
     font-size: 0.84rem !important;
     font-weight: 500 !important;
     letter-spacing: 0 !important;
@@ -6353,7 +6353,10 @@ body:has(.academic-home-layout) .md-typeset .profile-cn-name {
 .profile-role,
 .profile-actions,
 .profile-followers,
-.profile-meta,
+.profile-meta {
+    font-family: var(--edwinos-font-reading-sans) !important;
+}
+
 .profile-social-left,
 .beijing-time-main,
 .beijing-time-zone {
@@ -6363,7 +6366,7 @@ body:has(.academic-home-layout) .md-typeset .profile-cn-name {
 .profile-meta,
 .profile-meta a,
 .profile-meta .meta-text {
-    font-family: var(--edwinos-font-mono) !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
 }
 
 .profile-meta #beijing-time,
@@ -6387,9 +6390,15 @@ body:has(.academic-home-layout) .profile-followers a,
 body:has(.academic-home-layout) .profile-followers .follower-text,
 body:has(.academic-home-layout) .profile-followers .follower-count,
 body:has(.academic-home-layout) .profile-followers .follower-separator {
-    font-family: var(--edwinos-font-mono) !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
     font-weight: 500 !important;
     letter-spacing: 0 !important;
+}
+
+body.is-homepage .profile-followers .follower-count,
+body.is-home-profile-page .profile-followers .follower-count,
+body:has(.academic-home-layout) .profile-followers .follower-count {
+    font-family: var(--edwinos-font-mono) !important;
 }
 
 body.is-homepage .profile-followers .follower-text,
@@ -6693,9 +6702,15 @@ body:has(.academic-home-layout) .profile-social-left .social-icon {
 body.is-homepage .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
 body.is-home-profile-page .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
 body:has(.academic-home-layout) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator) {
-    font-family: var(--edwinos-font-mono) !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
     font-weight: 500 !important;
     letter-spacing: 0 !important;
+}
+
+body.is-homepage .md-typeset .profile-followers .follower-count,
+body.is-home-profile-page .md-typeset .profile-followers .follower-count,
+body:has(.academic-home-layout) .md-typeset .profile-followers .follower-count {
+    font-family: var(--edwinos-font-mono) !important;
 }
 
 body.is-homepage .md-typeset .profile-meta :is(li, a, .meta-text),
@@ -6890,9 +6905,16 @@ body:has(.friend-links)
 .md-typeset
 .profile-followers
 :is(.follower-link, .follower-text, .follower-count, .follower-separator) {
-    font-family: var(--edwinos-font-mono) !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
     font-weight: 500 !important;
     letter-spacing: 0 !important;
+}
+
+body:has(.friend-links)
+.md-typeset
+.profile-followers
+.follower-count {
+    font-family: var(--edwinos-font-mono) !important;
 }
 
 
@@ -7204,7 +7226,6 @@ body:has(.academic-home-layout) .news-text {
 .academic-home-layout .overview-publication__media {
     display: flex;
     width: 8.75rem;
-    aspect-ratio: 7 / 4;
     align-items: center;
     justify-content: center;
     overflow: hidden;
@@ -7216,12 +7237,13 @@ body:has(.academic-home-layout) .news-text {
 .academic-home-layout .overview-publication__media img {
     display: block;
     width: 100%;
-    height: 100%;
+    height: auto;
     margin: 0 !important;
     object-fit: contain;
 }
 
 .academic-home-layout .overview-publication__media--placeholder {
+    aspect-ratio: 7 / 4;
     color: var(--academic-accent);
     background:
         linear-gradient(
@@ -7282,14 +7304,46 @@ body.is-homepage .academic-home-layout .overview-publication__authors-full {
     text-underline-offset: 0.17em;
 }
 
-.academic-home-layout .overview-publication__authors-details > summary {
-    display: inline;
-    color: inherit;
-    cursor: pointer;
-    list-style: none;
+.md-typeset .academic-home-layout details.overview-publication__authors-details {
+    display: block;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
-.academic-home-layout .overview-publication__authors-details > summary::-webkit-details-marker {
+.md-typeset .academic-home-layout details.overview-publication__authors-details:focus-within {
+    box-shadow: none;
+}
+
+.md-typeset .academic-home-layout details.overview-publication__authors-details > summary {
+    display: inline;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    cursor: pointer;
+    list-style: none;
+    overflow: visible;
+    position: static;
+}
+
+.md-typeset .academic-home-layout details.overview-publication__authors-details > summary::before,
+.md-typeset .academic-home-layout details.overview-publication__authors-details > summary::after {
+    display: none;
+    content: none;
+}
+
+.md-typeset .academic-home-layout details.overview-publication__authors-details > summary::-webkit-details-marker {
     display: none;
 }
 
@@ -7424,7 +7478,7 @@ body.is-homepage .academic-home-layout .overview-publication__links a:hover {
     .academic-home-layout .overview-publication {
         grid-template-columns: 6rem minmax(0, 1fr) !important;
         gap: 12px !important;
-        align-items: start !important;
+        align-items: center !important;
         padding: 12px 8px !important;
     }
 

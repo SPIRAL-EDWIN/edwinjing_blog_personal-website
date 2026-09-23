@@ -5,8 +5,9 @@
 
 ## 添加 Publication
 
-1. 将论文或项目预览图放进 `docs/assets/images/publications/`。建议使用压缩后的
-   横向 `.webp`、`.avif`、`.jpg` 或 `.png` 图片。
+1. 将论文或项目预览图放进 `docs/assets/images/publications/`，可以压缩为 `.webp`、
+   `.avif`、`.jpg` 或 `.png`。前端在各断点保持既有固定宽度，并按图片原始长宽比
+   自动计算高度；不应为适配卡片裁切图像，建议保留完整内容。
 2. 把下面模板复制到 `publications.yml` 的 `entries` 中，并填写内容：
 
 ```yaml
