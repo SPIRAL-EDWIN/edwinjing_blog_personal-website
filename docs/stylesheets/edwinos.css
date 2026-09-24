@@ -4962,6 +4962,63 @@ body[data-md-color-scheme] .md-header .md-tabs.md-tabs,
     }
 }
 
+/* Friends and Archive live under Overview in Material's navigation tree, but
+   they are separate destinations in EdwinOS. Keep Overview available as the
+   way home without presenting it as the current page. */
+body.is-home-profile-page[data-md-color-scheme="default"]
+.md-tabs__item--active
+.md-tabs__link,
+body.is-home-profile-page[data-md-color-scheme="default"]
+.md-tabs__link--active {
+    color: #57606a !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+    transform: none !important;
+}
+
+body.is-home-profile-page[data-md-color-scheme="slate"]
+.md-tabs__item--active
+.md-tabs__link,
+body.is-home-profile-page[data-md-color-scheme="slate"]
+.md-tabs__link--active {
+    color: #8b949e !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+    transform: none !important;
+}
+
+body.is-home-profile-page
+.md-tabs__item--active
+.md-tabs__link::after,
+body.is-home-profile-page
+.md-tabs__link--active::after {
+    width: 0 !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body.is-home-profile-page[data-md-color-scheme="default"]
+    .md-tabs__item--active
+    .md-tabs__link:hover,
+    body.is-home-profile-page[data-md-color-scheme="default"]
+    .md-tabs__link--active:hover {
+        color: #1f2328 !important;
+        background: rgba(31, 35, 40, 0.06) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    body.is-home-profile-page[data-md-color-scheme="slate"]
+    .md-tabs__item--active
+    .md-tabs__link:hover,
+    body.is-home-profile-page[data-md-color-scheme="slate"]
+    .md-tabs__link--active:hover {
+        color: #c9d1d9 !important;
+        background: rgba(240, 246, 252, 0.08) !important;
+        transform: translateY(-1px) !important;
+    }
+}
+
 /* Keep the complete mobile notch, including expanded search, in the sticky
    header's coordinate system. iOS otherwise composites fixed controls and
    absolute tabs separately while recovering from elastic overscroll. */
@@ -8362,6 +8419,7 @@ body[data-md-color-scheme="slate"]:has(.friend-links)
    only the duplicated inter-element gap on this page. */
 body:has(.friend-links) .academic-content--subpage {
     gap: 0 !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
 }
 
 .friend-links {
@@ -8430,10 +8488,11 @@ body:has(.friend-links) .academic-content--subpage {
     overflow: hidden;
 }
 
-.friend-name {
+body:has(.friend-links) .academic-content--subpage .friend-name {
     margin: 0 !important;
     overflow: hidden;
     color: #0969da !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
     font-size: 16px !important;
     font-weight: 600 !important;
     line-height: 1.16 !important;
@@ -8445,6 +8504,7 @@ body:has(.friend-links) .academic-content--subpage {
     display: -webkit-box;
     overflow: hidden;
     color: #57606a !important;
+    font-family: var(--edwinos-font-reading-sans) !important;
     font-size: 14px !important;
     line-clamp: 2;
     -webkit-box-orient: vertical;
