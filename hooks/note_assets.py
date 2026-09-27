@@ -1,7 +1,7 @@
-"""Reserve note-image geometry and defer off-screen downloads at build time.
+"""Reserve article-image geometry and defer off-screen downloads at build time.
 
-Only image start tags are extended: note text, URLs, lightbox wrappers, and
-explicit author attributes are left untouched. No imaging dependency is needed.
+Only image start tags are extended: article text, URLs, lightbox wrappers,
+and explicit author attributes are left untouched. No imaging dependency is needed.
 """
 
 import posixpath
@@ -146,9 +146,9 @@ class _NoteImages(HTMLParser):
 
 
 def on_page_content(html_content, page, config, files, **kwargs):
-    """Optimize individual ENotes pages, including Material instant navigation."""
+    """Optimize individual ENotes and experience articles at build time."""
     src_uri = getattr(page.file, "src_uri", "")
-    if not src_uri.startswith("OsdNotes/") or src_uri.rsplit("/", 1)[-1] == "index.md":
+    if not src_uri.startswith(("OsdNotes/", "经验分享/")) or src_uri.rsplit("/", 1)[-1] == "index.md":
         return html_content
     parser = _NoteImages(html_content, page, config, files)
     parser.feed(html_content)

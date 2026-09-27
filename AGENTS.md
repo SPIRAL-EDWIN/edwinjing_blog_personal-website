@@ -30,8 +30,9 @@ Current stylesheet policy:
   visitor-map loading, and markdown/list continuity fixes.
 - `docs/index.md` and related markdown files own content and semantic structure.
   Avoid moving content into CSS or JS.
-- `hooks/note_assets.py` owns note-image lazy loading and intrinsic dimensions
-  at build time. Preserve original images and explicit author attributes.
+- `hooks/note_assets.py` owns individual ENotes and experience-article image
+  lazy loading and intrinsic dimensions at build time. Preserve original images
+  and explicit author attributes.
   Internal HTML prefetch belongs to Material's `navigation.instant.prefetch`;
   do not restore a duplicate Archive prefetch or batch-download notes on load.
 - `hooks/archive_assets.py` owns generated local Archive cover thumbnails;

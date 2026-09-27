@@ -195,7 +195,7 @@ extra_javascript:
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
   - javascripts/mathjax.js?v=20260916a
   - javascripts/block-links.js?v=20260904a  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js?v=20260916c
+  - javascripts/ui-perf.js?v=20260927a
 
 extra_css:
   - stylesheets/edwinos.css?v=20260916b  # Unified EdwinOS cascade

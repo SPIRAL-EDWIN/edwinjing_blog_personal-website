@@ -20,6 +20,8 @@
   var archiveNavigationFeedbackReady = false;
   var archiveNavigationFallbackTimer = null;
   var activeArchiveNavigation = null;
+  var friendCountRequest = null;
+  var friendCountValue = null;
 
   function navigationPageKey(value) {
     try {
@@ -1056,6 +1058,14 @@
     var countElements = document.querySelectorAll("#friend-count");
     if (!countElements.length) return;
 
+    if (friendCountValue !== null) {
+      countElements.forEach(function (countElement) {
+        countElement.textContent = String(friendCountValue);
+      });
+      return;
+    }
+    if (friendCountRequest) return;
+
     function countRealFriends(markup) {
       var friendDoc = new DOMParser().parseFromString(markup, "text/html");
       return Array.prototype.filter.call(friendDoc.querySelectorAll(".friend-card[href]"), function (link) {
@@ -1064,7 +1074,9 @@
       }).length;
     }
 
-    fetch(siteHref("HOME/friends/"), { cache: "no-cache" })
+    // Fetch once per full page load. Material may call runAll more than once
+    // for the same document; a browser refresh creates a fresh request.
+    friendCountRequest = fetch(siteHref("HOME/friends/"), { cache: "no-cache" })
       .then(function (response) {
         if (!response.ok) throw new Error("Unable to fetch friend page");
         return response.text();
@@ -1072,7 +1084,8 @@
       .then(function (markup) {
         var friendCount = countRealFriends(markup);
         if (friendCount < 1) return;
-        countElements.forEach(function (countElement) {
+        friendCountValue = friendCount;
+        document.querySelectorAll("#friend-count").forEach(function (countElement) {
           countElement.textContent = String(friendCount);
         });
       })
@@ -1270,7 +1283,6 @@
 
     if (contentInner.querySelector(".academic-home-layout--subpage")) {
       updateBeijingTime();
-      updateFriendCount();
       return;
     }
 
@@ -1293,7 +1305,6 @@
     contentInner.appendChild(layout);
 
     updateBeijingTime();
-    updateFriendCount();
   }
 
   function markProfileDrawerEntries() {

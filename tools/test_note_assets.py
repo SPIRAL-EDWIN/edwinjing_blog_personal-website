@@ -1,4 +1,4 @@
-"""Contracts for build-time note image loading, geometry, and preservation."""
+"""Contracts for build-time article image loading, geometry, and preservation."""
 
 import importlib.util
 import struct
@@ -49,10 +49,27 @@ class NoteAssetTests(unittest.TestCase):
         self.assertIn('<IMG\n SRC="../images/image%20sample.png" loading="lazy" decoding="async" width="640" height="480" />', output)
 
     def test_hubs_and_non_notes_are_untouched(self):
-        for source in ("OsdNotes/index.md", "OsdNotes/CS101/index.md", "index.md", "HOME/friends.md", "经验分享/article.md"):
+        for source in ("OsdNotes/index.md", "OsdNotes/CS101/index.md", "经验分享/index.md", "经验分享/Phi Lab/index.md", "index.md", "HOME/friends.md"):
             with self.subTest(source=source):
                 self.page.file.src_uri = source
                 self.assertEqual(self.render('<img src="x">'), '<img src="x">')
+
+    def test_experience_article_images_get_loading_and_geometry_without_changing_links(self):
+        images = self.docs / "经验分享/Phi Lab/images"
+        images.mkdir(parents=True)
+        (images / "figure.png").write_bytes(self.png.read_bytes())
+        self.page.url = "经验分享/Phi Lab/Guide/"
+        self.page.file.src_uri = "经验分享/Phi Lab/Guide.md"
+        content = '<a class="glightbox" href="../images/figure.png"><img alt="Figure" src="../images/figure.png"></a>'
+        expected = content.replace('src="../images/figure.png">', 'src="../images/figure.png" loading="lazy" decoding="async" width="640" height="480">')
+        self.assertEqual(self.render(content), expected)
+        self.assertEqual(self.render(expected), expected)
+
+    def test_experience_article_preserves_explicit_image_intent(self):
+        self.page.url = "经验分享/Phi Lab/Guide/"
+        self.page.file.src_uri = "经验分享/Phi Lab/Guide.md"
+        content = '<img src="figure.png" width="474" loading="eager" decoding="sync">'
+        self.assertEqual(self.render(content), content)
 
     def test_ui_images_are_not_modified(self):
         for content in ('<img class="profile-avatar" src="x">', '<img src="/assets/images/avatar.svg">', '<img class="emoji" src="x">'):

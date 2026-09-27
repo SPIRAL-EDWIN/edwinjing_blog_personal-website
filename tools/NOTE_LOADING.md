@@ -1,7 +1,8 @@
 # Note loading checks
 
-The image-loading hook only changes rendered individual ENotes content. Original
-images, Markdown, links, and lightbox targets stay unchanged. Native lazy loading
+The image-loading hook changes rendered individual ENotes and experience articles,
+excluding their index pages. Original images, Markdown, links, and lightbox targets
+stay unchanged. Native lazy loading
 lets the browser fetch images near the viewport rather than the entire note.
 Known local image dimensions reserve space before download, reducing late layout
 shifts. Explicit author loading, decoding, and size attributes are preserved.
