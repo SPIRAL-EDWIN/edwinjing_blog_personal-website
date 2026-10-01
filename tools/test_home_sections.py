@@ -99,7 +99,6 @@ class HomeSectionsTests(unittest.TestCase):
         ]
         markup = HOME_SECTIONS.render_publications(publication_data(authors))
         summary = markup.split("overview-publication__authors-full", 1)[0]
-        self.assertIn("overview-publication__authors-details", markup)
         self.assertIn("First Author*", summary)
         self.assertIn("Chen Jing", summary)
         self.assertIn("Senior Author†", summary)
@@ -108,12 +107,28 @@ class HomeSectionsTests(unittest.TestCase):
         self.assertIn("Second Author", markup)
         self.assertIn("* Equal contribution", markup)
         self.assertIn("† Corresponding author", markup)
-        author_summary = markup.split("<summary>", 1)[1].split("</summary>", 1)[0]
+        author_summary = markup.split('<p class="overview-publication__authors">', 1)[1].split("</p>", 1)[0]
         self.assertLess(
             author_summary.index("overview-publication__authors-full"),
             author_summary.index("overview-publication__authors-toggle"),
         )
         self.assertNotIn('<p class="overview-publication__authors-full">', markup)
+        # Author text must not become a native disclosure click target again.
+        self.assertNotIn("<summary", author_summary)
+        self.assertNotIn("<details", markup)
+        self.assertIn('<button type="button" class="overview-publication__authors-toggle"', author_summary)
+        self.assertIn('aria-expanded="false" aria-controls="publication-paper-one-authors-full"', author_summary)
+        self.assertIn('id="publication-paper-one-authors-full"', author_summary)
+
+    def test_author_buttons_control_their_own_publication(self):
+        authors = [{"name": "Chen Jing"}] + [{"name": f"Author {index}"} for index in range(5)]
+        data = publication_data(authors)
+        data["entries"].append(dict(data["entries"][0], id="paper-two"))
+        markup = HOME_SECTIONS.render_publications(data)
+        for entry_id in ("paper-one", "paper-two"):
+            full_id = f"publication-{entry_id}-authors-full"
+            self.assertEqual(markup.count(f'id="{full_id}"'), 1)
+            self.assertEqual(markup.count(f'aria-controls="{full_id}"'), 1)
 
     def test_long_list_without_self_stays_expanded(self):
         authors = [{"name": f"Author {index}"} for index in range(1, 7)]

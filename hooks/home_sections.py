@@ -245,21 +245,22 @@ def _compact_authors(authors: Sequence[Mapping[str, Any]]) -> str:
     return ", ".join(chunks)
 
 
-def _render_authors(authors: Sequence[Mapping[str, Any]], collapse_after: int) -> str:
+def _render_authors(authors: Sequence[Mapping[str, Any]], collapse_after: int, entry_id: str) -> str:
     full = _join_authors(authors)
     collapsible = len(authors) > collapse_after and any(author["self"] for author in authors)
     if not collapsible:
         return f'<p class="overview-publication__authors">{full}</p>'
     short = _compact_authors(authors)
+    full_id = f"publication-{entry_id}-authors-full"
     return (
-        '<details class="overview-publication__authors overview-publication__authors-details">'
-        '<summary>'
+        '<p class="overview-publication__authors">'
         f'<span class="overview-publication__authors-short">{short}</span>'
-        f'<span class="overview-publication__authors-full">{full}</span>'
-        '<span class="overview-publication__authors-toggle">'
+        f'<span class="overview-publication__authors-full" id="{full_id}">{full}</span>'
+        '<button type="button" class="overview-publication__authors-toggle" '
+        f'aria-expanded="false" aria-controls="{full_id}">'
         '<span class="when-closed">Detailed author list</span>'
         '<span class="when-open">Hide detailed author list</span>'
-        "</span></summary></details>"
+        "</button></p>"
     )
 
 
@@ -383,7 +384,7 @@ def render_publications(data: Mapping[str, Any], repo_root: Path | None = None) 
             eager=bool(image) and not eager_image_used,
         )
         eager_image_used = eager_image_used or bool(image)
-        authors_markup = _render_authors(authors, collapse_after)
+        authors_markup = _render_authors(authors, collapse_after, entry_id)
         venue = _render_venue(entry.get("venue"), f"{label}.venue")
         award = _text(entry.get("award"), f"{label}.award", required=False)
         award_markup = (

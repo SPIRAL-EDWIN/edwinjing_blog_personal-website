@@ -1825,12 +1825,12 @@
   }
 
   // Keep author text selectable; only the trailing button controls disclosure.
-  function setupWorkshopAuthorToggle() {
-    document.querySelectorAll(".overview-workshop__authors-toggle").forEach(function (button) {
-      if (button.dataset.workshopToggleBound) return;
-      button.dataset.workshopToggleBound = "true";
+  function setupAuthorToggles() {
+    document.querySelectorAll(".overview-publication__authors-toggle, .overview-workshop__authors-toggle").forEach(function (button) {
+      if (button.dataset.authorToggleBound) return;
+      button.dataset.authorToggleBound = "true";
       button.addEventListener("click", function () {
-        var authors = button.closest(".overview-workshop__authors");
+        var authors = button.closest(".overview-publication__authors, .overview-workshop__authors");
         if (!authors) return;
         var expanded = authors.classList.toggle("is-expanded");
         button.setAttribute("aria-expanded", String(expanded));
@@ -1857,7 +1857,7 @@
     openExternalContentLinksInNewTabs();
     labelCodeBlockLanguages();
     setupCollapsibleCallouts();
-    setupWorkshopAuthorToggle();
+    setupAuthorToggles();
     setupVisitorBadge();
     updateVisitorDeploymentTime();
     fixOrderedListContinuity();
