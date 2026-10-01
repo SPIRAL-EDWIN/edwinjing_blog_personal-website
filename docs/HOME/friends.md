@@ -35,7 +35,7 @@ If you would like to exchange links, please make sure your website meets these c
 
 Please contact me through the social links on the homepage.
 
-**Link format:**
+## Link format:
 
 ```yaml
 name: Your website name

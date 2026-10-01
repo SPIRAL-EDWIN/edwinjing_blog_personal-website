@@ -102,10 +102,19 @@ description: "Official personal website of Chen Jing (经宸; name also written 
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.5s;">
       <h2 class="section-title"><span class="title-dash"></span>Workshop Contributions &amp; Presentations</h2>
       <div class="overview-workshop">
-        <p class="overview-workshop__event"><a href="https://mobile-manipulation.net/events/moma-iros26/" target="_blank" rel="noopener noreferrer">MoMA.v5 Workshop <span aria-hidden="true">·</span> IEEE/RSJ IROS 2026</a></p>
-        <h3 class="overview-workshop__title">Learning Holistic Whole-Body Loco-Manipulation with a Bipedal Mobile Manipulator</h3>
-        <p class="overview-workshop__status">Our short paper was accepted for a poster session and a 2-minute spotlight presentation.</p>
-        <p class="overview-workshop__meta">Pittsburgh, USA <span aria-hidden="true">·</span> <time datetime="2026-09-27">September 27, 2026</time></p>
+        <div class="overview-workshop__media overview-publication__media">
+          <img class="off-glb" src="assets/images/workshops/iros-2026-moma-poster.webp" alt="MoMA.v5 at IROS 2026: poster display on the left, workshop opening slide at upper right, and spotlight presentation at lower right" width="1550" height="1000" loading="eager" decoding="async">
+        </div>
+        <div class="overview-workshop__body">
+          <p class="overview-workshop__event"><a href="https://mobile-manipulation.net/events/moma-iros26/" target="_blank" rel="noopener noreferrer">MoMA.v5 Workshop <span aria-hidden="true">·</span> IEEE/RSJ IROS 2026</a></p>
+          <h3 class="overview-workshop__title">Learning Holistic Whole-Body Loco-Manipulation with a Bipedal Mobile Manipulator</h3>
+          <p class="overview-workshop__status">Our short paper was accepted for a poster session and a 2-minute spotlight presentation.</p>
+          <p class="overview-workshop__meta">Pittsburgh, USA <span aria-hidden="true">·</span> <time datetime="2026-09-27">September 27, 2026</time></p>
+          <nav class="overview-workshop__links overview-publication__links" aria-label="Workshop related links">
+            <a href="assets/posters/iros-2026-moma-poster.pdf" target="_blank" rel="noopener noreferrer">Poster</a>
+            <a href="assets/posters/iros-2026-moma-spotlight-talk.pdf" target="_blank" rel="noopener noreferrer">Spotlight&thinsp;·&thinsp;Talk</a>
+          </nav>
+        </div>
       </div>
     </section>
 
