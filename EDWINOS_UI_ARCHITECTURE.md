@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-09-16
+Last updated: 2026-10-06
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -76,6 +76,19 @@ The Header owner intentionally retains a few unscoped `.md-source*` primitives:
 Material also renders the repository source inside the mobile drawer, so those
 rules have a proven non-Header consumer. Treat them as shared source primitives,
 not dead Header leftovers.
+
+Search uses one continuous blur/tint surface and a separate thin perimeter
+highlight, with unfiltered input and icon. Its resting and expanded geometry
+share numeric left/right/top/height coordinates. The expanded height has its
+own token and must not change the shared Header control size or horizontal
+targets. Active tab backgrounds are inset 1px horizontally without moving
+their buttons or text. Search stays above covered controls until closing ends.
+The Search runtime in `ui-perf.js` owns the padded capsule displacement map,
+palette coverage measurement, bounded cache and animation/resize updates.
+Chromium uses edge refraction; Safari and unsupported browsers retain continuous
+native blur. Keep initialization idempotent across instant navigation, stop
+optical work while idle, and preserve Material's input/checkbox/query contracts.
+Upstream technique attribution is in `docs/assets/licenses/liquid-glass-MIT.txt`.
 
 ## Runtime ownership
 

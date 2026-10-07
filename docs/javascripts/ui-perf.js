@@ -15,7 +15,7 @@
   var pendingPrimarySidebarScroll = null;
   var lastDocumentPageKey = navigationPageKey(window.location.href);
   var searchReloadBudgetProcessed = false;
-  var headerSearchTransitionTimer = null;
+  var headerSearchRuntime = null;
   var sectionNavigationDepthTimer = null;
   var archiveNavigationFeedbackReady = false;
   var archiveNavigationFallbackTimer = null;
@@ -365,26 +365,393 @@
   }
 
   function beginHeaderSearchTransition() {
-    document.documentElement.classList.add("edwinos-search-transitioning");
-    // Commit the resting geometry before the checkbox changes its coordinates.
-    var search = document.querySelector(".md-search");
-    if (search) search.getBoundingClientRect();
-    window.clearTimeout(headerSearchTransitionTimer);
-    headerSearchTransitionTimer = window.setTimeout(function () {
-      document.documentElement.classList.remove("edwinos-search-transitioning");
-    }, 500);
+    if (headerSearchRuntime) headerSearchRuntime.arm();
   }
 
   function setupHeaderSearchTransition() {
+    var header = document.querySelector(".md-header");
+    var search = header ? header.querySelector(".md-search") : null;
+    var form = search ? search.querySelector(".md-search__form") : null;
+    var input = form ? form.querySelector(".md-search__input") : null;
     var searchToggle = document.querySelector('[data-md-toggle="search"]');
-    if (!searchToggle || searchToggle.dataset.edwinosTransitionReady === "1") return;
+    if (headerSearchRuntime && headerSearchRuntime.header === header &&
+        headerSearchRuntime.search === search && headerSearchRuntime.form === form &&
+        headerSearchRuntime.input === input && headerSearchRuntime.toggle === searchToggle) {
+      headerSearchRuntime.refresh();
+      return;
+    }
+    if (headerSearchRuntime) headerSearchRuntime.destroy();
+    headerSearchRuntime = null;
+    if (!header || !search || !form || !input || !searchToggle) return;
 
-    searchToggle.dataset.edwinosTransitionReady = "1";
-    searchToggle.addEventListener("change", function () {
-      if (!document.documentElement.classList.contains("edwinos-search-transitioning")) {
-        beginHeaderSearchTransition();
+    var svgNS = "http://www.w3.org/2000/svg";
+    var filterId = "edwinos-search-refraction";
+    var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var canvas = null;
+    var context = null;
+    var definitions = null;
+    var filter = null;
+    var mapImage = null;
+    var displacement = null;
+    var cache = new Map();
+    var listeners = [];
+    var timers = new Set();
+    var observers = [];
+    var frame = 0;
+    var focusFrame = 0;
+    var activationFrame = 0;
+    var focusGeneration = 0;
+    var reopenBlockedUntil = 0;
+    var until = 0;
+    var disposed = false;
+    var mapKey = "";
+    var restWidth = 44;
+    var openWidth = 44;
+    var currentA = 0;
+    var maximumA = 0;
+    var frames = 0;
+    var mapBuilds = 0;
+    var maximumMapTime = 0;
+    var progress = 0;
+    var round = function (value) { return Math.round(value * 100) / 100; };
+
+    var chromium = /\b(?:Chrome|Chromium|Edg|EdgA|OPR)\//.test(window.navigator.userAgent);
+    var refraction = chromium && window.CSS && typeof window.CSS.supports === "function" &&
+      window.CSS.supports("backdrop-filter", "url(#" + filterId + ")") &&
+      typeof window.SVGFEImageElement !== "undefined" && typeof window.SVGFEDisplacementMapElement !== "undefined";
+    if (refraction) {
+      canvas = document.createElement("canvas");
+      context = canvas.getContext("2d");
+      refraction = Boolean(context);
+    }
+
+    function listen(target, type, callback, options) {
+      target.addEventListener(type, callback, options);
+      listeners.push(function () { target.removeEventListener(type, callback, options); });
+    }
+
+    function timer(callback, delay) {
+      var id = window.setTimeout(function () {
+        timers.delete(id);
+        if (!disposed) callback();
+      }, delay);
+      timers.add(id);
+      return id;
+    }
+
+    function addGlass(kind) {
+      var selector = ".edwinos-search-glass--" + kind;
+      var layer = form.querySelector(selector);
+      if (!layer) {
+        layer = document.createElement("span");
+        layer.className = "edwinos-search-glass edwinos-search-glass--" + kind;
+        layer.setAttribute("aria-hidden", "true");
+        form.insertBefore(layer, input);
       }
+      return layer;
+    }
+
+    var surface = addGlass("surface");
+    var highlight = addGlass("highlight");
+    search.classList.toggle("edwinos-search-refraction", refraction);
+    search.dataset.edwinosSearchMode = refraction ? "refraction" : "native-blur";
+
+    if (refraction) {
+      definitions = document.createElementNS(svgNS, "svg");
+      definitions.setAttribute("width", "0");
+      definitions.setAttribute("height", "0");
+      definitions.setAttribute("aria-hidden", "true");
+      definitions.style.cssText = "position:fixed;left:0;top:0;pointer-events:none;overflow:hidden";
+      var defs = document.createElementNS(svgNS, "defs");
+      filter = document.createElementNS(svgNS, "filter");
+      filter.setAttribute("id", filterId);
+      filter.setAttribute("filterUnits", "userSpaceOnUse");
+      filter.setAttribute("color-interpolation-filters", "sRGB");
+      filter.setAttribute("x", "0");
+      filter.setAttribute("y", "0");
+      mapImage = document.createElementNS(svgNS, "feImage");
+      mapImage.setAttribute("result", "edwinos-search-map");
+      mapImage.setAttribute("preserveAspectRatio", "none");
+      mapImage.setAttribute("x", "0");
+      mapImage.setAttribute("y", "0");
+      displacement = document.createElementNS(svgNS, "feDisplacementMap");
+      displacement.setAttribute("in", "SourceGraphic");
+      displacement.setAttribute("in2", "edwinos-search-map");
+      displacement.setAttribute("xChannelSelector", "R");
+      displacement.setAttribute("yChannelSelector", "G");
+      filter.appendChild(mapImage);
+      filter.appendChild(displacement);
+      defs.appendChild(filter);
+      definitions.appendChild(defs);
+      document.body.appendChild(definitions);
+    }
+
+    function measureEndpoints() {
+      var box = header.getBoundingClientRect();
+      var palette = header.querySelector(".md-header__option");
+      var control = palette ? palette.querySelector('.md-header__button:not([hidden])') : null;
+      var icon = control ? control.querySelector("svg") : null;
+      var controlBox = control ? control.getBoundingClientRect() : null;
+      var iconBox = icon ? icon.getBoundingClientRect() : null;
+      var probe = document.createElement("span");
+      probe.style.cssText = "position:absolute;left:var(--edwinos-header-edge);width:0;pointer-events:none";
+      header.appendChild(probe);
+      var edge = probe.getBoundingClientRect().left - box.left;
+      probe.remove();
+      var right = edge;
+      if (controlBox && controlBox.height > 2 && iconBox && iconBox.width > 0) {
+        // Keep the horizontal target based on REST control geometry. The open
+        // height can grow without changing the previously verified width.
+        var radius = (controlBox.height - 2) / 2;
+        var top = box.top + (box.height - controlBox.height) / 2 + 1;
+        var curveInset = function (y) {
+          var distance = Math.min(radius, Math.abs(y - top - radius));
+          return radius - Math.sqrt(Math.max(0, radius * radius - distance * distance));
+        };
+        var allowance = Math.max(curveInset(iconBox.top), curveInset(iconBox.bottom));
+        right = Math.max(2, Math.min(edge, box.right - iconBox.right - allowance - 3));
+      }
+      header.style.setProperty("--edwinos-header-search-open-right", right + "px");
+      probe = document.createElement("span");
+      probe.style.cssText = "position:absolute;left:var(--edwinos-header-search-rest-left);right:var(--edwinos-header-search-right);height:0;pointer-events:none";
+      header.appendChild(probe);
+      restWidth = probe.getBoundingClientRect().width;
+      probe.remove();
+      openWidth = box.width - edge - right;
+    }
+
+    /* Capsule map technique informed by Shu Ding's liquid-glass (2025, MIT).
+       The full attribution/license is in assets/licenses/liquid-glass-MIT.txt. */
+    function makeMap(width, height, padding) {
+      var key = Math.round(width) + ":" + Math.round(height) + ":" + padding;
+      if (cache.has(key)) {
+        var cached = cache.get(key);
+        cache.delete(key);
+        cache.set(key, cached);
+        return cached;
+      }
+      var started = window.performance.now();
+      var sampleWidth = width + padding * 2;
+      var sampleHeight = height + padding * 2;
+      var columns = Math.min(1024, Math.max(24, Math.ceil(sampleWidth * 0.65)));
+      var rows = Math.max(24, Math.ceil(sampleHeight));
+      canvas.width = columns;
+      canvas.height = rows;
+      var pixels = context.createImageData(columns, rows);
+      var radius = height / 2;
+      var rim = Math.min(7, height * 0.2);
+      for (var y = 0; y < rows; y += 1) {
+        for (var x = 0; x < columns; x += 1) {
+          var px = (x + 0.5) * sampleWidth / columns - padding;
+          var py = (y + 0.5) * sampleHeight / rows - padding;
+          var axisX = Math.max(radius, Math.min(width - radius, px));
+          var vx = px - axisX;
+          var vy = py - radius;
+          var length = Math.hypot(vx, vy);
+          var depth = radius - length;
+          var dx = 0;
+          var dy = 0;
+          if (depth < rim && length > 0) {
+            // Outward source ordering is monotonic at any amplitude:
+            // g(d)=d-A·P(d/rim), g'=1+6A/rim·t(1-t) >= 1.
+            var t = Math.max(0, Math.min(1, depth / rim));
+            var profile = 1 - 3 * t * t + 2 * t * t * t;
+            dx = vx / length * profile;
+            dy = vy / length * profile;
+          }
+          var index = (y * columns + x) * 4;
+          pixels.data[index] = Math.round(127.5 + dx * 127.5);
+          pixels.data[index + 1] = Math.round(127.5 + dy * 127.5);
+          pixels.data[index + 2] = 128;
+          pixels.data[index + 3] = 255;
+        }
+      }
+      context.putImageData(pixels, 0, 0);
+      var url = canvas.toDataURL("image/png");
+      cache.set(key, url);
+      if (cache.size > 140) cache.delete(cache.keys().next().value);
+      mapBuilds += 1;
+      maximumMapTime = Math.max(maximumMapTime, window.performance.now() - started);
+      return url;
+    }
+
+    function paint() {
+      var box = form.getBoundingClientRect();
+      var searchBox = search.getBoundingClientRect();
+      var span = openWidth - restWidth;
+      progress = span > 0 ? Math.max(0, Math.min(1, (searchBox.width - restWidth) / span)) : 0;
+      currentA = refraction ? 6 * (1 + 0.35 * Math.sin(Math.PI * progress)) : 0;
+      maximumA = Math.max(maximumA, currentA);
+      form.style.setProperty("--edwinos-search-sample-padding", "29px");
+      form.style.setProperty("--edwinos-search-form-radius", Math.min(box.width, box.height) / 2 + "px");
+      if (refraction && box.width > 0 && box.height > 0) {
+        var key = Math.round(box.width) + ":" + Math.round(box.height) + ":29";
+        filter.setAttribute("width", box.width + 58);
+        filter.setAttribute("height", box.height + 58);
+        mapImage.setAttribute("width", box.width + 58);
+        mapImage.setAttribute("height", box.height + 58);
+        displacement.setAttribute("scale", currentA * 2);
+        if (key !== mapKey) {
+          var url = makeMap(box.width, box.height, 29);
+          mapImage.setAttribute("href", url);
+          mapImage.setAttributeNS("http://www.w3.org/1999/xlink", "href", url);
+          mapKey = key;
+        }
+      }
+      frames += 1;
+      search.dataset.edwinosSearchCurrentA = String(round(currentA));
+      search.dataset.edwinosSearchMaxRecordedA = String(round(maximumA));
+      search.dataset.edwinosSearchProgress = String(round(progress));
+      search.dataset.edwinosSearchFrames = String(frames);
+      search.dataset.edwinosSearchRestWidth = String(round(restWidth));
+      search.dataset.edwinosSearchOpenWidth = String(round(openWidth));
+      search.dataset.edwinosSearchMapBuilds = String(mapBuilds);
+      search.dataset.edwinosSearchMapMaxMs = String(round(maximumMapTime));
+      search.dataset.edwinosSearchWidth = String(round(searchBox.width));
+      search.dataset.edwinosSearchHeight = String(round(searchBox.height));
+      search.dataset.edwinosSearchOpen = searchToggle.checked ? "1" : "0";
+    }
+
+    function tick(now) {
+      frame = 0;
+      if (disposed || !search.isConnected) return;
+      paint();
+      if (!reducedMotion.matches && now < until) {
+        frame = window.requestAnimationFrame(tick);
+      } else {
+        search.dataset.edwinosSearchIdle = "1";
+        document.documentElement.classList.remove("edwinos-search-transitioning");
+      }
+    }
+
+    function schedule(duration, reset) {
+      if (disposed) return;
+      var now = window.performance.now();
+      if (reset) {
+        maximumA = 0;
+        frames = 0;
+      }
+      until = reducedMotion.matches ? now : Math.max(until, now + duration);
+      search.dataset.edwinosSearchIdle = "0";
+      if (reducedMotion.matches) document.documentElement.classList.remove("edwinos-search-transitioning");
+      else if (duration > 0) document.documentElement.classList.add("edwinos-search-transitioning");
+      if (!frame) frame = window.requestAnimationFrame(tick);
+    }
+
+    function arm() {
+      measureEndpoints();
+      // Commit rest before a native label/Material callback changes checked.
+      search.getBoundingClientRect();
+      schedule(500, true);
+    }
+
+    function cancelFocus() {
+      focusGeneration += 1;
+      window.cancelAnimationFrame(focusFrame);
+      window.cancelAnimationFrame(activationFrame);
+      focusFrame = 0;
+      activationFrame = 0;
+      reopenBlockedUntil = window.performance.now() + 80;
+    }
+
+    function deferActivation(callback) {
+      window.cancelAnimationFrame(activationFrame);
+      var generation = focusGeneration;
+      activationFrame = window.requestAnimationFrame(function () {
+        activationFrame = 0;
+        if (!disposed && generation === focusGeneration && search.isConnected &&
+            window.performance.now() >= reopenBlockedUntil) callback();
+      });
+    }
+
+    function focusInput(callback) {
+      window.cancelAnimationFrame(focusFrame);
+      var generation = focusGeneration;
+      focusFrame = window.requestAnimationFrame(function () {
+        focusFrame = 0;
+        if (disposed || generation !== focusGeneration || !searchToggle.checked || !search.isConnected) return;
+        input.focus({ preventScroll: true });
+        if (callback) callback();
+      });
+    }
+
+    function refresh() {
+      measureEndpoints();
+      schedule(500, true);
+    }
+
+    listen(header, "pointerdown", function (event) {
+      var target = event.target && event.target.closest ? event.target : null;
+      if (target && target.closest('.md-search__form, [for="__search"]')) {
+        reopenBlockedUntil = 0;
+        arm();
+      }
+    }, true);
+    listen(header, "click", function (event) {
+      var target = event.target && event.target.closest ? event.target : null;
+      if (target && target.closest('[for="__search"]')) arm();
+    }, true);
+    listen(searchToggle, "change", function () {
+      if (searchToggle.checked && window.performance.now() < reopenBlockedUntil) {
+        searchToggle.checked = false;
+        searchToggle.dispatchEvent(new Event("change", { bubbles: true }));
+        return;
+      }
+      if (!searchToggle.checked) {
+        cancelFocus();
+        input.blur();
+      }
+      schedule(500, true);
     });
+
+    if (typeof window.ResizeObserver === "function") {
+      var resize = new ResizeObserver(refresh);
+      resize.observe(header);
+      observers.push(resize);
+    } else {
+      listen(window, "resize", refresh);
+    }
+    if (typeof window.MutationObserver === "function") {
+      var paletteObserver = new MutationObserver(refresh);
+      var palette = header.querySelector(".md-header__option");
+      var source = header.querySelector(".md-header__source");
+      [palette, source].forEach(function (element) {
+        if (element) paletteObserver.observe(element, { attributes: true, attributeFilter: ["hidden", "style", "d", "transform"], childList: true, subtree: true });
+      });
+      observers.push(paletteObserver);
+      var schemeObserver = new MutationObserver(refresh);
+      schemeObserver.observe(document.body, { attributes: true, attributeFilter: ["data-md-color-scheme"] });
+      observers.push(schemeObserver);
+    }
+    if (typeof reducedMotion.addEventListener === "function") listen(reducedMotion, "change", refresh);
+    else if (typeof reducedMotion.addListener === "function") {
+      reducedMotion.addListener(refresh);
+      listeners.push(function () { reducedMotion.removeListener(refresh); });
+    }
+
+    headerSearchRuntime = {
+      header: header, search: search, form: form, input: input, toggle: searchToggle, arm: arm, refresh: refresh,
+      listen: listen, timer: timer, cancelFocus: cancelFocus,
+      deferActivation: deferActivation, focusInput: focusInput,
+      allowOpen: function () { reopenBlockedUntil = 0; },
+      destroy: function () {
+        disposed = true;
+        cancelFocus();
+        window.cancelAnimationFrame(frame);
+        observers.forEach(function (observer) { observer.disconnect(); });
+        listeners.forEach(function (remove) { remove(); });
+        timers.forEach(function (id) { window.clearTimeout(id); });
+        cache.clear();
+        if (definitions) definitions.remove();
+        surface.remove();
+        highlight.remove();
+        search.classList.remove("edwinos-search-refraction");
+        delete search.dataset.edwinosSearchReady;
+        delete form.dataset.edwinosSearchFormReady;
+        document.documentElement.classList.remove("edwinos-search-transitioning");
+      }
+    };
+    refresh();
   }
 
   function closeSearchWhenClickingAway() {
@@ -411,6 +778,7 @@
         if (interactiveSearchContent) return;
       }
 
+      if (headerSearchRuntime) headerSearchRuntime.cancelFocus();
       beginHeaderSearchTransition();
       searchToggle.checked = false;
       searchToggle.dispatchEvent(new Event("change", { bubbles: true }));
@@ -507,8 +875,10 @@
     var form = search ? search.querySelector(".md-search__form") : null;
     var output = search ? search.querySelector(".md-search__output") : null;
     var searchToggle = document.querySelector('[data-md-toggle="search"]');
+    var runtime = headerSearchRuntime;
 
-    if (!search || !input || !form || !output || !searchToggle || search.dataset.edwinosSearchReady === "1") return;
+    if (!search || !input || !form || !output || !searchToggle || !runtime ||
+        runtime.search !== search || search.dataset.edwinosSearchReady === "1") return;
     search.dataset.edwinosSearchReady = "1";
     input.placeholder = "Search";
     input.setAttribute("aria-label", "Search");
@@ -536,9 +906,9 @@
     var scheduleQueryEmit = function () {
       if (!input.value.trim()) return;
 
-      window.setTimeout(emitQuery, 40);
-      window.setTimeout(emitQuery, 180);
-      window.setTimeout(emitQuery, 520);
+      runtime.timer(emitQuery, 40);
+      runtime.timer(emitQuery, 180);
+      runtime.timer(emitQuery, 520);
     };
 
     var openSearch = function () {
@@ -547,6 +917,7 @@
       }
 
       if (!searchToggle.checked) {
+        runtime.allowOpen();
         beginHeaderSearchTransition();
         searchToggle.checked = true;
         searchToggle.dispatchEvent(new Event("change", { bubbles: true }));
@@ -555,24 +926,28 @@
       scheduleQueryEmit();
     };
 
-    if (searchTrigger && searchTrigger.dataset.edwinosSearchTriggerReady !== "1") {
-      searchTrigger.dataset.edwinosSearchTriggerReady = "1";
-      searchTrigger.addEventListener("click", function (event) {
-        // The compact control is a label for Material's search checkbox.
-        // Own the state change so the native label action cannot toggle it
-        // back off after the input's focus handler opens the search surface.
-        event.preventDefault();
-        event.stopPropagation();
-        openSearch();
-        window.requestAnimationFrame(function () {
-          input.focus();
-        });
-      });
-    }
+    runtime.listen(runtime.header, "click", function (event) {
+      var target = event.target && event.target.nodeType === 1
+        ? event.target
+        : event.target && event.target.parentElement;
+      var control = target && target.closest ? target.closest('[for="__search"]') : null;
+      if (!control || control.classList.contains("md-search__overlay")) return;
+
+      // Material focuses the input on label click. Its focus handler opens the
+      // checkbox before the label's default action can toggle it closed again.
+      // Own this activation once, for both the outer trigger and form icon.
+      event.preventDefault();
+      event.stopPropagation();
+      runtime.allowOpen();
+      openSearch();
+      // Keep this user gesture's synchronous focus for iOS software keyboards.
+      if (searchToggle.checked && input.isConnected) input.focus({ preventScroll: true });
+      runtime.focusInput(scheduleQueryEmit);
+    }, true);
 
     if (form.dataset.edwinosSearchFormReady !== "1") {
       form.dataset.edwinosSearchFormReady = "1";
-      form.addEventListener("click", function (event) {
+      runtime.listen(form, "click", function (event) {
         if (searchToggle.checked) return;
 
         var target = event.target && event.target.nodeType === 1
@@ -582,9 +957,7 @@
 
         event.preventDefault();
         openSearch();
-        window.requestAnimationFrame(function () {
-          input.focus();
-        });
+        runtime.focusInput();
       });
     }
 
@@ -602,21 +975,24 @@
       window.history.replaceState(null, "", url);
     };
 
-    input.addEventListener("focus", function () {
-      // A header search label focuses the input before its native checkbox
-      // toggle completes. Defer activation so we do not turn the toggle on
-      // early and let the label's default action immediately turn it off.
-      window.requestAnimationFrame(openSearch);
+    runtime.listen(input, "focus", function () {
+      // Arm now, before Material's delayed checkbox change or the label's
+      // default action. The deferred activation is cancelable on close/Esc.
+      if (!searchToggle.checked) beginHeaderSearchTransition();
+      runtime.deferActivation(function () {
+        if (document.activeElement === input) openSearch();
+      });
     });
-    input.addEventListener("click", openSearch);
-    input.addEventListener("input", function () {
+    runtime.listen(input, "click", openSearch);
+    runtime.listen(input, "input", function () {
       rememberedQuery = input.value.trim();
       syncQueryState();
       writeRememberedSearchQuery(rememberedQuery);
       openSearch();
     });
-    input.addEventListener("keydown", function (event) {
+    runtime.listen(input, "keydown", function (event) {
       if (event.key === "Escape") {
+        runtime.cancelFocus();
         beginHeaderSearchTransition();
         searchToggle.checked = false;
         searchToggle.dispatchEvent(new Event("change", { bubbles: true }));
@@ -637,30 +1013,27 @@
       scheduleQueryEmit();
     }, true);
 
-    form.addEventListener("submit", function (event) {
+    runtime.listen(form, "submit", function (event) {
       event.preventDefault();
       openSearch();
       updateSharedQuery();
       scheduleQueryEmit();
-      input.focus();
+      input.focus({ preventScroll: true });
     }, true);
 
-    form.addEventListener("reset", function () {
+    runtime.listen(form, "reset", function () {
       rememberedQuery = "";
       writeRememberedSearchQuery("");
-      window.requestAnimationFrame(syncQueryState);
+      runtime.timer(syncQueryState, 0);
     });
 
-    searchToggle.addEventListener("change", function () {
+    runtime.listen(searchToggle, "change", function () {
       if (!searchToggle.checked) {
         input.blur();
         return;
       }
 
-      window.requestAnimationFrame(function () {
-        input.focus();
-        scheduleQueryEmit();
-      });
+      runtime.focusInput(scheduleQueryEmit);
     });
 
     if (rememberedQuery && !input.value) {
@@ -669,7 +1042,7 @@
     syncQueryState();
 
     if (sharedQuery) {
-      window.requestAnimationFrame(function () {
+      runtime.deferActivation(function () {
         openSearch();
         scheduleQueryEmit();
       });
