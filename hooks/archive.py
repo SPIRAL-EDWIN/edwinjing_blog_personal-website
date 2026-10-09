@@ -469,7 +469,7 @@ def _article_meta(
 
     separator = '<span class="article-meta__separator" aria-hidden="true">·</span>'
     return (
-        '<div class="article-meta" aria-label="Article information">'
+        '<div class="article-meta" aria-label="Article information" data-search-exclude>'
         + separator.join(parts)
         + "</div>"
     )

@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-09-16
+Last updated: 2026-10-09
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -28,6 +28,10 @@ Current stylesheet policy:
   route classes, search interaction adjustments, profile shell injection on
   home subpages, Beijing time updates, friend-count updates, GitHub source facts,
   visitor-map loading, and markdown/list continuity fixes.
+  Search input and results share one glass shell: empty activation stays a
+  capsule, then a query extends it downward. Closing clears the query; do not
+  restore session-based query retention or duplicate result backdrop layers.
+  Preserve IME composition handling and viewport-bounded snippet/math work.
 - `docs/index.md` and related markdown files own content and semantic structure.
   Avoid moving content into CSS or JS.
 - `hooks/note_assets.py` owns individual ENotes and experience-article image
@@ -39,6 +43,15 @@ Current stylesheet policy:
   Pillow is build-time only. Never replace note originals or fetch third-party
   covers during builds. Archive feedback follows content replacement, not a
   fixed elapsed-time dismissal.
+- `hooks/archive.py` excludes generated article date/author metadata from
+  search using `data-search-exclude`; preserve its visible page content and
+  genuine body matches rather than filtering author names as query terms.
+- `hooks/search_scope.py` owns search corpus scope and invokes
+  `tools/build_search_index.cjs` after scoping. Search retrieval and safe result
+  snippets belong to the standalone Lunr worker/core in
+  `docs/assets/javascripts/workers/`; do not restore an upstream worker plus
+  post-filter stack. Node is build-time only; `EDWINOS_NODE` may select a local
+  binary, and Python-only local builds retain worker-side index construction.
 
 When adding new UI rules:
 

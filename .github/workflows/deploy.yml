@@ -35,6 +35,12 @@ jobs:
           cache: 'pip'
           cache-dependency-path: requirements.txt
 
+      - name: Setup Node for search-index prebuilding
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -51,6 +57,9 @@ jobs:
 
       - name: Build site
         run: mkdocs build --clean
+
+      - name: Verify search behavior
+        run: node tools/test_search_engine.cjs
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

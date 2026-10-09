@@ -12,6 +12,8 @@
  * 2. 同时显式调用 typesetPromise 处理整个文档。
  * 3. Typesetting completion is announced semantically; block-links.js remains
  *    the sole owner of fragment positioning after layout changes.
+ * 4. Complete TeX in search excerpts is wrapped safely and typeset lazily in
+ *    the same queue, without clearing article math or equation counters.
  * ============================================================================== */
 (function () {
   "use strict";
@@ -29,6 +31,8 @@
   var typesetQueue = Promise.resolve();
   var mathResizeFrame = 0;
   var HASH_LAYOUT_SETTLED_EVENT = "edwinos:hash-layout-settled";
+  var searchMathStates = new WeakMap();
+  var trackedSearchMath = new Set();
 
   window.MathJax = {
     tex: {
@@ -239,6 +243,166 @@ function announceHashLayoutSettled(sequence) {
     detail: { hash: window.location.hash }
   }));
 }
+
+// Search excerpts are escaped text, rather than Markdown arithmatex nodes.
+// Recognize only complete delimiters; malformed or truncated TeX stays readable.
+function searchMathRanges(text) {
+  var ranges = [], cursor = 0;
+  function escaped(index) {
+    var count = 0;
+    while (index > 0 && text[--index] === "\\") count++;
+    return count % 2 === 1;
+  }
+  while (cursor < text.length) {
+    var opener = text.slice(cursor, cursor + 2), closer;
+    if (!escaped(cursor) && (opener === "\\(" || opener === "\\[")) {
+      closer = opener === "\\(" ? "\\)" : "\\]";
+    } else if (text[cursor] === "$" && !escaped(cursor)) {
+      opener = text[cursor + 1] === "$" ? "$$" : "$";
+      closer = opener;
+    } else { cursor++; continue; }
+    var end = cursor + opener.length;
+    while (end < text.length && (text.slice(end, end + closer.length) !== closer || escaped(end))) end++;
+    if (end >= text.length) { cursor += opener.length; continue; }
+    var body = text.slice(cursor + opener.length, end);
+    // A leading/trailing space after a single dollar is usually prose/currency.
+    if (body && (opener !== "$" || !/^\s|\s$/.test(body))) {
+      ranges.push({ start: cursor, end: end + closer.length, body: body });
+      cursor = end + closer.length;
+    } else cursor += opener.length;
+  }
+  return ranges;
+}
+
+function clearSearchMath(node) {
+  if (!searchMathStates.has(node)) return;
+  if (mathJaxIsReady()) window.MathJax.typesetClear([node]);
+  searchMathStates.delete(node);
+  trackedSearchMath.delete(node);
+}
+
+function prepareSearchMath(node) {
+  if (searchMathStates.has(node)) return false;
+  var text = "", marks = [], provenance = [];
+  function collect(child, marked) {
+    if (child.nodeType === 3) {
+      var start = text.length;
+      text += child.textContent;
+      if (marked) marks.push({ start: start, end: text.length });
+    } else if (child.nodeType === 1) {
+      // The article name belongs to the heading but is separate metadata. Keep
+      // its node, styling and math lifecycle intact when replacing title TeX.
+      if (child.classList && child.classList.contains("edwinos-search-provenance")) {
+        provenance.push(child);
+        return;
+      }
+      child.childNodes.forEach(function (part) { collect(part, marked || child.tagName === "MARK"); });
+    }
+  }
+  node.childNodes.forEach(function (child) { collect(child, false); });
+  var formulas = searchMathRanges(text);
+  if (!formulas.length) return false;
+  var fragment = document.createDocumentFragment(), cursor = 0;
+  function appendText(start, end) {
+    var position = start;
+    marks.forEach(function (mark) {
+      var left = Math.max(start, mark.start), right = Math.min(end, mark.end);
+      if (left >= right) return;
+      fragment.appendChild(document.createTextNode(text.slice(position, left)));
+      var highlight = document.createElement("mark");
+      highlight.textContent = text.slice(left, right);
+      fragment.appendChild(highlight);
+      position = right;
+    });
+    fragment.appendChild(document.createTextNode(text.slice(position, end)));
+  }
+  formulas.forEach(function (formula) {
+    appendText(cursor, formula.start);
+    var span = document.createElement("span");
+    span.className = "arithmatex";
+    span.dataset.searchMath = "1";
+    // Compact excerpts render display-source formulas inline as one atomic unit.
+    span.textContent = "\\(" + formula.body + "\\)";
+    if (marks.some(function (mark) { return mark.start < formula.end && mark.end > formula.start; })) {
+      var highlight = document.createElement("mark");
+      highlight.appendChild(span);
+      fragment.appendChild(highlight);
+    } else fragment.appendChild(span);
+    cursor = formula.end;
+  });
+  appendText(cursor, text.length);
+  provenance.forEach(function (source) { fragment.appendChild(source); });
+  node.replaceChildren(fragment);
+  searchMathStates.set(node, {});
+  trackedSearchMath.add(node);
+  return true;
+}
+
+function searchMathViewport(root) {
+  var scrollwrap = root.querySelector(".md-search__scrollwrap");
+  return scrollwrap ? scrollwrap.getBoundingClientRect() : null;
+}
+
+function visibleSearchMath(node, viewport) {
+  if (!node.isConnected || node.closest("details:not([open])")) return false;
+  var rect = node.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) return false;
+  // A small overscan prepares the next row without processing every hidden
+  // result in a broad query. DOM insertion and typesetting stay off the input
+  // critical path until a result is actually near the scrolling viewport.
+  return !viewport || (
+    viewport.width > 0 && viewport.height > 0 &&
+    rect.bottom >= viewport.top - 96 && rect.top <= viewport.bottom + 96
+  );
+}
+
+function typesetSearchMath(event) {
+  var root = event.detail && event.detail.root;
+  if (!root || !root.isConnected) return;
+  // Material replaces result DOM on each query. Release just those removed
+  // excerpts, without resetting the article's MathItems or equation counters.
+  trackedSearchMath.forEach(function (node) { if (!node.isConnected) clearSearchMath(node); });
+  // Material emits h1/h2 rather than a __title element. Read the combined text
+  // so a formula split by keyword <mark> nodes is still recognized as one unit.
+  var viewport = searchMathViewport(root);
+  var nodes = Array.from(root.querySelectorAll(
+    ".md-search-result__article p, .md-search-result__article h1, .md-search-result__article h2, .edwinos-search-provenance"
+  ))
+    .filter(function (node) { return visibleSearchMath(node, viewport); })
+    .filter(prepareSearchMath)
+    .map(function (node) { return { node: node, state: searchMathStates.get(node) }; });
+  if (!nodes.length) return;
+  loadMathJax().then(function () {
+    typesetQueue = typesetQueue.catch(function () {}).then(function () {
+      var currentViewport = searchMathViewport(root);
+      var current = nodes.filter(function (item) {
+        if (!item.node.isConnected || searchMathStates.get(item.node) !== item.state) return false;
+        if (visibleSearchMath(item.node, currentViewport)) return true;
+        // Scroll/query changes may happen while the lazy runtime is loading.
+        // Keep unrendered TeX retryable when this row becomes visible again.
+        clearSearchMath(item.node);
+        return false;
+      }).map(function (item) { return item.node; });
+      if (!current.length) return;
+      return window.MathJax.typesetPromise(current).then(function () {
+        document.dispatchEvent(new CustomEvent("edwinos:search-math-settled", { detail: { root: root } }));
+      });
+    });
+    typesetQueue.catch(function () {
+      // Optional local runtime failures leave readable TeX and allow a retry.
+      nodes.forEach(function (item) { if (searchMathStates.get(item.node) === item.state) clearSearchMath(item.node); });
+    });
+  }).catch(function () {
+    nodes.forEach(function (item) { if (searchMathStates.get(item.node) === item.state) clearSearchMath(item.node); });
+  });
+}
+
+window.EdwinOSSearchMath = {
+  getRanges: searchMathRanges,
+  prepare: prepareSearchMath,
+  clear: clearSearchMath
+};
+document.addEventListener("edwinos:search-snippets-updated", typesetSearchMath);
 
 // MkDocs Material 暴露 document$ Observable（基于 RxJS），
 // 每次内容变更（含 instant navigation）都会触发。

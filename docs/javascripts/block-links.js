@@ -34,6 +34,8 @@
   var headingScrollFrame = null;
   var tocSelectionGuardUntil = 0;
   var tocSelectionClearTimer = null;
+  var headingNavigationTarget = null;
+  var pendingPageFragment = null;
   var HIGHLIGHTABLE_SELECTOR = [
     ".admonition-title",
     "p",
@@ -345,16 +347,15 @@
     }
   }
 
-  function scheduleTocHeadingSync(hash, link) {
+  function scheduleTocHeadingSync(hash, link, behavior) {
     cancelTocHeadingSync();
     var syncSequence = tocSyncSequence;
-    var expectedPage = normalizePath(window.location.pathname)
-      + window.location.search;
+    var expectedPage = normalizePath(window.location.pathname);
+    headingNavigationTarget = { hash: hash, page: expectedPage };
 
     function isCurrentTocNavigation(allowIntermediateHash) {
       return syncSequence === tocSyncSequence
         && expectedPage === normalizePath(window.location.pathname)
-          + window.location.search
         && (allowIntermediateHash || window.location.hash === hash);
     }
 
@@ -371,7 +372,7 @@
       });
     }
 
-    var duration = alignHeadingTarget(hash, "smooth");
+    var duration = alignHeadingTarget(hash, behavior || "smooth");
     tocSelectionGuardUntil = Date.now() + duration + HEADING_SCROLL_SETTLE_DELAY;
     highlight(hash, {
       scroll: false,
@@ -391,12 +392,31 @@
   }
 
   function handleHashLinkClick(event) {
-    var link = event.target.closest ? event.target.closest("a[href*='#']") : null;
-    if (!link || !isSamePageHashLink(link)) return;
+    var link = event.target.closest ? event.target.closest("a[href]") : null;
+    if (!link) return;
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     if (link.target && link.target !== "_self") return;
 
-    var url = new URL(link.getAttribute("href"), window.location.href);
+    var url;
+    try { url = new URL(link.getAttribute("href"), window.location.href); }
+    catch (_error) { return; }
+    // Capture the intended destination before Material's outgoing-page
+    // scrollspy can replace its fragment during an instant-page transition.
+    // Material still owns loading and history for cross-page links.
+    pendingPageFragment = null;
+    if (url.origin === window.location.origin && url.hash
+      && normalizePath(url.pathname) !== normalizePath(window.location.pathname)) {
+      pendingPageFragment = {
+        page: normalizePath(url.pathname),
+        sourcePage: normalizePath(window.location.pathname),
+        hash: url.hash
+      };
+      cancelTocHeadingSync();
+      cancelHeadingScroll();
+      headingNavigationTarget = null;
+      return;
+    }
+    if (!isSamePageHashLink(link)) return;
     if (!findTarget(url.hash)) return;
     cancelTocHeadingSync();
 
@@ -415,7 +435,13 @@
     event.preventDefault();
     event.stopPropagation();
     history.pushState(null, "", url.pathname + url.search + url.hash);
-    highlight(url.hash);
+    var target = meaningfulTarget(findTarget(url.hash));
+    if (target && target.matches("h1, h2, h3, h4, h5, h6")) {
+      scheduleTocHeadingSync(url.hash, null, "smooth");
+    } else {
+      headingNavigationTarget = null;
+      highlight(url.hash);
+    }
   }
 
   function highlightCurrentHash() {
@@ -444,19 +470,35 @@
    */
   function realignHashAfterLayout(event) {
     var hash = event && event.detail && event.detail.hash;
-    if (!hash || hash !== window.location.hash) return;
+    // Material can replace the URL with the preceding section while the target
+    // sits below its scrollspy threshold. The still-current explicit fragment
+    // wins through layout settling; reader input invalidates this target.
+    if (headingNavigationTarget
+      && headingNavigationTarget.page === normalizePath(window.location.pathname)) {
+      hash = headingNavigationTarget.hash;
+    } else if (!hash || hash !== window.location.hash) return;
 
     var target = findTarget(hash);
     if (!target) return;
+    var heading = meaningfulTarget(target);
+    if (heading && heading.matches("h1, h2, h3, h4, h5, h6")
+      && !headingNavigationTarget) return;
 
     var sequence = documentSequence;
-    var expectedLocation = window.location.pathname + window.location.search + hash;
+    var expectedPage = normalizePath(window.location.pathname);
+    var navigationTarget = headingNavigationTarget;
     window.requestAnimationFrame(function () {
       window.requestAnimationFrame(function () {
         if (
           sequence !== documentSequence ||
-          expectedLocation !== window.location.pathname + window.location.search + window.location.hash
+          expectedPage !== normalizePath(window.location.pathname)
+          || navigationTarget !== headingNavigationTarget
         ) return;
+
+        if (navigationTarget) {
+          scheduleTocHeadingSync(hash, null, "instant");
+          return;
+        }
 
         var header = document.querySelector(".md-header");
         var offset = (header ? header.getBoundingClientRect().height : 0) + 40;
@@ -476,7 +518,20 @@
     window.clearTimeout(tocSelectionClearTimer);
     clearHighlights();
     clearTocSelection();
-    highlightCurrentHash();
+    headingNavigationTarget = null;
+    var hash = window.location.hash;
+    var page = normalizePath(window.location.pathname);
+    if (pendingPageFragment && pendingPageFragment.page === page) {
+      hash = pendingPageFragment.hash;
+      replaceCurrentHash(hash);
+      pendingPageFragment = null;
+    } else if (pendingPageFragment && pendingPageFragment.sourcePage !== page) {
+      pendingPageFragment = null;
+    }
+    var target = meaningfulTarget(findTarget(hash));
+    if (target && target.matches("h1, h2, h3, h4, h5, h6")) {
+      scheduleTocHeadingSync(hash, null, "instant");
+    } else highlightCurrentHash();
   }
 
   document.addEventListener("click", handleHashLinkClick, true);
@@ -489,9 +544,15 @@
     cancelHeadingScroll();
     cancelTocHeadingSync();
     tocSelectionGuardUntil = 0;
-    // Native fragment navigation already owns scrolling. Re-centering here
-    // races Material's TOC scrollspy and can leave the previous item active.
-    highlight(window.location.hash, { scroll: false });
+    // Apply the same exact-target hand-off as clicks and instant-page swaps.
+    // The selected TOC entry remains explicit only until reader motion resumes.
+    var target = meaningfulTarget(findTarget(window.location.hash));
+    if (target && target.matches("h1, h2, h3, h4, h5, h6")) {
+      scheduleTocHeadingSync(window.location.hash, null, "instant");
+    } else {
+      headingNavigationTarget = null;
+      highlight(window.location.hash, { scroll: false });
+    }
   });
   window.addEventListener("popstate", function () {
     // History navigation is an explicit reader action, so it must always win
@@ -499,14 +560,20 @@
     cancelHeadingScroll();
     cancelTocHeadingSync();
     tocSelectionGuardUntil = 0;
+    headingNavigationTarget = null;
+    pendingPageFragment = null;
   });
   window.addEventListener("scroll", function () {
     if (Date.now() < tocSelectionGuardUntil) return;
     window.clearTimeout(tocSelectionClearTimer);
-    tocSelectionClearTimer = window.setTimeout(clearTocSelection, 80);
+    tocSelectionClearTimer = window.setTimeout(function () {
+      headingNavigationTarget = null;
+      clearTocSelection();
+    }, 80);
   }, { passive: true });
   window.addEventListener("scrollend", function () {
     if (Date.now() < tocSelectionGuardUntil) return;
+    headingNavigationTarget = null;
     clearTocSelection();
   }, { passive: true });
   function yieldTocMotionToUser(event) {
@@ -517,6 +584,8 @@
     cancelHeadingScroll();
     cancelTocHeadingSync();
     tocSelectionGuardUntil = 0;
+    headingNavigationTarget = null;
+    pendingPageFragment = null;
     clearTocSelection();
   }
   window.addEventListener("wheel", yieldTocMotionToUser, { passive: true });

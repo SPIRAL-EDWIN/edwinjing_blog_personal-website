@@ -193,9 +193,9 @@ markdown_extensions:
 extra_javascript:
   # MathJax 3 配置：实现 LaTeX 公式的浏览器端渲染 
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
-  - javascripts/mathjax.js?v=20260916a
-  - javascripts/block-links.js?v=20260904a  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js?v=20261006b
+  - javascripts/mathjax.js?v=20261009b
+  - javascripts/block-links.js?v=20261009a  # Obsidian 风格块引用链接支持
+  - javascripts/ui-perf.js?v=20261009b
 
 extra_css:
   - stylesheets/edwinos.css?v=20261006b  # Unified EdwinOS cascade

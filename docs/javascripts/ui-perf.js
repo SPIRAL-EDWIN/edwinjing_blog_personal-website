@@ -14,8 +14,9 @@
   var primarySidebarScrollPositions = Object.create(null);
   var pendingPrimarySidebarScroll = null;
   var lastDocumentPageKey = navigationPageKey(window.location.href);
-  var searchReloadBudgetProcessed = false;
   var headerSearchRuntime = null;
+  var searchResultSummarySubscription = null;
+  var searchSnippetSources = new WeakMap();
   var sectionNavigationDepthTimer = null;
   var archiveNavigationFeedbackReady = false;
   var archiveNavigationFallbackTimer = null;
@@ -368,6 +369,111 @@
     if (headerSearchRuntime) headerSearchRuntime.arm();
   }
 
+  var searchMeasureCanvas = document.createElement('canvas');
+  var searchMeasureContext = searchMeasureCanvas.getContext('2d');
+
+  function decorateSearchResults(search) {
+    search.querySelectorAll('.md-search-result__item').forEach(function (group) {
+      var parent = group.querySelector('.md-search-result__article h1');
+      if (!parent) return;
+      var article = parent.closest('.md-search-result__article');
+      var name = parent.dataset.edwinosArticleName || parent.textContent;
+      parent.dataset.edwinosArticleName = name;
+      group.querySelectorAll('.md-search-result__article h2').forEach(function (heading) {
+        if (heading.querySelector('.edwinos-search-provenance')) return;
+        var source = document.createElement('span');
+        source.className = 'edwinos-search-provenance';
+        source.textContent = ' · ' + name;
+        heading.appendChild(source);
+      });
+      // A score-zero parent is grouping metadata, rather than a real hit.
+      if (article.dataset.mdScore === '0.00' && group.querySelector('h2')) parent.closest('a').hidden = true;
+    });
+  }
+
+  function fitSearchSnippets(search) {
+    var started = window.performance.now();
+    decorateSearchResults(search);
+    var scrollwrap = search.querySelector('.md-search__scrollwrap');
+    var viewport = scrollwrap && scrollwrap.getBoundingClientRect();
+    search.querySelectorAll('.md-search-result__article p').forEach(function (paragraph) {
+      var box = paragraph.getBoundingClientRect();
+      if (!box.width || !box.height || paragraph.closest('details:not([open])') ||
+          viewport && (box.bottom < viewport.top - 96 || box.top > viewport.bottom + 96)) return;
+      var source = searchSnippetSources.get(paragraph);
+      if (!source) {
+        var text = '', marks = [];
+        function collect(node, marked) {
+          if (node.nodeType === 3) {
+            var start = text.length;
+            text += node.textContent;
+            if (marked) marks.push({ start: start, end: text.length });
+          } else if (node.nodeType === 1) {
+            node.childNodes.forEach(function (child) { collect(child, marked || node.tagName === 'MARK'); });
+          }
+        }
+        paragraph.childNodes.forEach(function (node) { collect(node, false); });
+        var boundaries = [0], offset = 0;
+        var segments = typeof Intl.Segmenter === 'function'
+          ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text), function (part) { return part.segment; })
+          : Array.from(text);
+        segments.forEach(function (segment) { offset += segment.length; boundaries.push(offset); });
+        source = { text: text, marks: marks, width: '', boundaries: boundaries };
+        searchSnippetSources.set(paragraph, source);
+      }
+      var width = Math.round(box.width), style = window.getComputedStyle(paragraph);
+      var font = style.font || style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
+      var signature = width + ':' + font + ':' + style.lineHeight;
+      if (signature === source.width) return;
+      source.width = signature;
+      var math = window.EdwinOSSearchMath;
+      if (math) math.clear(paragraph);
+      var ranges = math ? math.getRanges(source.text) : [];
+      var first = source.marks.length ? source.marks[0].start : 0;
+      var last = source.marks.length ? source.marks[source.marks.length - 1].end : 0;
+      function bounds(context) {
+        var length = Math.min(source.text.length, last - first + context * 2);
+        var start = Math.max(0, Math.min(source.text.length - length, Math.floor((first + last - length) / 2)));
+        var end = start + length;
+        start = source.boundaries.filter(function (boundary) { return boundary <= start; }).pop();
+        end = source.boundaries.find(function (boundary) { return boundary >= end; });
+        while (start > 0 && /[A-Za-z0-9_]/.test(source.text[start - 1] || '') && /[A-Za-z0-9_]/.test(source.text[start] || '')) start--;
+        while (end > last && /[A-Za-z0-9_]/.test(source.text[end - 1] || '') && /[A-Za-z0-9_]/.test(source.text[end] || '')) end--;
+        ranges.forEach(function (range) {
+          if (start > range.start && start < range.end) start = range.end <= first ? range.end : range.start;
+          if (end > range.start && end < range.end) end = range.start >= last ? range.start : range.end;
+        });
+        return { start: start, end: end };
+      }
+      // Measure plain text off-DOM. The previous fitter repeatedly rebuilt
+      // every excerpt and forced layout for each binary-search step.
+      var low = 0, high = source.text.length;
+      if (searchMeasureContext) {
+        searchMeasureContext.font = font;
+        var budget = width * 2 * 0.92;
+        while (low < high) {
+          var middle = Math.ceil((low + high) / 2), candidate = bounds(middle);
+          var text = (candidate.start ? '...' : '') + source.text.slice(candidate.start, candidate.end) + (candidate.end < source.text.length ? '...' : '');
+          if (searchMeasureContext.measureText(text).width <= budget) low = middle;
+          else high = middle - 1;
+        }
+      } else low = Math.min(100, source.text.length);
+      var selected = bounds(low), nodes = [], cursor = selected.start;
+      if (selected.start) nodes.push(document.createTextNode('...'));
+      source.marks.forEach(function (mark) {
+        nodes.push(document.createTextNode(source.text.slice(cursor, mark.start)));
+        var highlight = document.createElement('mark');
+        highlight.textContent = source.text.slice(mark.start, mark.end);
+        nodes.push(highlight);
+        cursor = mark.end;
+      });
+      nodes.push(document.createTextNode(source.text.slice(cursor, selected.end) + (selected.end < source.text.length ? '...' : '')));
+      paragraph.replaceChildren.apply(paragraph, nodes);
+    });
+    search.dataset.edwinosSearchFitMs = String(Math.round((window.performance.now() - started) * 100) / 100);
+    document.dispatchEvent(new CustomEvent('edwinos:search-snippets-updated', { detail: { root: search } }));
+  }
+
   function setupHeaderSearchTransition() {
     var header = document.querySelector(".md-header");
     var search = header ? header.querySelector(".md-search") : null;
@@ -404,6 +510,8 @@
     var reopenBlockedUntil = 0;
     var until = 0;
     var disposed = false;
+    var layoutFrame = 0;
+    var resultHeight = 0;
     var mapKey = "";
     var restWidth = 44;
     var openWidth = 44;
@@ -439,6 +547,11 @@
       return id;
     }
 
+    var shell = document.createElement('div');
+    shell.className = 'edwinos-search-shell';
+    shell.setAttribute('aria-hidden', 'true');
+    form.parentElement.insertBefore(shell, form);
+
     function addGlass(kind) {
       var selector = ".edwinos-search-glass--" + kind;
       var layer = form.querySelector(selector);
@@ -446,8 +559,8 @@
         layer = document.createElement("span");
         layer.className = "edwinos-search-glass edwinos-search-glass--" + kind;
         layer.setAttribute("aria-hidden", "true");
-        form.insertBefore(layer, input);
       }
+      shell.appendChild(layer);
       return layer;
     }
 
@@ -522,8 +635,8 @@
 
     /* Capsule map technique informed by Shu Ding's liquid-glass (2025, MIT).
        The full attribution/license is in assets/licenses/liquid-glass-MIT.txt. */
-    function makeMap(width, height, padding) {
-      var key = Math.round(width) + ":" + Math.round(height) + ":" + padding;
+    function makeMap(width, height, padding, radius) {
+      var key = Math.round(width) + ":" + Math.round(height) + ":" + padding + ':' + Math.round(radius);
       if (cache.has(key)) {
         var cached = cache.get(key);
         cache.delete(key);
@@ -533,20 +646,20 @@
       var started = window.performance.now();
       var sampleWidth = width + padding * 2;
       var sampleHeight = height + padding * 2;
-      var columns = Math.min(1024, Math.max(24, Math.ceil(sampleWidth * 0.65)));
-      var rows = Math.max(24, Math.ceil(sampleHeight));
+      var columns = Math.min(768, Math.max(24, Math.ceil(sampleWidth * 0.65)));
+      var rows = Math.min(512, Math.max(24, Math.ceil(sampleHeight * 0.65)));
       canvas.width = columns;
       canvas.height = rows;
       var pixels = context.createImageData(columns, rows);
-      var radius = height / 2;
-      var rim = Math.min(7, height * 0.2);
+      var rim = Math.min(7, radius * 0.4);
       for (var y = 0; y < rows; y += 1) {
         for (var x = 0; x < columns; x += 1) {
           var px = (x + 0.5) * sampleWidth / columns - padding;
           var py = (y + 0.5) * sampleHeight / rows - padding;
           var axisX = Math.max(radius, Math.min(width - radius, px));
+          var axisY = Math.max(radius, Math.min(height - radius, py));
           var vx = px - axisX;
-          var vy = py - radius;
+          var vy = py - axisY;
           var length = Math.hypot(vx, vy);
           var depth = radius - length;
           var dx = 0;
@@ -569,30 +682,39 @@
       context.putImageData(pixels, 0, 0);
       var url = canvas.toDataURL("image/png");
       cache.set(key, url);
-      if (cache.size > 140) cache.delete(cache.keys().next().value);
+      if (cache.size > 12) cache.delete(cache.keys().next().value);
       mapBuilds += 1;
       maximumMapTime = Math.max(maximumMapTime, window.performance.now() - started);
       return url;
     }
 
     function paint() {
-      var box = form.getBoundingClientRect();
+      var box = shell.getBoundingClientRect();
       var searchBox = search.getBoundingClientRect();
+      var inputHeight = form.getBoundingClientRect().height;
+      search.style.setProperty('--edwinos-search-input-height', inputHeight + 'px');
+      // Follow the rendered input/results, rather than animating their already
+      // animated heights a second time (which made an empty capsule grow late).
+      var output = search.querySelector('.md-search__output');
+      var visibleResultHeight = output ? output.getBoundingClientRect().height : 0;
+      search.style.setProperty('--edwinos-search-shell-height', inputHeight + visibleResultHeight + 'px');
       var span = openWidth - restWidth;
       progress = span > 0 ? Math.max(0, Math.min(1, (searchBox.width - restWidth) / span)) : 0;
-      currentA = refraction ? 6 * (1 + 0.35 * Math.sin(Math.PI * progress)) : 0;
+      var extension = resultHeight ? Math.max(0, Math.min(1, (box.height - form.getBoundingClientRect().height) / resultHeight)) : 0;
+      currentA = refraction ? 6 * (1 + 0.35 * Math.max(Math.sin(Math.PI * progress), Math.sin(Math.PI * extension))) : 0;
       maximumA = Math.max(maximumA, currentA);
-      form.style.setProperty("--edwinos-search-sample-padding", "29px");
-      form.style.setProperty("--edwinos-search-form-radius", Math.min(box.width, box.height) / 2 + "px");
+      var radius = Math.min(box.width / 2, box.height / 2, parseFloat(window.getComputedStyle(shell).borderTopLeftRadius) || 24);
+      search.style.setProperty("--edwinos-search-sample-padding", "29px");
+      search.style.setProperty("--edwinos-search-form-radius", radius + "px");
       if (refraction && box.width > 0 && box.height > 0) {
-        var key = Math.round(box.width) + ":" + Math.round(box.height) + ":29";
+        var key = Math.round(box.width) + ":" + Math.round(box.height) + ":29:" + Math.round(radius);
         filter.setAttribute("width", box.width + 58);
         filter.setAttribute("height", box.height + 58);
         mapImage.setAttribute("width", box.width + 58);
         mapImage.setAttribute("height", box.height + 58);
         displacement.setAttribute("scale", currentA * 2);
         if (key !== mapKey) {
-          var url = makeMap(box.width, box.height, 29);
+          var url = makeMap(box.width, box.height, 29, radius);
           mapImage.setAttribute("href", url);
           mapImage.setAttributeNS("http://www.w3.org/1999/xlink", "href", url);
           mapKey = key;
@@ -677,7 +799,28 @@
 
     function refresh() {
       measureEndpoints();
+      updateResults();
       schedule(500, true);
+    }
+
+    function updateResults() {
+      if (layoutFrame || disposed) return;
+      layoutFrame = window.requestAnimationFrame(function () {
+        layoutFrame = 0;
+        if (searchToggle.checked && input.value.trim()) fitSearchSnippets(search);
+        var inputHeight = form.getBoundingClientRect().height;
+        var result = search.querySelector('.md-search-result');
+        var viewport = window.visualViewport;
+        var bottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
+        var available = Math.max(0, bottom - form.getBoundingClientRect().bottom - 12);
+        var scrollwrap = search.querySelector('.md-search__scrollwrap');
+        var inset = scrollwrap ? parseFloat(window.getComputedStyle(scrollwrap).paddingBottom) || 0 : 0;
+        resultHeight = searchToggle.checked && input.value.trim() && result
+          ? Math.min(result.scrollHeight + inset, available, window.innerHeight * 0.68, 640) : 0;
+        search.style.setProperty('--edwinos-search-input-height', inputHeight + 'px');
+        search.style.setProperty('--edwinos-search-results-height', resultHeight + 'px');
+        schedule(500, false);
+      });
     }
 
     listen(header, "pointerdown", function (event) {
@@ -701,15 +844,32 @@
         cancelFocus();
         input.blur();
       }
+      updateResults();
       schedule(500, true);
     });
 
     if (typeof window.ResizeObserver === "function") {
       var resize = new ResizeObserver(refresh);
       resize.observe(header);
+      var result = search.querySelector('.md-search-result');
+      if (result) resize.observe(result);
       observers.push(resize);
     } else {
       listen(window, "resize", refresh);
+    }
+    if (window.visualViewport) {
+      listen(window.visualViewport, 'resize', updateResults);
+      listen(window.visualViewport, 'scroll', updateResults);
+    }
+    listen(document, 'edwinos:search-math-settled', updateResults);
+    var resultsScroller = search.querySelector('.md-search__scrollwrap');
+    if (resultsScroller) listen(resultsScroller, 'scroll', updateResults, { passive: true });
+    var resultsOutput = search.querySelector('.md-search__output');
+    if (resultsOutput) {
+      listen(resultsOutput, 'transitionend', function (event) {
+        if (event.propertyName === 'height') updateResults();
+      });
+      listen(resultsOutput, 'toggle', updateResults, true);
     }
     if (typeof window.MutationObserver === "function") {
       var paletteObserver = new MutationObserver(refresh);
@@ -731,13 +891,14 @@
 
     headerSearchRuntime = {
       header: header, search: search, form: form, input: input, toggle: searchToggle, arm: arm, refresh: refresh,
-      listen: listen, timer: timer, cancelFocus: cancelFocus,
+      listen: listen, timer: timer, cancelFocus: cancelFocus, updateResults: updateResults,
       deferActivation: deferActivation, focusInput: focusInput,
       allowOpen: function () { reopenBlockedUntil = 0; },
       destroy: function () {
         disposed = true;
         cancelFocus();
         window.cancelAnimationFrame(frame);
+        window.cancelAnimationFrame(layoutFrame);
         observers.forEach(function (observer) { observer.disconnect(); });
         listeners.forEach(function (remove) { remove(); });
         timers.forEach(function (id) { window.clearTimeout(id); });
@@ -745,6 +906,7 @@
         if (definitions) definitions.remove();
         surface.remove();
         highlight.remove();
+        shell.remove();
         search.classList.remove("edwinos-search-refraction");
         delete search.dataset.edwinosSearchReady;
         delete form.dataset.edwinosSearchFormReady;
@@ -785,88 +947,33 @@
     });
   }
 
-  function searchNavigationIsReload() {
-    if (window.performance && typeof window.performance.getEntriesByType === "function") {
-      var entries = window.performance.getEntriesByType("navigation");
-      if (entries.length) return entries[0].type === "reload";
-    }
-
-    return Boolean(
-      window.performance &&
-      window.performance.navigation &&
-      window.performance.navigation.type === 1
-    );
-  }
-
-  function readRememberedSearchQuery() {
-    var raw;
+  function clearSavedSearchQuery() {
     try {
-      raw = window.sessionStorage.getItem(SEARCH_QUERY_STORAGE_KEY);
+      window.sessionStorage.removeItem(SEARCH_QUERY_STORAGE_KEY);
     } catch (error) {
-      return null;
-    }
-    if (!raw) return null;
-
-    try {
-      var state = JSON.parse(raw);
-      var query = typeof state.query === "string" ? state.query.trim() : "";
-      var remainingReloads = Number(state.remainingReloads);
-      if (!query || !Number.isFinite(remainingReloads) || remainingReloads <= 0) {
-        window.sessionStorage.removeItem(SEARCH_QUERY_STORAGE_KEY);
-        return null;
-      }
-      return {
-        query: query,
-        remainingReloads: remainingReloads
-      };
-    } catch (error) {
-      try {
-        window.sessionStorage.removeItem(SEARCH_QUERY_STORAGE_KEY);
-      } catch (storageError) {
-        // Storage may be unavailable in privacy-restricted browser contexts.
-      }
-      return null;
+      // Search remains usable when browser storage is unavailable.
     }
   }
 
-  function writeRememberedSearchQuery(query) {
-    var normalized = (query || "").trim();
+  function setupSearchResultSummary() {
+    if (searchResultSummarySubscription || !window.component$) return;
 
-    try {
-      if (!normalized) {
-        window.sessionStorage.removeItem(SEARCH_QUERY_STORAGE_KEY);
-        return;
+    searchResultSummarySubscription = window.component$.subscribe(function (state) {
+      if (!state.ref || !state.ref.matches('[data-md-component="search-result"]') ||
+          !Array.isArray(state.items)) return;
+      var meta = state.ref.querySelector(".md-search-result__meta");
+      if (!meta) return;
+
+      // Use the full result payload: Material renders later articles lazily.
+      // A score-zero parent only supplies its article title, not a matching entry.
+      var matches = state.items.reduce(function (total, group) {
+        return total + group.filter(function (item) { return item.score > 0; }).length;
+      }, 0);
+      if (state.items.length) {
+        meta.textContent = "找到 " + state.items.length + " 篇文章，共 " + matches + " 个匹配词条";
       }
-
-      window.sessionStorage.setItem(SEARCH_QUERY_STORAGE_KEY, JSON.stringify({
-        query: normalized,
-        remainingReloads: 2
-      }));
-    } catch (error) {
-      // Search remains fully usable when session storage is unavailable.
-    }
-  }
-
-  function rememberedSearchQueryForThisLoad() {
-    var state = readRememberedSearchQuery();
-    if (!state) return "";
-
-    if (!searchReloadBudgetProcessed && searchNavigationIsReload()) {
-      searchReloadBudgetProcessed = true;
-      state.remainingReloads -= 1;
-
-      try {
-        if (state.remainingReloads <= 0) {
-          window.sessionStorage.removeItem(SEARCH_QUERY_STORAGE_KEY);
-        } else {
-          window.sessionStorage.setItem(SEARCH_QUERY_STORAGE_KEY, JSON.stringify(state));
-        }
-      } catch (error) {
-        // The in-memory query below can still restore the current view.
-      }
-    }
-
-    return state.query;
+      if (headerSearchRuntime) headerSearchRuntime.updateResults();
+    });
   }
 
   function setupSearchActivation() {
@@ -891,7 +998,7 @@
 
     var params = new URLSearchParams(window.location.search);
     var sharedQuery = params.get("q") || params.get("query");
-    var rememberedQuery = sharedQuery || rememberedSearchQueryForThisLoad();
+    clearSavedSearchQuery();
 
     var syncQueryState = function () {
       var hasQuery = Boolean(input.value.trim());
@@ -903,19 +1010,14 @@
       input.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, key: "Unidentified" }));
     };
 
+    var queryTimer = 0, composing = false, inputPaintFrame = 0;
     var scheduleQueryEmit = function () {
-      if (!input.value.trim()) return;
-
-      runtime.timer(emitQuery, 40);
-      runtime.timer(emitQuery, 180);
-      runtime.timer(emitQuery, 520);
+      window.clearTimeout(queryTimer);
+      if (composing) return;
+      queryTimer = window.setTimeout(emitQuery, 100);
     };
 
     var openSearch = function () {
-      if (!input.value && rememberedQuery) {
-        input.value = rememberedQuery;
-      }
-
       if (!searchToggle.checked) {
         runtime.allowOpen();
         beginHeaderSearchTransition();
@@ -923,7 +1025,6 @@
         searchToggle.dispatchEvent(new Event("change", { bubbles: true }));
       }
 
-      scheduleQueryEmit();
     };
 
     runtime.listen(runtime.header, "click", function (event) {
@@ -984,13 +1085,40 @@
       });
     });
     runtime.listen(input, "click", openSearch);
-    runtime.listen(input, "input", function () {
-      rememberedQuery = input.value.trim();
+    runtime.listen(input, "compositionstart", function () {
+      composing = true;
+      window.clearTimeout(queryTimer);
+    });
+    runtime.listen(input, "compositionend", function () {
+      composing = false;
       syncQueryState();
-      writeRememberedSearchQuery(rememberedQuery);
+      scheduleQueryEmit();
+    });
+    runtime.listen(input, "keyup", function (event) {
+      if (!event.isTrusted) return;
+      // Material reads every keyup. Keep IME preedit and rapid keypresses out
+      // of retrieval; one synthetic keyup submits the settled input value.
+      event.stopImmediatePropagation();
+      if (!event.isComposing && !composing) scheduleQueryEmit();
+    }, true);
+    runtime.listen(input, "input", function (event) {
+      var inputStarted = window.performance.now();
+      syncQueryState();
       openSearch();
+      if (!input.value.trim()) runtime.updateResults();
+      if (!event.isComposing && !composing) scheduleQueryEmit();
+      window.cancelAnimationFrame(inputPaintFrame);
+      inputPaintFrame = window.requestAnimationFrame(function () {
+        if (!search.isConnected) return;
+        var elapsed = window.performance.now() - inputStarted;
+        search.dataset.edwinosSearchInputFrameMs = String(Math.round(elapsed * 100) / 100);
+      });
     });
     runtime.listen(input, "keydown", function (event) {
+      if (event.isComposing || composing || event.keyCode === 229) {
+        event.stopImmediatePropagation();
+        return;
+      }
       if (event.key === "Escape") {
         runtime.cancelFocus();
         beginHeaderSearchTransition();
@@ -1022,22 +1150,47 @@
     }, true);
 
     runtime.listen(form, "reset", function () {
-      rememberedQuery = "";
-      writeRememberedSearchQuery("");
-      runtime.timer(syncQueryState, 0);
+      runtime.timer(function () {
+        syncQueryState();
+        runtime.updateResults();
+      }, 0);
     });
 
     runtime.listen(searchToggle, "change", function () {
       if (!searchToggle.checked) {
+        window.clearTimeout(queryTimer);
+        runtime.cancelFocus();
         input.blur();
+        input.value = "";
+        clearSavedSearchQuery();
+        syncQueryState();
+        runtime.updateResults();
+        // A reset/input event would refocus or reopen Material's search.
+        emitQuery();
+        var url = new URL(window.location.href);
+        if (url.searchParams.has("q") || url.searchParams.has("query")) {
+          url.searchParams.delete("q");
+          url.searchParams.delete("query");
+          window.history.replaceState(window.history.state, "", url);
+        }
         return;
       }
 
       runtime.focusInput(scheduleQueryEmit);
     });
 
-    if (rememberedQuery && !input.value) {
-      input.value = rememberedQuery;
+    runtime.listen(window, 'click', function (event) {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      var target = event.target && event.target.closest ? event.target : null;
+      if (!target || !target.closest('.md-search-result__link') || !searchToggle.checked) return;
+      // Run before block-links' document capture handler consumes same-page
+      // fragments. Both same-note and cross-note selections close identically.
+      searchToggle.checked = false;
+      searchToggle.dispatchEvent(new Event('change', { bubbles: true }));
+    }, true);
+
+    if (sharedQuery && !input.value) {
+      input.value = sharedQuery;
     }
     syncQueryState();
 
@@ -2224,6 +2377,7 @@
     updateBeijingTime();
     updateFriendCount();
     setupSearchActivation();
+    setupSearchResultSummary();
     markProfileDrawerEntries();
     setSectionNavigationDepth();
     restorePrimarySidebarScroll();

@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-10-06
+Last updated: 2026-10-09
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -17,7 +17,7 @@ The order below is a runtime contract:
 5. `docs/javascripts/block-links.js`.
 6. `docs/javascripts/ui-perf.js`.
 
-`overrides/main.html` configures the exact-search worker before Material's
+`overrides/main.html` configures the EdwinOS Lunr search worker before Material's
 runtime is loaded. The build hooks run in this order: `archive.py`,
 `home_sections.py`, `search_scope.py`, `note_assets.py`, then `archive_assets.py`.
 
@@ -83,12 +83,36 @@ share numeric left/right/top/height coordinates. The expanded height has its
 own token and must not change the shared Header control size or horizontal
 targets. Active tab backgrounds are inset 1px horizontally without moving
 their buttons or text. Search stays above covered controls until closing ends.
-The Search runtime in `ui-perf.js` owns the padded capsule displacement map,
+The Search runtime in `ui-perf.js` owns the padded rounded-rectangle displacement map,
 palette coverage measurement, bounded cache and animation/resize updates.
 Chromium uses edge refraction; Safari and unsupported browsers retain continuous
 native blur. Keep initialization idempotent across instant navigation, stop
 optical work while idle, and preserve Material's input/checkbox/query contracts.
 Upstream technique attribution is in `docs/assets/licenses/liquid-glass-MIT.txt`.
+One visual shell covers the input and results. Empty activation keeps the
+capsule; a query extends its lower edge into a rounded window. Only the existing
+Material scrollwrap scrolls, with height bounded by the visual viewport.
+The shell follows the rendered input and result heights each animation frame;
+do not animate the shell height again or empty activation will grow late.
+Result content layers are transparent; do not add another backdrop or tint.
+Excerpts use nearby blocks from the same indexed section, then fit around all
+keyword marks to approximately two lines with off-DOM font measurement. Fit
+and formula work is limited to visible rows plus 96px overscan; scrolling and
+opening more results refresh that window. Article provenance follows each
+section title rather than consuming a separate grouping row. IME preedit does
+not query; committed input coalesces into one 100ms-delayed query. Selecting a
+result closes search before same-page fragment capture. Closing clears the query and any saved
+query, removes only `q`/`query` from the current URL, and preserves result links
+with their `h` highlighting parameter and fragment.
+`mathjax.js` owns lazy, targeted search-formula typesetting on the existing
+queue. The snippet fitter preserves complete TeX units, retains raw text before
+typesetting, and refits from that source on resize. Search typesetting must not
+reset the article's MathItems or equation counters.
+Explicit heading fragments also coordinate the exact TOC selection. Cross-page
+links retain their intended fragment through Material's outgoing scrollspy and
+post-MathJax settling; reader motion releases the selection immediately.
+Generated article dates/author metadata is marked `data-search-exclude` by
+`hooks/archive.py`, preserving it visually while excluding it from the index.
 
 ## Runtime ownership
 
@@ -101,6 +125,8 @@ Upstream technique attribution is in `docs/assets/licenses/liquid-glass-MIT.txt`
 | Archive markup and article metadata | `hooks/archive.py` | CSS and runtime may consume generated classes but must not duplicate generation. |
 | Homepage news/publications markup | `hooks/home_sections.py` | Content comes from `data/homepage/*.yml`. |
 | Search index scope | `hooks/search_scope.py` | Worker/UI code must not duplicate build-time scope policy. |
+| Search retrieval and result snippets | `assets/javascripts/workers/search-engine.js`, `search-exact-worker.js` | One Lunr engine with Material's SETUP/READY/QUERY/RESULT contract. Exact phrases precede chapter context; fuzzy and final-word prefix are controlled fallbacks. Escape all result HTML. |
+| Search index prebuilding | `hooks/search_scope.py`, `tools/build_search_index.cjs` | Prebuild only after corpus scoping, with the same vendored Lunr and tokenizer as the worker. Node 24 is configured in the existing deployment workflow; Python-only local builds retain the worker fallback. `EDWINOS_NODE` can select a local Node binary. |
 | ENotes and experience-article image loading and intrinsic dimensions | `hooks/note_assets.py` | Build-time native lazy loading; preserve original image URLs, explicit attributes, and lightbox behavior. |
 | Internal page prefetch | Material `navigation.instant.prefetch` | Hover/focus-triggered HTML prefetch; no duplicate runtime Archive prefetch or automatic batch downloads. |
 | Archive opening feedback | `ui-perf.js`, Archive CSS owner | Clear only after content replacement or explicit cancellation; 10 seconds reveals recovery controls, never pretends a pending navigation is complete. |
@@ -154,8 +180,10 @@ cleanup:
 - Profile data/markup is duplicated between the homepage, runtime shell, and
   homepage JSON-LD.
 - HOME subpages are wrapped into their profile layout at runtime.
-- Search depends on a template config adapter, an exact-match worker wrapper,
-  and UI timing hooks.
+- Search uses a template config adapter and one standalone Lunr worker/core.
+  The worker does not import or layer filters over Material's bundled worker;
+  UI timing hooks preserve its standard input/message contract. The vendored
+  Lunr 2.3.9 MIT license is kept beside the library.
 - Route classification is centralized in `ui-perf.js`; keep its root,
   article-index, Archive, and Friends cases covered by runtime contract tests.
 - Repository facts have JSON, cache/API, and Material-DOM compatibility paths.
