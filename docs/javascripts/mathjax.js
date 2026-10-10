@@ -33,6 +33,9 @@
   var HASH_LAYOUT_SETTLED_EVENT = "edwinos:hash-layout-settled";
   var searchMathStates = new WeakMap();
   var trackedSearchMath = new Set();
+  var articleMathRoot = null;
+  var articleMathObserver = null;
+  var articleMathCleanText = new WeakMap();
 
   window.MathJax = {
     tex: {
@@ -52,6 +55,12 @@
     options: {
       ignoreHtmlClass: ".*|",
       processHtmlClass: "arithmatex"
+    },
+    chtml: {
+      // Material replaces dynamic head nodes during instant navigation. Full
+      // rules survive style re-insertion; adaptive CSSOM insertRule additions
+      // would be lost while MathJax still caches their glyphs as emitted.
+      adaptiveCSS: false
     },
     startup: {
       // document$ owns the first and subsequent typesets so lazy loading and
@@ -166,6 +175,7 @@ function loadMathJax() {
 
 function typesetCurrentDocument() {
   var sequence = ++navigationSequence;
+  protectArticleMath();
   wrapTocMath();
 
   // Preserve lazy loading: a page without math doesn't fetch MathJax. Once it
@@ -184,6 +194,7 @@ function typesetCurrentDocument() {
         // typesetting. Only ever touch the current Material document.
         if (sequence !== navigationSequence) return;
 
+        protectArticleMath();
         wrapTocMath();
         window.MathJax.typesetClear();
         window.MathJax.texReset();
@@ -202,6 +213,92 @@ function typesetCurrentDocument() {
   }).catch(function () {
     // Keep raw TeX readable if the local optional runtime cannot be loaded.
   });
+}
+
+// Material's ?h= search highlighting splits TeX into text and mark nodes.
+// Join only its marks inside formulas; author marks and prose highlights stay.
+function clearArticleMathHighlights(formulas) {
+  var changed = [];
+  formulas.forEach(function (formula) {
+    var marks = formula.querySelectorAll("mark[data-md-highlight]");
+    marks.forEach(function (mark) { mark.replaceWith.apply(mark, Array.from(mark.childNodes)); });
+    if (marks.length) formula.normalize();
+    var decoded = false;
+    // Material also escapes <, > and & in text without a keyword match.
+    // Restore them as text, never HTML, so inequalities and alignments remain
+    // valid TeX. Remember the clean text to avoid decoding it twice.
+    if (/[?&]h=[^&]+/.test(window.location.search || "") &&
+        articleMathCleanText.get(formula) !== formula.textContent) {
+      var entities = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'" };
+      function restore(node) {
+        if (node.nodeType === 3) {
+          var text = node.textContent.replace(/&(?:amp|lt|gt|quot|#39);/g, function (entity) {
+            decoded = true;
+            return entities[entity];
+          });
+          if (text !== node.textContent) node.textContent = text;
+        } else node.childNodes.forEach(restore);
+      }
+      restore(formula);
+      articleMathCleanText.set(formula, formula.textContent);
+    }
+    if (marks.length || decoded) {
+      formula.normalize();
+      changed.push(formula);
+    }
+  });
+  return changed;
+}
+
+function protectArticleMath() {
+  var root = document.querySelector(".md-content__inner");
+  if (root !== articleMathRoot) {
+    if (articleMathObserver) articleMathObserver.disconnect();
+    articleMathObserver = null;
+    articleMathRoot = root;
+    if (root && typeof MutationObserver === "function") {
+      // The search index can arrive after document$ and MathJax have settled.
+      articleMathObserver = new MutationObserver(function (records) {
+        var affected = new Set();
+        records.forEach(function (record) {
+          record.addedNodes.forEach(function (node) {
+            if (/&(?:amp|lt|gt|quot|#39);/.test(node.textContent || "")) {
+              var parent = node.nodeType === 1 ? node : node.parentElement;
+              var escapedFormula = parent && parent.closest(".arithmatex");
+              if (escapedFormula && root.contains(escapedFormula)) affected.add(escapedFormula);
+            }
+            if (node.nodeType !== 1) return;
+            var marks = node.matches("mark[data-md-highlight]")
+              ? [node] : node.querySelectorAll("mark[data-md-highlight]");
+            marks.forEach(function (mark) {
+              var formula = mark.closest(".arithmatex");
+              if (formula && root.contains(formula)) affected.add(formula);
+            });
+          });
+        });
+        var changed = clearArticleMathHighlights(Array.from(affected));
+        if (!changed.length) return;
+        var sequence = navigationSequence;
+        typesetQueue = typesetQueue.catch(function () {}).then(function () {
+          if (sequence !== navigationSequence || articleMathRoot !== root || !mathJaxIsReady()) return;
+          var pending = changed.filter(function (formula) {
+            return formula.isConnected && !formula.querySelector("mjx-container");
+          });
+          if (!pending.length) return;
+          // A late highlight retries only unrendered formulas, preserving all
+          // existing MathItems, equation counters and search excerpt state.
+          return window.MathJax.typesetPromise(pending).then(function () {
+            if (sequence !== navigationSequence) return;
+            classifyWideInlineMath();
+            announceHashLayoutSettled(sequence);
+          });
+        });
+        typesetQueue.catch(function () {});
+      });
+      articleMathObserver.observe(root, { childList: true, subtree: true });
+    }
+  }
+  if (root) clearArticleMathHighlights(root.querySelectorAll(".arithmatex"));
 }
 
 function classifyWideInlineMath() {

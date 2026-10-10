@@ -541,14 +541,24 @@ def _normalize_obsidian_marks(markdown: str) -> str:
     active_fence: Optional[str] = None
 
     def convert_segment(segment: str) -> str:
-        parts: List[str] = []
-        last = 0
-        for match in INLINE_PROTECTED_RE.finditer(segment):
-            parts.append(OBSIDIAN_MARK_RE.sub(r"<mark>\1</mark>", segment[last : match.start()]))
-            parts.append(match.group(0))
-            last = match.end()
-        parts.append(OBSIDIAN_MARK_RE.sub(r"<mark>\1</mark>", segment[last:]))
-        return "".join(parts)
+        # Protect the contents of math/code without splitting a surrounding
+        # highlight, e.g. 系统==热量 ($q$) 等于焓变==.
+        protected: List[str] = []
+        prefix = "\x00edwinos-mark:"
+        while prefix in segment:
+            prefix += ":"
+
+        def protect(match: re.Match) -> str:
+            protected.append(match.group(0))
+            return f"{prefix}{len(protected) - 1}\x00"
+
+        masked = INLINE_PROTECTED_RE.sub(protect, segment)
+        marked = OBSIDIAN_MARK_RE.sub(r"<mark>\1</mark>", masked)
+        return re.sub(
+            re.escape(prefix) + r"(\d+)\x00",
+            lambda match: protected[int(match.group(1))],
+            marked,
+        )
 
     for line in markdown.splitlines(keepends=True):
         newline = ""

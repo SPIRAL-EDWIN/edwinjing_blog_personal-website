@@ -23,6 +23,32 @@
   var activeArchiveNavigation = null;
   var friendCountRequest = null;
   var friendCountValue = null;
+  var enhancedContent = null;
+  var enhancedHeader = null;
+  var firstScreenReady = false;
+  var deferredWork = [];
+
+  function afterFirstScreen(callback) {
+    if (firstScreenReady) callback();
+    else deferredWork.push(callback);
+  }
+
+  function releaseDeferredWork() {
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        window.setTimeout(function () {
+          var release = function () {
+            firstScreenReady = true;
+            deferredWork.splice(0).forEach(function (callback) { callback(); });
+          };
+          if (window.requestIdleCallback) window.requestIdleCallback(release, { timeout: 2000 });
+          else release();
+        }, 1000);
+      });
+    });
+  }
+  if (document.readyState === "complete") releaseDeferredWork();
+  else window.addEventListener("load", releaseDeferredWork, { once: true });
 
   function navigationPageKey(value) {
     try {
@@ -547,14 +573,17 @@
       return id;
     }
 
-    var shell = document.createElement('div');
-    shell.className = 'edwinos-search-shell';
-    shell.setAttribute('aria-hidden', 'true');
-    form.parentElement.insertBefore(shell, form);
+    var shell = form.parentElement.querySelector('.edwinos-search-shell');
+    if (!shell) {
+      shell = document.createElement('div');
+      shell.className = 'edwinos-search-shell';
+      shell.setAttribute('aria-hidden', 'true');
+      form.parentElement.insertBefore(shell, form);
+    }
 
     function addGlass(kind) {
       var selector = ".edwinos-search-glass--" + kind;
-      var layer = form.querySelector(selector);
+      var layer = shell.querySelector(selector) || form.querySelector(selector);
       if (!layer) {
         layer = document.createElement("span");
         layer.className = "edwinos-search-glass edwinos-search-glass--" + kind;
@@ -800,7 +829,7 @@
     function refresh() {
       measureEndpoints();
       updateResults();
-      schedule(500, true);
+      schedule(searchToggle.checked ? 500 : 0, true);
     }
 
     function updateResults() {
@@ -819,7 +848,7 @@
           ? Math.min(result.scrollHeight + inset, available, window.innerHeight * 0.68, 640) : 0;
         search.style.setProperty('--edwinos-search-input-height', inputHeight + 'px');
         search.style.setProperty('--edwinos-search-results-height', resultHeight + 'px');
-        schedule(500, false);
+        schedule(searchToggle.checked ? 500 : 0, false);
       });
     }
 
@@ -887,6 +916,9 @@
     else if (typeof reducedMotion.addListener === "function") {
       reducedMotion.addListener(refresh);
       listeners.push(function () { reducedMotion.removeListener(refresh); });
+    }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () { if (!disposed) refresh(); });
     }
 
     headerSearchRuntime = {
@@ -1180,13 +1212,33 @@
     });
 
     runtime.listen(window, 'click', function (event) {
-      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      var target = event.target && event.target.closest ? event.target : null;
-      if (!target || !target.closest('.md-search-result__link') || !searchToggle.checked) return;
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      var target = event.target && event.target.closest ? event.target : event.target && event.target.parentElement;
+      var link = target && target.closest ? target.closest('.md-search-result__link[href]') : null;
+      if (!link || !searchToggle.checked || link.hasAttribute('download')) return;
+      if (link.target && link.target !== '_self') return;
+      var destination;
+      try { destination = new URL(link.href, window.location.href); }
+      catch (_error) { return; }
+      if (!/^https?:$/.test(destination.protocol) || destination.origin !== window.location.origin) return;
+      var current = new URL(window.location.href);
+      var pagePath = function (url) { return url.pathname.replace(/\/index\.html$/i, '/').replace(/\/+$/, ''); };
+      var loadDocument = pagePath(destination) !== pagePath(current) || !destination.hash ||
+        destination.searchParams.get('h') !== current.searchParams.get('h');
+      if (loadDocument) {
+        // Material publishes the new URL before replacing the content. Its
+        // h highlighter then marks the outgoing page, and an unbounded XHR can
+        // leave that page behind the destination URL. Native document loading
+        // commits URL/content together and provides browser error recovery.
+        // Capture href before clearing the query can remove the result node.
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
       // Run before block-links' document capture handler consumes same-page
-      // fragments. Both same-note and cross-note selections close identically.
+      // fragments. A fragment with unchanged highlight terms keeps that owner.
       searchToggle.checked = false;
       searchToggle.dispatchEvent(new Event('change', { bubbles: true }));
+      if (loadDocument) window.location.assign(destination.href);
     }, true);
 
     if (sharedQuery && !input.value) {
@@ -1194,7 +1246,8 @@
     }
     syncQueryState();
 
-    if (sharedQuery) {
+    // Keep a query typed into the static input before Material finished loading.
+    if (sharedQuery || input.value.trim()) {
       runtime.deferActivation(function () {
         openSearch();
         scheduleQueryEmit();
@@ -1397,7 +1450,7 @@
   }
 
   function normalizeSourceFacts() {
-    var sources = document.querySelectorAll(".md-header__source .md-source");
+    var sources = document.querySelectorAll(".md-header__source .md-source, .md-nav__source .md-source");
     sources.forEach(function (source) {
       var repo = source.querySelector(".md-source__repository");
       if (!repo) return;
@@ -1483,7 +1536,7 @@
         if (
           target &&
           target.nodeType === window.Node.ELEMENT_NODE &&
-          target.closest(".md-header__source")
+          target.closest(".md-header__source, .md-nav__source")
         ) {
           return true;
         }
@@ -1491,8 +1544,8 @@
         return Array.prototype.some.call(mutation.addedNodes, function (node) {
           return node.nodeType === window.Node.ELEMENT_NODE &&
             (
-              node.matches(".md-header__source") ||
-              node.querySelector(".md-header__source")
+              node.matches(".md-header__source, .md-nav__source") ||
+              node.querySelector(".md-header__source, .md-nav__source")
             );
         });
       });
@@ -1519,7 +1572,7 @@
     return [
       '<div class="profile-card">',
       '  <div class="profile-avatar">',
-      '    <img src="' + siteHref("assets/images/avatar-edwin-notionists.svg") + '" alt="Chen Jing (经宸)">',
+      '    <img src="' + siteHref("assets/images/avatar-edwin-notionists.svg") + '" alt="Chen Jing (经宸)" loading="eager" fetchpriority="high" decoding="async">',
       '  </div>',
       '  <div class="profile-details">',
       '  <div class="profile-name-wrap">',
@@ -2366,16 +2419,22 @@
 
   function runAll() {
     finishArchiveNavigationFeedback();
+    var content = document.querySelector(".md-content__inner");
+    var header = document.querySelector(".md-header");
+    if (content === enhancedContent && header === enhancedHeader) return;
+    enhancedContent = content;
+    enhancedHeader = header;
     updateHomepageClass();
     ensureHeaderGlass();
     ensureTocGlass();
     setupHeaderSearchTransition();
     normalizePaletteButtons();
-    updateSourceFacts();
+    normalizeSourceFacts();
+    if (!latestSourceFacts) restoreStoredSourceFacts();
+    applySourceFacts();
     watchSourceFacts();
     ensureHomeProfileLayout();
     updateBeijingTime();
-    updateFriendCount();
     setupSearchActivation();
     setupSearchResultSummary();
     markProfileDrawerEntries();
@@ -2386,7 +2445,11 @@
     setupCollapsibleCallouts();
     setupAuthorToggles();
     setupVisitorBadge();
-    updateVisitorDeploymentTime();
+    afterFirstScreen(function () {
+      updateSourceFacts();
+      updateFriendCount();
+      updateVisitorDeploymentTime();
+    });
     fixOrderedListContinuity();
   }
 

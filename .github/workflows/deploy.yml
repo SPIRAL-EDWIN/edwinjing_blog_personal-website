@@ -59,7 +59,13 @@ jobs:
         run: mkdocs build --clean
 
       - name: Verify search behavior
-        run: node tools/test_search_engine.cjs
+        run: |
+          node tools/test_search_engine.cjs
+          node tools/test_search_worker.cjs
+          node tools/test_search_loader.cjs
+          node tools/test_search_interaction.cjs
+          node tools/test_search_math.cjs
+          node tools/test_article_math.cjs
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

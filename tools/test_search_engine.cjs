@@ -9,6 +9,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const {pathToFileURL, fileURLToPath} = require('node:url');
 const {performance} = require('node:perf_hooks');
 const root = path.resolve(__dirname, '..');
 const assets = path.join(root, 'docs/assets/javascripts');
@@ -246,7 +247,13 @@ const realCases = [
 ];
 const corpusPath = path.resolve(process.argv[2] || path.join(root, 'site/search/search_index.json'));
 assert(fs.existsSync(corpusPath), 'Build the site first, or pass a search_index.json path.');
-const corpus = JSON.parse(fs.readFileSync(corpusPath, 'utf8'));
+let corpus = JSON.parse(fs.readFileSync(corpusPath, 'utf8'));
+if (corpus.config && corpus.config.edwinos_corpus) {
+  const workerURL = pathToFileURL(path.resolve(path.dirname(corpusPath), '../assets/javascripts/workers/search-exact-worker.js'));
+  const corpusURL = new URL(corpus.config.edwinos_corpus, workerURL);
+  assert.equal(corpusURL.protocol, 'file:', 'local tests must resolve a local corpus');
+  corpus = JSON.parse(fs.readFileSync(fileURLToPath(corpusURL), 'utf8'));
+}
 const realEngine = make(corpus.docs);
 check('real corpus: Homonuclear 2s is a true formula match and preserves its keyword and delimiters', () => {
   const item = sections(realEngine.search('2s')).find(item => item.location.endsWith('#homonuclear-diatomic-molecules'));
@@ -274,7 +281,7 @@ for (const [q, targets] of realCases) {
   });
 }
 
-function runWorker(setupData, queries, expectPrepared = false) {
+async function runWorker(setupData, queries, expectPrepared = false) {
   const origin = 'http://edwinos.test';
   const href = origin + '/assets/javascripts/workers/search-exact-worker.js';
   const listeners = [];
@@ -306,24 +313,33 @@ function runWorker(setupData, queries, expectPrepared = false) {
   vm.runInContext(fs.readFileSync(workerPath, 'utf8'), context, {filename: workerPath});
   function dispatch(data) { for (const listener of listeners) listener({data}); }
   dispatch({type: 0, data: setupData});
+  await new Promise(resolve => setImmediate(resolve));
   for (const q of queries) dispatch({type: 2, data: q});
   return messages;
 }
-check('worker INIT and rapid QUERY messages preserve response order and Material shape', () => {
+async function checkAsync(name, run) {
+  await run();
+  checks++;
+  console.log('PASS ' + name);
+}
+async function workerChecks() {
+await checkAsync('worker INIT and rapid QUERY messages preserve response order and Material shape', async () => {
   const queries = ['reinforcement learning', 'embdoied ai', '2099', '强化学习 PPO', ''];
   const data = {docs: basicDocs, config: {lang: ['en'], separator: '[\\s\\-]+'}};
   for (const prepared of [null, engineApi.buildSerializedIndex(basicDocs, lunr)]) {
-    const messages = runWorker({...data, config: {...data.config, ...(prepared ? {edwinos_index: prepared} : {})}}, queries, Boolean(prepared));
+    const messages = await runWorker({...data, config: {...data.config, ...(prepared ? {edwinos_index: prepared} : {})}}, queries, Boolean(prepared));
     assert.deepEqual(messages.map(message => message.type), [1, ...queries.map(() => 3)]);
     for (let i = 0; i < queries.length; i++) {
       assert.deepEqual(locations(messages[i + 1].data), locations(engine.search(queries[i])), queries[i]);
     }
   }
 });
-check('invalid prepared index falls back to runtime indexing instead of losing search', () => {
-  const messages = runWorker({docs: basicDocs, config: {edwinos_index: {version: 0, tokenizer: 'outdated', index: {}}}}, ['reinforcement learning']);
+await checkAsync('invalid prepared index falls back to runtime indexing instead of losing search', async () => {
+  const messages = await runWorker({docs: basicDocs, config: {edwinos_index: {version: 0, tokenizer: 'outdated', index: {}}}}, ['reinforcement learning']);
   assert.deepEqual(messages.map(message => message.type), [1, 3]);
   assert.deepEqual(locations(messages[1].data), locations(engine.search('reinforcement learning')));
 });
 
 console.log(`Search engine: ${checks} checks passed (${corpus.docs.length} real index records).`);
+}
+workerChecks().catch(error => { console.error(error); process.exitCode = 1; });

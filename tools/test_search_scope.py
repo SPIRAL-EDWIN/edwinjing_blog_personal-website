@@ -72,6 +72,36 @@ class SearchScopeTests(unittest.TestCase):
             with mock.patch.object(SEARCH_SCOPE, "_prebuild_lunr_index", side_effect=check_scoped) as builder:
                 SEARCH_SCOPE.on_post_build({"site_dir": directory})
             builder.assert_called_once_with(index)
+            manifest = json.loads(index.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["docs"], [])
+            self.assertEqual(manifest["config"]["lang"], ["zh"])
+            corpus_path = index.parent / Path(manifest["config"]["edwinos_corpus"]).name
+            corpus = json.loads(corpus_path.read_text(encoding="utf-8"))
+            self.assertEqual(corpus["docs"], [{"location": "OsdNotes/one/"}])
+
+    def test_manifest_keeps_tokenizer_but_defers_prepared_index(self):
+        with tempfile.TemporaryDirectory() as directory:
+            index = Path(directory) / "search_index.json"
+            original = {
+                "config": {"lang": ["en"], "separator": r"[\s\-]+", "edwinos_index": {"prepared": True}},
+                "docs": [{"location": "OsdNotes/one/", "text": "Example"}],
+            }
+            index.write_text(json.dumps(original), encoding="utf-8")
+            SEARCH_SCOPE._publish_deferred_corpus(index)
+            manifest = json.loads(index.read_text(encoding="utf-8"))
+            self.assertNotIn("edwinos_index", manifest["config"])
+            self.assertEqual(manifest["config"]["separator"], original["config"]["separator"])
+            name = Path(manifest["config"]["edwinos_corpus"]).name
+            self.assertEqual(json.loads(index.with_name(name).read_text(encoding="utf-8")), original)
+            # Repeated identical builds retain a stable URL; changed content gets
+            # a new URL instead of mixing an old manifest and a new index.
+            index.write_text(json.dumps(original), encoding="utf-8")
+            SEARCH_SCOPE._publish_deferred_corpus(index)
+            self.assertEqual(json.loads(index.read_text())["config"]["edwinos_corpus"], manifest["config"]["edwinos_corpus"])
+            original["docs"][0]["text"] = "Changed"
+            index.write_text(json.dumps(original), encoding="utf-8")
+            SEARCH_SCOPE._publish_deferred_corpus(index)
+            self.assertNotEqual(json.loads(index.read_text())["config"]["edwinos_corpus"], manifest["config"]["edwinos_corpus"])
 
     def test_node_is_optional_for_python_only_builds(self):
         with mock.patch.dict("os.environ", {}, clear=True), \

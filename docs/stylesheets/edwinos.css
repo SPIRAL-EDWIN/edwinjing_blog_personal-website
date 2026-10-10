@@ -1293,10 +1293,10 @@ body[data-md-color-scheme="slate"] .md-content__inner {
 }
 
 .animate-slide-up {
-    opacity: 0;
-    transform: translateY(1rem);
-    animation: academicSlideUp 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    animation-delay: var(--anim-delay, 0s);
+    opacity: 1;
+    transform: translateY(0.35rem);
+    animation: academicSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: min(var(--anim-delay, 0s), 0.08s);
 }
 
 @keyframes academicSlideUp {
@@ -5065,12 +5065,14 @@ body[data-md-color-scheme] .md-header .md-tabs.md-tabs,
 
 /* Friends and Archive live under Overview in Material's navigation tree, but
    they are separate destinations in EdwinOS. Keep Overview available as the
-   way home without presenting it as the current page. */
+   way home without presenting it as the current page. The active capsule is
+   painted by ::before, separately from the link's hover background. */
 body.is-home-profile-page[data-md-color-scheme="default"]
 .md-tabs__item--active
 .md-tabs__link,
 body.is-home-profile-page[data-md-color-scheme="default"]
 .md-tabs__link--active {
+    --edwinos-header-active-tab-background: transparent;
     color: #57606a !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -5083,6 +5085,7 @@ body.is-home-profile-page[data-md-color-scheme="slate"]
 .md-tabs__link,
 body.is-home-profile-page[data-md-color-scheme="slate"]
 .md-tabs__link--active {
+    --edwinos-header-active-tab-background: transparent;
     color: #8b949e !important;
     background: transparent !important;
     box-shadow: none !important;

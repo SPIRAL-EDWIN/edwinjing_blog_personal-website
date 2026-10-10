@@ -11,7 +11,7 @@ description: "Official personal website of Chen Jing (经宸; name also written 
   <aside class="academic-sidebar">
     <div class="profile-card">
       <div class="profile-avatar">
-        <img src="./assets/images/avatar-edwin-notionists.svg" alt="Chen Jing (经宸)">
+        <img src="./assets/images/avatar-edwin-notionists.svg" alt="Chen Jing (经宸)" loading="eager" fetchpriority="high" decoding="async">
       </div>
 
       <div class="profile-details">
@@ -80,7 +80,7 @@ description: "Official personal website of Chen Jing (经宸; name also written 
       <h2 class="section-title"><span class="title-dash"></span>Education</h2>
       <ul class="overview-education-list">
         <li class="overview-education-item">
-          <div class="overview-education-logo"><img class="off-glb" src="./assets/images/zhejiang-university-logo-720.webp" alt="Zhejiang University logo" width="720" height="263" loading="eager" decoding="async"></div>
+          <div class="overview-education-logo"><img class="off-glb" src="./assets/images/zhejiang-university-logo-720.webp" alt="Zhejiang University logo" width="720" height="263" loading="lazy" fetchpriority="low" decoding="async"></div>
           <div class="overview-education-content">
             <div class="overview-education-school"><a href="https://www.zju.edu.cn/" target="_blank" rel="noopener">Zhejiang University (ZJU)</a></div>
             <div class="overview-education-dept"><a href="https://zjui.intl.zju.edu.cn/" target="_blank" rel="noopener">ZJU-UIUC Institute (ZJUI)</a></div>
@@ -103,7 +103,7 @@ description: "Official personal website of Chen Jing (经宸; name also written 
       <h2 class="section-title"><span class="title-dash"></span>Workshop Contributions &amp; Presentations</h2>
       <div class="overview-workshop">
         <div class="overview-workshop__media overview-publication__media">
-          <img class="off-glb" src="assets/images/workshops/iros-2026-moma-poster.webp" alt="MoMA.v5 at IROS 2026: poster display on the left, workshop opening slide at upper right, and spotlight presentation at lower right" width="1550" height="1000" loading="eager" decoding="async">
+          <img class="off-glb" src="assets/images/workshops/iros-2026-moma-poster.webp" alt="MoMA.v5 at IROS 2026: poster display on the left, workshop opening slide at upper right, and spotlight presentation at lower right" width="1550" height="1000" loading="lazy" fetchpriority="low" decoding="async">
         </div>
         <div class="overview-workshop__body">
           <p class="overview-workshop__event"><a href="https://mobile-manipulation.net/events/moma-iros26/" target="_blank" rel="noopener noreferrer">MoMA.v5 Workshop <span aria-hidden="true">·</span> IEEE/RSJ IROS 2026</a></p>
@@ -153,7 +153,7 @@ description: "Official personal website of Chen Jing (经宸; name also written 
       </p>
       <div class="visitor-container visitor-badge-panel" data-visitor-badge>
         <a class="visitor-badge-link" href="https://visitorbadge.io/status?path=https%3A%2F%2Fedwinjing-blog.com%2F" target="_blank" rel="noopener noreferrer" aria-label="Open Edwin's visitor statistics in a new tab">
-          <img class="visitor-badge-image" src="https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fedwinjing-blog.com%2F&amp;label=Edwin%27s%20VISITORS&amp;labelColor=%232ccce4&amp;countColor=%23003f88" alt="Edwin's visitors" decoding="async" referrerpolicy="no-referrer">
+          <img class="visitor-badge-image" src="https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fedwinjing-blog.com%2F&amp;label=Edwin%27s%20VISITORS&amp;labelColor=%232ccce4&amp;countColor=%23003f88" alt="Edwin's visitors" loading="lazy" fetchpriority="low" decoding="async" referrerpolicy="no-referrer">
         </a>
       </div>
     </footer>

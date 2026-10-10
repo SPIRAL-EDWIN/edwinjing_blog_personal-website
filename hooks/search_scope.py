@@ -1,5 +1,6 @@
 """Scope the search corpus, then prebuild its browser-compatible Lunr index."""
 
+import hashlib
 import json
 import logging
 import os
@@ -41,6 +42,24 @@ def _is_searchable(location):
     return normalized.startswith(ALLOWED_ROOTS)
 
 
+def _publish_deferred_corpus(index_path):
+    # Material needs the tokenizer config immediately for article highlighting,
+    # but the corpus and prepared Lunr index belong to the deferred worker load.
+    # Content-addressing prevents an older manifest from loading a newer corpus.
+    corpus = index_path.read_bytes()
+    data = json.loads(corpus)
+    digest = hashlib.sha256(corpus).hexdigest()[:20]
+    corpus_name = "edwinos_corpus." + digest + ".json"
+    index_path.with_name(corpus_name).write_bytes(corpus)
+    config = dict(data.get("config") or {})
+    config.pop("edwinos_index", None)
+    config["edwinos_corpus"] = "../../../search/" + corpus_name
+    index_path.write_text(
+        json.dumps({"config": config, "docs": []}, ensure_ascii=False, separators=(",", ":")),
+        encoding="utf-8",
+    )
+
+
 @event_priority(-100)
 def on_post_build(config, **kwargs):
     index_path = Path(config["site_dir"]) / "search" / "search_index.json"
@@ -64,3 +83,4 @@ def on_post_build(config, **kwargs):
         encoding="utf-8",
     )
     _prebuild_lunr_index(index_path)
+    _publish_deferred_corpus(index_path)

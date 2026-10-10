@@ -504,6 +504,27 @@ class PublisherTest(unittest.TestCase):
         )
         self.assertIn("$$\na=1,\\qquad\nb=2\n$$", output)
 
+    def test_root_display_math_renders_between_adjacent_paragraphs(self):
+        import markdown
+
+        for source in (
+            "Before\n$$\nx=1\n$$\nAfter\n",
+            "Before\n$$x=1$$\nAfter\n",
+            "Before\n$$\nx=1\n$$\nMiddle\n$$\ny=2\n$$\nAfter\n",
+        ):
+            with self.subTest(source=source):
+                output, _ = publisher.normalize_display_math_blocks(source)
+                rendered = markdown.markdown(
+                    output,
+                    extensions=["pymdownx.arithmatex"],
+                    extension_configs={"pymdownx.arithmatex": {"generic": True}},
+                )
+                expected = 2 if "y=2" in source else 1
+                self.assertEqual(rendered.count('<div class="arithmatex">'), expected)
+                self.assertNotIn("$$", rendered)
+                self.assertIn("<p>Before</p>", rendered)
+                self.assertIn("<p>After</p>", rendered)
+
     def test_repairs_previously_indented_display_math(self):
         source = (
             "- Formula:\n\n"

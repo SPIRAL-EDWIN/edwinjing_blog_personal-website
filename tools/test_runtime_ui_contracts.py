@@ -4,6 +4,7 @@ import importlib.util
 import re
 import sys
 import unittest
+from jinja2 import DictLoader, Environment
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -21,6 +22,22 @@ SPEC.loader.exec_module(ARCHIVE)
 
 
 class RuntimeUiContractTests(unittest.TestCase):
+    def test_profile_route_is_seeded_before_header_first_paint(self):
+        template = (ROOT / "overrides" / "main.html").read_text(encoding="utf-8")
+        environment = Environment(loader=DictLoader({
+            "main.html": template,
+            "base.html": '{% block header %}<header>Header</header>{% endblock %}',
+        }))
+        environment.filters["url"] = lambda value: value
+        for path, expected in [
+            ("HOME/Archive/", "true"), ("HOME/friends/", "true"),
+            ("HOME/Archive/index.html", "true"), ("HOME/friends/index.html", "true"),
+            ("", "false"), ("OsdNotes/CS101/Python/", "false"),
+        ]:
+            output = environment.get_template("main.html").render(page=SimpleNamespace(url=path))
+            self.assertIn('classList.toggle("is-home-profile-page", %s)' % expected, output)
+            self.assertLess(output.index('classList.toggle('), output.index('<header>'))
+
     def test_archive_feedback_tracks_content_not_an_elapsed_timeout_or_address(self):
         source = UI_PERF_PATH.read_text(encoding="utf-8")
         self.assertNotIn("setTimeout(clearArchiveNavigationFeedback", source)

@@ -176,9 +176,9 @@ class HomeSectionsTests(unittest.TestCase):
             self.assertIn('<img class="off-glb"', markup)
             self.assertNotIn('<a class="glightbox"', markup)
             self.assertIn('width="480" height="328"', markup)
-            self.assertIn('loading="eager" decoding="async"', markup)
+            self.assertIn('loading="lazy" fetchpriority="low" decoding="async"', markup)
 
-    def test_only_first_available_publication_image_loads_eagerly(self):
+    def test_all_publication_images_defer_to_the_first_viewport(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             image_dir = root / "docs/assets/images/publications"
@@ -200,10 +200,11 @@ class HomeSectionsTests(unittest.TestCase):
             markup = HOME_SECTIONS.render_publications(data, root)
             first = markup.split('src="assets/images/publications/first.webp"', 1)[1].split(">", 1)[0]
             second = markup.split('src="assets/images/publications/second.webp"', 1)[1].split(">", 1)[0]
-            self.assertIn('loading="eager"', first)
-            self.assertIn('loading="lazy"', second)
-            self.assertIn('decoding="async"', first)
-            self.assertIn('decoding="async"', second)
+            for attributes in (first, second):
+                self.assertIn('loading="lazy"', attributes)
+                self.assertIn('fetchpriority="low"', attributes)
+                self.assertIn('decoding="async"', attributes)
+            self.assertNotIn('loading="eager"', markup)
 
     def test_oversized_publication_image_fails_the_build(self):
         with tempfile.TemporaryDirectory() as directory:

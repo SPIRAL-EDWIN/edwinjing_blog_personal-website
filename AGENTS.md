@@ -32,6 +32,11 @@ Current stylesheet policy:
   capsule, then a query extends it downward. Closing clears the query; do not
   restore session-based query retention or duplicate result backdrop layers.
   Preserve IME composition handling and viewport-bounded snippet/math work.
+  Capture search result URLs before clearing the query. Document or highlight
+  changes use native navigation so Material cannot highlight outgoing content;
+  unchanged same-document fragments remain owned by `block-links.js`.
+  The initial Archive/Friends body class is seeded by `overrides/main.html`
+  before the header paints; runtime route classification owns later navigation.
 - `docs/index.md` and related markdown files own content and semantic structure.
   Avoid moving content into CSS or JS.
 - `hooks/note_assets.py` owns individual ENotes and experience-article image
@@ -52,6 +57,12 @@ Current stylesheet policy:
   `docs/assets/javascripts/workers/`; do not restore an upstream worker plus
   post-filter stack. Node is build-time only; `EDWINOS_NODE` may select a local
   binary, and Python-only local builds retain worker-side index construction.
+  `search_index.json` is a lightweight highlighting manifest; the worker loads
+  the content-addressed corpus after intent or post-load idle warmup.
+  `docs/javascripts/search-loader.js` owns that startup boundary before Material,
+  and `overrides/partials/search.html` supplies the initial glass shell.
+  Keep heavy JSON parsing and index loading in the worker, preserve early input
+  and failure retry, and do not intercept global network requests.
 
 When adding new UI rules:
 

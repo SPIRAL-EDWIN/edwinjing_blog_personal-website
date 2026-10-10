@@ -17,11 +17,13 @@ title: "Gprogress 的意义"
 $$
 r_{\mathrm{pb,P}}(t) = 2\Delta e_{\mathrm P}(t) \underbrace{ Q_{\mathrm P}(t)G_{\mathrm{progress}}(t) }_{\text{最终有效进步权重}}
 $$
+
 所以最终真正决定“同样大小的进步值多少钱”的并不是单独的 $Q_{\mathrm P}$，而是：
 
 $$
 Q_{\mathrm P}(t)G_{\mathrm{progress}}(t)
 $$
+
 假设当前步刷新了历史最优，因此近似有 $b_{\mathrm P}=e_{\mathrm P}$：
 
 | 位置误差                | $Q_{\mathrm P}$ | $G_{\mathrm{progress}}$ | 最终乘积      |

@@ -1388,9 +1388,14 @@ def normalize_display_math_blocks(text: str) -> Tuple[str, int]:
         if container:
             output.append(nested_display(container, formula_parts))
             return
+        # Arithmatex matches a complete Markdown block. Adjacent prose must
+        # stay outside the delimiters, including after an isolated closing $$.
+        if output and output[-1].strip():
+            output.append("")
         output.append("$$")
         output.extend(part for part in formula_parts if part.strip())
         output.append("$$")
+        output.append("")
 
     index = 0
     while index < len(lines):

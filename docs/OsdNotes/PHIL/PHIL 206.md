@@ -217,7 +217,7 @@ The epistemological presupposition that sensory experience is the primary or eve
   - (2)implies an infinite regress 暗示了无限回溯
 > 指出了传统论证的逻辑漏洞，如果规则是“万物皆有因”，上帝为什么例外？
 ##### Descartes's Cosmological Argument（ 笛卡尔的宇宙论论证）
-——**==Variant** of the scholastic argument（经院哲学论证的**变体**）:==
+——==**Variant** of the scholastic argument（经院哲学论证的**变体**）:==
 
 - All human minds have an idea of **God** as **supremely benevolent being（至善的存在）** ^9701b6
 - The effect must be as real as the cause 

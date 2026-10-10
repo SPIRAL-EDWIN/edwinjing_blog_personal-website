@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block extrahead %}
+  <script>document.documentElement.classList.replace("no-js", "js");</script>
   <link rel="icon" type="image/png" sizes="32x32" href="{{ 'assets/favicon-32x32.png' | url }}">
   <link rel="icon" type="image/png" sizes="96x96" href="{{ 'assets/favicon-96x96.png' | url }}">
   <link rel="shortcut icon" type="image/x-icon" href="{{ 'favicon.ico' | url }}">
@@ -76,6 +77,13 @@
   {{ super() }}
 {% endblock %}
 
+{% block header %}
+  {# Classify the initial document before the header can paint. ui-perf.js
+     remains the route owner after Material replaces a document. #}
+  <script>document.body.classList.toggle("is-home-profile-page", {{ (page.url in ["HOME/Archive/", "HOME/friends/", "HOME/Archive/index.html", "HOME/friends/index.html"]) | tojson }});</script>
+  {{ super() }}
+{% endblock %}
+
 {% block scripts %}
   <script>
     (function () {
@@ -85,7 +93,7 @@
       try {
         var config = JSON.parse(node.textContent);
         var scope = new URL(config.base || ".", document.baseURI);
-        var worker = new URL("assets/javascripts/workers/search-exact-worker.js?v=20261009e", scope);
+        var worker = new URL("assets/javascripts/workers/search-exact-worker.js?v=20261009f", scope);
         config.search = worker.href;
         node.textContent = JSON.stringify(config);
       } catch (error) {
@@ -93,5 +101,6 @@
       }
     })();
   </script>
+  <script src="{{ 'javascripts/search-loader.js?v=20261009a' | url }}"></script>
   {{ super() }}
 {% endblock %}

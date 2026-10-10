@@ -12,16 +12,42 @@ The order below is a runtime contract:
 
 1. MkDocs Material theme styles and palette.
 2. `docs/stylesheets/edwinos.css`.
-3. Material's runtime bundle.
-4. `docs/javascripts/mathjax.js`.
-5. `docs/javascripts/block-links.js`.
-6. `docs/javascripts/ui-perf.js`.
+3. `docs/javascripts/search-loader.js` (small search startup bridge).
+4. Material's runtime bundle.
+5. `docs/javascripts/mathjax.js`.
+6. `docs/javascripts/block-links.js`.
+7. `docs/javascripts/ui-perf.js`.
 
 `overrides/main.html` configures the EdwinOS Lunr search worker before Material's
 runtime is loaded. The build hooks run in this order: `archive.py`,
 `home_sections.py`, `search_scope.py`, `note_assets.py`, then `archive_assets.py`.
 
 Do not change any of these orders without a browser regression pass.
+
+The head marks JavaScript availability before first paint. The search partial
+renders its glass shell in HTML; `ui-perf.js` reuses it rather than adding a
+second surface. `search-loader.js` captures only the configured EdwinOS worker
+construction, immediately restores the native Worker constructor, and sends
+the startup signal on search focus/pointer/input/shortcut or a query URL.
+Otherwise it waits for load, two frames, two seconds, and idle time. Save-Data
+and 2G connections use intent only. Material initially downloads only a tiny
+highlighting manifest; corpus JSON parsing and prepared-index loading happen
+inside the worker. READY is sent only after successful initialization, keeping
+Material's latest-input buffering. A failed load can retry on a later input.
+Content-hashed corpus names avoid manifest/cache mismatches. Dirty local builds
+keep older corpus files for active pages; clean deployment removes them.
+
+Repository statistics use only EdwinOS's local snapshot/cache/API path: the
+source partial omits Material's separate API initializer. Friend count,
+repository and deployment metadata wait until after load/paint/idle. Core UI
+enhancements run once per content/header pair across the initial lifecycle;
+instant navigation still initializes replaced content. Homepage prose remains
+visible during its short entrance motion. The avatar is eager/high priority;
+below-the-fold images and visitor statistics are native lazy/low priority.
+Closed search refreshes draw once; opening/closing and result transitions retain
+frame tracking. Font readiness refreshes the static geometry without an idle
+animation loop. Queries typed before Material loads are opened and submitted
+when the UI initializes.
 
 ## CSS ownership
 
@@ -104,10 +130,22 @@ not query; committed input coalesces into one 100ms-delayed query. Selecting a
 result closes search before same-page fragment capture. Closing clears the query and any saved
 query, removes only `q`/`query` from the current URL, and preserves result links
 with their `h` highlighting parameter and fragment.
+Search results that change the document or highlighting terms use native
+document navigation, captured at window click before closing can detach the
+link. Material otherwise publishes `h` while the old content is still mounted
+and its request has no timeout. Native loading commits the URL with the new
+document and retains browser loading/error handling. Same-document fragments
+with unchanged highlighting remain with `block-links.js`; modified clicks,
+new tabs and downloads retain native semantics.
 `mathjax.js` owns lazy, targeted search-formula typesetting on the existing
 queue. The snippet fitter preserves complete TeX units, retains raw text before
 typesetting, and refits from that source on resize. Search typesetting must not
 reset the article's MathItems or equation counters.
+Article formulas remove only Material's search-highlight marks and undo its
+text entity escaping before typesetting, including delayed index updates.
+MathJax uses full CHTML style text (`adaptiveCSS: false`): Material's instant
+navigation can remove dynamic head nodes, which otherwise discards incremental
+CSSOM glyph rules while MathJax still caches them as emitted.
 Explicit heading fragments also coordinate the exact TOC selection. Cross-page
 links retain their intended fragment through Material's outgoing scrollspy and
 post-MathJax settling; reader motion releases the selection immediately.
@@ -124,7 +162,9 @@ Generated article dates/author metadata is marked `data-search-exclude` by
 | Obsidian block anchors | `hooks/archive.py` | Generated at build time; runtime must not rewrite `.md-content__inner.innerHTML`. |
 | Archive markup and article metadata | `hooks/archive.py` | CSS and runtime may consume generated classes but must not duplicate generation. |
 | Homepage news/publications markup | `hooks/home_sections.py` | Content comes from `data/homepage/*.yml`. |
-| Search index scope | `hooks/search_scope.py` | Worker/UI code must not duplicate build-time scope policy. |
+| Search index scope and delivery | `hooks/search_scope.py` | Scope once, prebuild, then publish a lightweight manifest and content-hashed corpus. Worker/UI code must not duplicate scope policy. |
+| Search startup and initial shell | `search-loader.js`, `overrides/partials/search.html` | Visual shell is static. Intent starts immediately; unused search warms only after the first screen. Heavy corpus stays in the worker. |
+| Search result navigation | `ui-perf.js` | Capture the full destination before clearing search. Document/highlight changes use native navigation; unchanged same-document fragments stay with `block-links.js`. Never publish destination highlighting against outgoing content. |
 | Search retrieval and result snippets | `assets/javascripts/workers/search-engine.js`, `search-exact-worker.js` | One Lunr engine with Material's SETUP/READY/QUERY/RESULT contract. Exact phrases precede chapter context; fuzzy and final-word prefix are controlled fallbacks. Escape all result HTML. |
 | Search index prebuilding | `hooks/search_scope.py`, `tools/build_search_index.cjs` | Prebuild only after corpus scoping, with the same vendored Lunr and tokenizer as the worker. Node 24 is configured in the existing deployment workflow; Python-only local builds retain the worker fallback. `EDWINOS_NODE` can select a local Node binary. |
 | ENotes and experience-article image loading and intrinsic dimensions | `hooks/note_assets.py` | Build-time native lazy loading; preserve original image URLs, explicit attributes, and lightbox behavior. |
@@ -186,6 +226,10 @@ cleanup:
   Lunr 2.3.9 MIT license is kept beside the library.
 - Route classification is centralized in `ui-perf.js`; keep its root,
   article-index, Archive, and Friends cases covered by runtime contract tests.
+  `overrides/main.html` seeds the initial Archive/Friends body class before the
+  header paints; runtime classification remains authoritative after instant
+  navigation. Their neutral tab rule clears the active capsule variable used
+  by `::before`, as well as the link background.
 - Repository facts have JSON, cache/API, and Material-DOM compatibility paths.
 - Several Material breakpoint rules remain historically ordered inside the
   unified stylesheet and should be migrated component by component.

@@ -291,7 +291,6 @@ def _render_publication_media(
     label: str,
     *,
     dimensions: tuple[int, int] | None = None,
-    eager: bool = False,
 ) -> str:
     image = _text(entry.get("image"), f"{label}.image", required=False)
     if image:
@@ -303,12 +302,11 @@ def _render_publication_media(
         dimensions_markup = ""
         if dimensions is not None:
             dimensions_markup = f' width="{dimensions[0]}" height="{dimensions[1]}"'
-        loading = "eager" if eager else "lazy"
         return (
             '<div class="overview-publication__media">'
             f'<img class="off-glb" src="{html.escape(image, quote=True)}" '
             f'alt="{html.escape(image_alt, quote=True)}"{dimensions_markup} '
-            f'loading="{loading}" decoding="async">'
+            'loading="lazy" fetchpriority="low" decoding="async">'
             "</div>"
         )
     placeholder = _text(entry.get("placeholder", "PAPER"), f"{label}.placeholder")
@@ -344,7 +342,6 @@ def render_publications(data: Mapping[str, Any], repo_root: Path | None = None) 
     seen_ids = set()
     rendered_entries = []
     used_marks = set()
-    eager_image_used = False
 
     for index, raw_entry in enumerate(raw_entries):
         label = f"publications.entries[{index}]"
@@ -381,9 +378,7 @@ def render_publications(data: Mapping[str, Any], repo_root: Path | None = None) 
             entry,
             label,
             dimensions=image_dimensions,
-            eager=bool(image) and not eager_image_used,
         )
-        eager_image_used = eager_image_used or bool(image)
         authors_markup = _render_authors(authors, collapse_after, entry_id)
         venue = _render_venue(entry.get("venue"), f"{label}.venue")
         award = _text(entry.get("award"), f"{label}.award", required=False)
