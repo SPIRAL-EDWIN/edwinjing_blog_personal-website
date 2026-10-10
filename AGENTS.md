@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-10-09
+Last updated: 2026-10-10
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -29,12 +29,18 @@ Current stylesheet policy:
   home subpages, Beijing time updates, friend-count updates, GitHub source facts,
   visitor-map loading, and markdown/list continuity fixes.
   Search input and results share one glass shell: empty activation stays a
-  capsule, then a query extends it downward. Closing clears the query; do not
-  restore session-based query retention or duplicate result backdrop layers.
+  capsule, then a query extends it downward. Closing hides/empties the input
+  while one same-origin query memory survives navigation and tabs. Refreshing
+  any tab clears that shared memory in all tabs; preserve IME reset handling.
+  Do not add another query store or duplicate result backdrop layers.
   Preserve IME composition handling and viewport-bounded snippet/math work.
   Capture search result URLs before clearing the query. Document or highlight
   changes use native navigation so Material cannot highlight outgoing content;
   unchanged same-document fragments remain owned by `block-links.js`.
+  Search landings prioritize the first body match within the indexed section.
+  That fragment owner also handles delayed highlights/layout completion and
+  yields immediately to reader input. Avoid root `scroll-padding-top`, which
+  makes Chromium move the document while typing into the sticky search input.
   The initial Archive/Friends body class is seeded by `overrides/main.html`
   before the header paints; runtime route classification owns later navigation.
 - `docs/index.md` and related markdown files own content and semantic structure.

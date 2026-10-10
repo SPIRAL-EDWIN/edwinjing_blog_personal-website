@@ -36,6 +36,9 @@
   var tocSelectionClearTimer = null;
   var headingNavigationTarget = null;
   var pendingPageFragment = null;
+  var searchNavigationTarget = null;
+  var SEARCH_SETTLE_LIMIT = 15000;
+  var HEADING_SELECTOR = "h1, h2, h3, h4, h5, h6";
   var HIGHLIGHTABLE_SELECTOR = [
     ".admonition-title",
     "p",
@@ -391,9 +394,197 @@
     ));
   }
 
+  function cancelSearchNavigation() {
+    if (!searchNavigationTarget) return;
+    if (searchNavigationTarget.observer) searchNavigationTarget.observer.disconnect();
+    window.clearTimeout(searchNavigationTarget.expiry);
+    searchNavigationTarget = null;
+  }
+
+  function currentSearchNavigation(state) {
+    return state === searchNavigationTarget
+      && state.page === normalizePath(window.location.pathname)
+      && state.root === contentRoot();
+  }
+
+  function normalizedSearchText(text) {
+    return (text || "").normalize("NFKC").toLowerCase().replace(/\u200b/g, "");
+  }
+
+  function acceptedSearchSpan(text, terms, start, end) {
+    var words = /[\p{Script=Han}]+|(?:(?!\p{Script=Han})[\p{L}\p{N}_])+/gu;
+    var word;
+    while ((word = words.exec(text))) {
+      if (words.lastIndex <= start || word.index >= end) continue;
+      if (!/^[\p{Script=Han}]+$/u.test(word[0])) {
+        if (terms.indexOf(word[0]) !== -1) return true;
+      } else {
+        for (var i = 0; i < terms.length; i++) {
+          var term = terms[i];
+          if (!/^[\p{Script=Han}]+$/u.test(term)) continue;
+          for (var at = word[0].indexOf(term); at !== -1; at = word[0].indexOf(term, at + 1)) {
+            if (word.index + at < end && word.index + at + term.length > start) return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  function validSearchMark(mark, state) {
+    // Material marks substrings (e.g. Jing in Beijing), whereas retrieval uses
+    // complete Latin words. Validate the existing mark against its body block,
+    // including adjacent syntax spans, rather than introducing a highlighter.
+    var block = mark.closest(".arithmatex, p, pre, li, td, th, dt, dd, blockquote, div") || mark;
+    var text = normalizedSearchText(block.textContent);
+    var start = 0;
+    if (block !== mark) {
+      var prefix = document.createRange();
+      prefix.selectNodeContents(block);
+      prefix.setEnd(mark, 0);
+      start = normalizedSearchText(prefix.toString()).length;
+    }
+    return acceptedSearchSpan(text, state.terms, start, start + normalizedSearchText(mark.textContent).length);
+  }
+
+  function searchBodyTarget(state) {
+    var heading = meaningfulTarget(findTarget(state.hash));
+    if (state.hash && (!heading || !heading.matches(HEADING_SELECTOR))) return null;
+    var precedingHeadings = [], result = null;
+    // Material indexes every heading as a separate section, regardless of its
+    // level. Exiting a nested container restores its enclosing section; the
+    // most recent heading whose container still includes this node owns it.
+    var nodes = state.root.querySelectorAll(HEADING_SELECTOR + ", mark[data-md-highlight], .arithmatex");
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      if (node.matches(HEADING_SELECTOR)) {
+        if (node.id) precedingHeadings.push(node);
+        continue;
+      }
+      var section = null;
+      for (var j = precedingHeadings.length - 1; j >= 0; j--) {
+        var preceding = precedingHeadings[j];
+        var container = preceding.parentElement || state.root;
+        if (container.contains(node)) { section = preceding; break; }
+      }
+      var pageSection = !state.hash && section && section === precedingHeadings[0]
+        && section.tagName === "H1";
+      if ((section !== heading && !pageSection) || node.closest(HEADING_SELECTOR + ", [data-search-exclude]")) continue;
+      if (node.matches(".arithmatex")) {
+        if (!state.formulas.has(node)) continue;
+      } else {
+        if (!validSearchMark(node, state)) continue;
+      }
+      if (!node.matches(".arithmatex") && node.closest(".arithmatex")) {
+        // Scroll to the complete expression, never a mark splitting TeX source.
+        node = node.closest(".arithmatex");
+        state.formulas.add(node);
+      }
+      // Chromium may expose layout rects for unpainted closed-details content.
+      // Inspect disclosure state directly. Its first summary remains visible,
+      // unless a different enclosing details hides that summary as well.
+      var details = node.closest("details:not([open])");
+      while (details && state.root.contains(details)) {
+        var summary = Array.prototype.find.call(details.children, function (child) {
+          return child.tagName === "SUMMARY";
+        });
+        if (!summary || !summary.contains(node)) details.open = true;
+        details = details.parentElement && details.parentElement.closest("details:not([open])");
+      }
+      if (!node.getClientRects().length) continue;
+      result = node;
+      break;
+    }
+    return result;
+  }
+
+  function alignSearchTarget(state) {
+    if (!currentSearchNavigation(state)) return false;
+    var match = searchBodyTarget(state);
+    if (!match) return false;
+    var header = document.querySelector(".md-header");
+    var headerBottom = header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+    var viewport = window.visualViewport;
+    var visibleHeight = viewport ? viewport.height : window.innerHeight;
+    var desiredTop = headerBottom + Math.max(0, visibleHeight - headerBottom) / 3;
+    var top = window.scrollY + match.getBoundingClientRect().top - desiredTop;
+    var scrollRoot = document.scrollingElement || document.documentElement;
+    var maxTop = Math.max(0, scrollRoot.scrollHeight - window.innerHeight);
+    window.scrollTo({ top: Math.min(maxTop, Math.max(0, top)), behavior: "instant" });
+    replaceCurrentHash(state.hash);
+    keepTocLinkVisible(null, state.hash);
+    return true;
+  }
+
+  function scheduleSearchFragment(hash) {
+    cancelTocHeadingSync();
+    cancelHeadingScroll();
+    cancelSearchNavigation();
+    headingNavigationTarget = null;
+    var root = contentRoot();
+    var state = searchNavigationTarget = {
+      hash: hash, page: normalizePath(window.location.pathname), root: root,
+      formulas: new WeakSet(), formulaSources: new WeakMap(), observer: null, expiry: null,
+      terms: normalizedSearchText(new URL(window.location.href).searchParams.get("h")).split(/\s+/).filter(Boolean)
+    };
+    tocSelectionGuardUntil = Date.now() + SEARCH_SETTLE_LIMIT;
+    highlight(hash, { scroll: false });
+    keepTocLinkVisible(null, hash);
+
+    // MathJax removes Material's marks from TeX to protect rendering. Retain
+    // expression identity while source is present; no second highlighter or
+    // additional formula typesetting/scroll implementation is introduced.
+    root.querySelectorAll(".arithmatex").forEach(function (formula) {
+      var source = normalizedSearchText(formula.textContent);
+      state.formulaSources.set(formula, source);
+      if (acceptedSearchSpan(source, state.terms, 0, source.length)) state.formulas.add(formula);
+    });
+    if (typeof MutationObserver === "function") {
+      state.observer = new MutationObserver(function (records) {
+        if (!currentSearchNavigation(state)) return;
+        var relevant = false;
+        records.forEach(function (record) {
+          record.addedNodes.forEach(function (node) {
+            if (node.nodeType !== 1) return;
+            var marks = node.matches("mark[data-md-highlight]") ? [node]
+              : Array.from(node.querySelectorAll("mark[data-md-highlight]"));
+            if (!marks.length && !node.matches("mjx-container")) return;
+            relevant = true;
+            marks.forEach(function (mark) {
+              var formula = mark.closest(".arithmatex")
+                || (record.target.closest && record.target.closest(".arithmatex"));
+              if (formula && root.contains(formula)) {
+                var source = state.formulaSources.get(formula) || normalizedSearchText(formula.textContent);
+                if (acceptedSearchSpan(source, state.terms, 0, source.length)) state.formulas.add(formula);
+              }
+            });
+          });
+        });
+        if (relevant) alignSearchTarget(state);
+      });
+      state.observer.observe(root, { childList: true, subtree: true });
+    }
+    alignSearchTarget(state);
+    // Title-only hits retain the existing heading fallback. A delayed manifest
+    // can still supply body marks before the bounded hand-off expires.
+    tocSyncTimers.push(window.setTimeout(function () {
+      if (!currentSearchNavigation(state)) return;
+      if (!alignSearchTarget(state)) alignHeadingTarget(hash, "instant");
+      replaceCurrentHash(hash);
+      keepTocLinkVisible(null, hash);
+    }, HEADING_SCROLL_SETTLE_DELAY));
+    state.expiry = window.setTimeout(function () {
+      if (state !== searchNavigationTarget) return;
+      cancelSearchNavigation();
+      tocSelectionGuardUntil = 0;
+    }, SEARCH_SETTLE_LIMIT);
+  }
+
   function handleHashLinkClick(event) {
     var link = event.target.closest ? event.target.closest("a[href]") : null;
     if (!link) return;
+    var isSearchResult = Boolean(link.classList && link.classList.contains("md-search-result__link"))
+      || Boolean(link.closest(".md-search-result"));
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     if (link.target && link.target !== "_self") return;
 
@@ -404,6 +595,7 @@
     // scrollspy can replace its fragment during an instant-page transition.
     // Material still owns loading and history for cross-page links.
     pendingPageFragment = null;
+    cancelSearchNavigation();
     if (url.origin === window.location.origin && url.hash
       && normalizePath(url.pathname) !== normalizePath(window.location.pathname)) {
       pendingPageFragment = {
@@ -414,6 +606,14 @@
       cancelTocHeadingSync();
       cancelHeadingScroll();
       headingNavigationTarget = null;
+      return;
+    }
+    if (!url.hash && isSearchResult && url.searchParams.get("h")
+      && url.origin === window.location.origin && normalizePath(url.pathname) === normalizePath(window.location.pathname)) {
+      event.preventDefault();
+      event.stopPropagation();
+      history.pushState(null, "", url.pathname + url.search);
+      scheduleSearchFragment("");
       return;
     }
     if (!isSamePageHashLink(link)) return;
@@ -437,7 +637,8 @@
     history.pushState(null, "", url.pathname + url.search + url.hash);
     var target = meaningfulTarget(findTarget(url.hash));
     if (target && target.matches("h1, h2, h3, h4, h5, h6")) {
-      scheduleTocHeadingSync(url.hash, null, "smooth");
+      if (isSearchResult && url.searchParams.get("h")) scheduleSearchFragment(url.hash);
+      else scheduleTocHeadingSync(url.hash, null, "smooth");
     } else {
       headingNavigationTarget = null;
       highlight(url.hash);
@@ -469,6 +670,13 @@
    * preserves that hand-off while making fragment positioning single-owner.
    */
   function realignHashAfterLayout(event) {
+    if (searchNavigationTarget) {
+      var searchTarget = searchNavigationTarget;
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () { alignSearchTarget(searchTarget); });
+      });
+      return;
+    }
     var hash = event && event.detail && event.detail.hash;
     // Material can replace the URL with the preceding section while the target
     // sits below its scrollspy threshold. The still-current explicit fragment
@@ -514,6 +722,7 @@
     cancelTimers(removalTimers);
     cancelTocHeadingSync();
     cancelHeadingScroll();
+    cancelSearchNavigation();
     tocSelectionGuardUntil = 0;
     window.clearTimeout(tocSelectionClearTimer);
     clearHighlights();
@@ -529,8 +738,11 @@
       pendingPageFragment = null;
     }
     var target = meaningfulTarget(findTarget(hash));
-    if (target && target.matches("h1, h2, h3, h4, h5, h6")) {
-      scheduleTocHeadingSync(hash, null, "instant");
+    if (!hash && new URL(window.location.href).searchParams.get("h")) {
+      scheduleSearchFragment("");
+    } else if (target && target.matches("h1, h2, h3, h4, h5, h6")) {
+      if (new URL(window.location.href).searchParams.get("h")) scheduleSearchFragment(hash);
+      else scheduleTocHeadingSync(hash, null, "instant");
     } else highlightCurrentHash();
   }
 
@@ -543,6 +755,7 @@
     if (Date.now() < tocSelectionGuardUntil) return;
     cancelHeadingScroll();
     cancelTocHeadingSync();
+    cancelSearchNavigation();
     tocSelectionGuardUntil = 0;
     // Apply the same exact-target hand-off as clicks and instant-page swaps.
     // The selected TOC entry remains explicit only until reader motion resumes.
@@ -559,6 +772,7 @@
     // over an in-flight TOC animation even during the short guard window.
     cancelHeadingScroll();
     cancelTocHeadingSync();
+    cancelSearchNavigation();
     tocSelectionGuardUntil = 0;
     headingNavigationTarget = null;
     pendingPageFragment = null;
@@ -583,11 +797,15 @@
     ) return;
     cancelHeadingScroll();
     cancelTocHeadingSync();
+    cancelSearchNavigation();
     tocSelectionGuardUntil = 0;
     headingNavigationTarget = null;
     pendingPageFragment = null;
     clearTocSelection();
   }
+  document.addEventListener("focusin", function (event) {
+    if (event.target.closest && event.target.closest("[data-md-component='search']")) yieldTocMotionToUser(event);
+  });
   window.addEventListener("wheel", yieldTocMotionToUser, { passive: true });
   window.addEventListener("touchstart", yieldTocMotionToUser, { passive: true });
   window.addEventListener("pointerdown", yieldTocMotionToUser, { passive: true });

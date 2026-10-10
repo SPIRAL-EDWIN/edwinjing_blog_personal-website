@@ -10,7 +10,8 @@
   "use strict";
 
   var PRIMARY_SIDEBAR_DESKTOP_QUERY = "(min-width: 76.25em)";
-  var SEARCH_QUERY_STORAGE_KEY = "edwinos.search-query.v1";
+  var SEARCH_QUERY_STORAGE_KEY = "edwinos.search-memory.v2";
+  var searchQueryMemory = createSearchQueryMemory();
   var primarySidebarScrollPositions = Object.create(null);
   var pendingPrimarySidebarScroll = null;
   var lastDocumentPageKey = navigationPageKey(window.location.href);
@@ -428,23 +429,28 @@
           viewport && (box.bottom < viewport.top - 96 || box.top > viewport.bottom + 96)) return;
       var source = searchSnippetSources.get(paragraph);
       if (!source) {
-        var text = '', marks = [];
-        function collect(node, marked) {
-          if (node.nodeType === 3) {
-            var start = text.length;
-            text += node.textContent;
-            if (marked) marks.push({ start: start, end: text.length });
-          } else if (node.nodeType === 1) {
-            node.childNodes.forEach(function (child) { collect(child, marked || node.tagName === 'MARK'); });
+        var excerpts = Array.from(paragraph.querySelectorAll('[data-edwinos-search-segment]'));
+        if (!excerpts.length) excerpts = [paragraph];
+        source = { width: '', segments: excerpts.map(function (excerpt) {
+          var text = '', marks = [];
+          function collect(node, marked) {
+            if (node.nodeType === 3) {
+              var start = text.length;
+              text += node.textContent;
+              if (marked) marks.push({ start: start, end: text.length });
+            } else if (node.nodeType === 1) {
+              node.childNodes.forEach(function (child) { collect(child, marked || node.tagName === 'MARK'); });
+            }
           }
-        }
-        paragraph.childNodes.forEach(function (node) { collect(node, false); });
-        var boundaries = [0], offset = 0;
-        var segments = typeof Intl.Segmenter === 'function'
-          ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text), function (part) { return part.segment; })
-          : Array.from(text);
-        segments.forEach(function (segment) { offset += segment.length; boundaries.push(offset); });
-        source = { text: text, marks: marks, width: '', boundaries: boundaries };
+          excerpt.childNodes.forEach(function (node) { collect(node, false); });
+          var boundaries = [0], offset = 0;
+          var graphemes = typeof Intl.Segmenter === 'function'
+            ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text), function (part) { return part.segment; })
+            : Array.from(text);
+          graphemes.forEach(function (grapheme) { offset += grapheme.length; boundaries.push(offset); });
+          return { text: text, marks: marks, boundaries: boundaries,
+            leading: excerpt.dataset.startTruncated === 'true', trailing: excerpt.dataset.endTruncated === 'true' };
+        }) };
         searchSnippetSources.set(paragraph, source);
       }
       var width = Math.round(box.width), style = window.getComputedStyle(paragraph);
@@ -454,46 +460,73 @@
       source.width = signature;
       var math = window.EdwinOSSearchMath;
       if (math) math.clear(paragraph);
-      var ranges = math ? math.getRanges(source.text) : [];
-      var first = source.marks.length ? source.marks[0].start : 0;
-      var last = source.marks.length ? source.marks[source.marks.length - 1].end : 0;
-      function bounds(context) {
-        var length = Math.min(source.text.length, last - first + context * 2);
-        var start = Math.max(0, Math.min(source.text.length - length, Math.floor((first + last - length) / 2)));
-        var end = start + length;
-        start = source.boundaries.filter(function (boundary) { return boundary <= start; }).pop();
-        end = source.boundaries.find(function (boundary) { return boundary >= end; });
-        while (start > 0 && /[A-Za-z0-9_]/.test(source.text[start - 1] || '') && /[A-Za-z0-9_]/.test(source.text[start] || '')) start--;
-        while (end > last && /[A-Za-z0-9_]/.test(source.text[end - 1] || '') && /[A-Za-z0-9_]/.test(source.text[end] || '')) end--;
-        ranges.forEach(function (range) {
+      var ranges = source.segments.map(function (segment) { return math ? math.getRanges(segment.text) : []; });
+      function bounds(segment, index, context) {
+        var first = segment.marks.length ? segment.marks[0].start : 0;
+        var last = segment.marks.length ? segment.marks[0].end : 0;
+        var start = Math.max(0, first - context), end = Math.min(segment.text.length, last + context);
+        start = segment.boundaries.filter(function (boundary) { return boundary <= start; }).pop();
+        end = segment.boundaries.find(function (boundary) { return boundary >= end; });
+        while (start > 0 && /[A-Za-z0-9_]/.test(segment.text[start - 1] || '') && /[A-Za-z0-9_]/.test(segment.text[start] || '')) start--;
+        while (end < segment.text.length && /[A-Za-z0-9_]/.test(segment.text[end - 1] || '') && /[A-Za-z0-9_]/.test(segment.text[end] || '')) end++;
+        ranges[index].forEach(function (range) {
           if (start > range.start && start < range.end) start = range.end <= first ? range.end : range.start;
           if (end > range.start && end < range.end) end = range.start >= last ? range.start : range.end;
         });
+        // Marks are atomic too; a later match may touch the context boundary.
+        segment.marks.forEach(function (mark) {
+          if (start > mark.start && start < mark.end) start = mark.start;
+          if (end > mark.start && end < mark.end) end = mark.end;
+        });
         return { start: start, end: end };
       }
-      // Measure plain text off-DOM. The previous fitter repeatedly rebuilt
-      // every excerpt and forced layout for each binary-search step.
-      var low = 0, high = source.text.length;
+      function select(count, context) {
+        return source.segments.slice(0, count).map(function (segment, index) { return bounds(segment, index, context); });
+      }
+      function plain(selected) {
+        return selected.map(function (range, index) {
+          var segment = source.segments[index];
+          return (!index && (range.start || segment.leading) ? '...' : '') + segment.text.slice(range.start, range.end);
+        }).join(' ... ') + (selected.length < source.segments.length || source.segments[selected.length - 1].trailing ||
+          selected[selected.length - 1].end < source.segments[selected.length - 1].text.length ? '...' : '');
+      }
+      // Reserve short context for the first occurrence, then later excerpts,
+      // before spending the remaining two-line budget on richer context.
+      var count = 1, budget = width * 2 * 0.92;
       if (searchMeasureContext) {
         searchMeasureContext.font = font;
-        var budget = width * 2 * 0.92;
+        while (count < source.segments.length && searchMeasureContext.measureText(plain(select(count + 1, 8))).width <= budget) count++;
+      }
+      var low = 8, high = source.segments.reduce(function (largest, segment) { return Math.max(largest, segment.text.length); }, 0);
+      if (searchMeasureContext) {
         while (low < high) {
-          var middle = Math.ceil((low + high) / 2), candidate = bounds(middle);
-          var text = (candidate.start ? '...' : '') + source.text.slice(candidate.start, candidate.end) + (candidate.end < source.text.length ? '...' : '');
-          if (searchMeasureContext.measureText(text).width <= budget) low = middle;
+          var middle = Math.ceil((low + high) / 2);
+          if (searchMeasureContext.measureText(plain(select(count, middle))).width <= budget) low = middle;
           else high = middle - 1;
         }
-      } else low = Math.min(100, source.text.length);
-      var selected = bounds(low), nodes = [], cursor = selected.start;
-      if (selected.start) nodes.push(document.createTextNode('...'));
-      source.marks.forEach(function (mark) {
-        nodes.push(document.createTextNode(source.text.slice(cursor, mark.start)));
-        var highlight = document.createElement('mark');
-        highlight.textContent = source.text.slice(mark.start, mark.end);
-        nodes.push(highlight);
-        cursor = mark.end;
+      } else low = 40;
+      var selected = select(count, low), nodes = [];
+      selected.forEach(function (range, index) {
+        var segment = source.segments[index], cursor = range.start;
+        if (index) nodes.push(document.createTextNode(' ... '));
+        else if (range.start || segment.leading) nodes.push(document.createTextNode('...'));
+        var excerpt = document.createElement('span');
+        excerpt.dataset.edwinosSearchSegment = String(index);
+        segment.marks.forEach(function (mark) {
+          if (mark.start < range.start || mark.end > range.end) return;
+          excerpt.appendChild(document.createTextNode(segment.text.slice(cursor, mark.start)));
+          var highlight = document.createElement('mark');
+          highlight.textContent = segment.text.slice(mark.start, mark.end);
+          excerpt.appendChild(highlight);
+          cursor = mark.end;
+        });
+        excerpt.appendChild(document.createTextNode(segment.text.slice(cursor, range.end)));
+        nodes.push(excerpt);
       });
-      nodes.push(document.createTextNode(source.text.slice(cursor, selected.end) + (selected.end < source.text.length ? '...' : '')));
+      var lastIndex = selected.length - 1;
+      if (count < source.segments.length || source.segments[lastIndex].trailing || selected[lastIndex].end < source.segments[lastIndex].text.length) {
+        nodes.push(document.createTextNode('...'));
+      }
       paragraph.replaceChildren.apply(paragraph, nodes);
     });
     search.dataset.edwinosSearchFitMs = String(Math.round((window.performance.now() - started) * 100) / 100);
@@ -979,12 +1012,50 @@
     });
   }
 
-  function clearSavedSearchQuery() {
-    try {
-      window.sessionStorage.removeItem(SEARCH_QUERY_STORAGE_KEY);
-    } catch (error) {
-      // Search remains usable when browser storage is unavailable.
+  function createSearchQueryMemory() {
+    // One same-origin memory survives document/navigation boundaries. A reload
+    // publishes a new reset token even when the remembered query is already empty.
+    var state = { query: "", reset: "" }, notifyReset = null;
+    function readStored() {
+      try {
+        var value = JSON.parse(window.localStorage.getItem(SEARCH_QUERY_STORAGE_KEY));
+        if (value && typeof value.query === "string" && typeof value.reset === "string") return value;
+      } catch (_error) { /* Storage restrictions leave a usable document-local memory. */ }
+      return state;
     }
+    function receive(value) {
+      var changed = value.reset !== state.reset;
+      state = value;
+      if (changed && notifyReset) notifyReset();
+      return state.query;
+    }
+    function write(value) {
+      state = value;
+      try { window.localStorage.setItem(SEARCH_QUERY_STORAGE_KEY, JSON.stringify(state)); }
+      catch (_error) { /* Retain the in-memory fallback. */ }
+    }
+    state = readStored();
+    var navigation = window.performance.getEntriesByType && window.performance.getEntriesByType("navigation")[0];
+    var reloaded = Boolean(navigation && navigation.type === "reload");
+    if (reloaded) write({ query: "", reset: Date.now().toString(36) + ":" + Math.random().toString(36).slice(2) });
+    window.addEventListener("storage", function (event) {
+      if (event.key === SEARCH_QUERY_STORAGE_KEY || event.key === null) {
+        // Read the current value rather than an older queued event payload.
+        receive(readStored());
+      }
+    });
+    window.addEventListener("pageshow", function () { receive(readStored()); });
+    return {
+      reloaded: reloaded,
+      read: function () { return receive(readStored()); },
+      save: function (query) {
+        var latest = readStored();
+        // A queued cross-tab reset wins over input from its previous generation.
+        if (latest.reset !== state.reset) { receive(latest); return; }
+        if (latest.query !== query) write({ query: query, reset: latest.reset });
+      },
+      onReset: function (callback) { notifyReset = callback; }
+    };
   }
 
   function setupSearchResultSummary() {
@@ -1030,7 +1101,7 @@
 
     var params = new URLSearchParams(window.location.search);
     var sharedQuery = params.get("q") || params.get("query");
-    clearSavedSearchQuery();
+    if (sharedQuery) searchQueryMemory.save(sharedQuery);
 
     var syncQueryState = function () {
       var hasQuery = Boolean(input.value.trim());
@@ -1043,6 +1114,7 @@
     };
 
     var queryTimer = 0, composing = false, inputPaintFrame = 0;
+    var pendingMemoryReset = false, searchWasOpen = searchToggle.checked;
     var scheduleQueryEmit = function () {
       window.clearTimeout(queryTimer);
       if (composing) return;
@@ -1123,6 +1195,8 @@
     });
     runtime.listen(input, "compositionend", function () {
       composing = false;
+      if (pendingMemoryReset) { clearQueryAfterSharedReset(); return; }
+      searchQueryMemory.save(input.value);
       syncQueryState();
       scheduleQueryEmit();
     });
@@ -1135,6 +1209,7 @@
     }, true);
     runtime.listen(input, "input", function (event) {
       var inputStarted = window.performance.now();
+      if (!event.isComposing && !composing) searchQueryMemory.save(input.value);
       syncQueryState();
       openSearch();
       if (!input.value.trim()) runtime.updateResults();
@@ -1183,18 +1258,33 @@
 
     runtime.listen(form, "reset", function () {
       runtime.timer(function () {
+        if (!composing) searchQueryMemory.save(input.value);
         syncQueryState();
         runtime.updateResults();
       }, 0);
     });
 
+    function clearQueryAfterSharedReset() {
+      pendingMemoryReset = false;
+      window.clearTimeout(queryTimer);
+      input.value = "";
+      syncQueryState();
+      runtime.updateResults();
+      emitQuery();
+    }
+    searchQueryMemory.onReset(function () {
+      if (!search.isConnected) return;
+      if (composing) pendingMemoryReset = true;
+      else clearQueryAfterSharedReset();
+    });
+
     runtime.listen(searchToggle, "change", function () {
       if (!searchToggle.checked) {
+        searchWasOpen = false;
         window.clearTimeout(queryTimer);
         runtime.cancelFocus();
         input.blur();
         input.value = "";
-        clearSavedSearchQuery();
         syncQueryState();
         runtime.updateResults();
         // A reset/input event would refocus or reopen Material's search.
@@ -1208,6 +1298,9 @@
         return;
       }
 
+      if (!searchWasOpen && !input.value) input.value = searchQueryMemory.read();
+      searchWasOpen = true;
+      syncQueryState();
       runtime.focusInput(scheduleQueryEmit);
     });
 
@@ -1244,6 +1337,7 @@
     if (sharedQuery && !input.value) {
       input.value = sharedQuery;
     }
+    if (input.value) searchQueryMemory.save(input.value);
     syncQueryState();
 
     // Keep a query typed into the static input before Material finished loading.

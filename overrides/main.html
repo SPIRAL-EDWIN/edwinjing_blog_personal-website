@@ -93,7 +93,7 @@
       try {
         var config = JSON.parse(node.textContent);
         var scope = new URL(config.base || ".", document.baseURI);
-        var worker = new URL("assets/javascripts/workers/search-exact-worker.js?v=20261009f", scope);
+        var worker = new URL("assets/javascripts/workers/search-exact-worker.js?v=20261010a", scope);
         config.search = worker.href;
         node.textContent = JSON.stringify(config);
       } catch (error) {
@@ -101,6 +101,6 @@
       }
     })();
   </script>
-  <script src="{{ 'javascripts/search-loader.js?v=20261009a' | url }}"></script>
+  <script src="{{ 'javascripts/search-loader.js?v=20261010a' | url }}"></script>
   {{ super() }}
 {% endblock %}

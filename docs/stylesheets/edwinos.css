@@ -1820,16 +1820,9 @@ body[data-md-color-scheme="slate"] .academic-home-layout {
 
 
 @media screen and (min-width: 76.25em) {
-    html {
-        scroll-padding-top: var(--compact-header-height, 3.5rem) !important;
-    }
-
-
     .md-main {
         padding-top: 0 !important;
     }
-
-
 }
 
 /* ==========================================================================

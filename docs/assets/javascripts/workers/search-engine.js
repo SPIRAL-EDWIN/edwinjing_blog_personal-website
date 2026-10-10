@@ -306,7 +306,7 @@
     }
     return ranges;
   }
-  function snippetBounds(text, spans) {
+  function snippetBounds(text, spans, budget) {
     if (!text.length) return { start: 0, end: 0 };
     // A heading-only hit still needs a bounded excerpt from its section body.
     // Empty spans reserve no highlighted text, then use the context budget.
@@ -326,7 +326,7 @@
     while (left < parts.length && parts[left].end <= first) left++;
     while (right > left && parts[right - 1].start >= last) right--;
     var matchWidth = parts.slice(left, right).reduce(function (sum, part) { return sum + part.width; }, 0);
-    var remaining = Math.max(0, 480 - matchWidth), before = 0, after = 0;
+    var remaining = Math.max(0, (budget || 480) - matchWidth), before = 0, after = 0;
     // Share the available context evenly, and use the other side when a match
     // is close to a paragraph edge. Never trim any part of a matching phrase.
     while (remaining > 0 && (left > 0 || right < parts.length)) {
@@ -358,7 +358,7 @@
     }
     var ranges = spans.filter(function (span) { return span.end > start && span.start < end; }).slice().sort(function (a, b) { return a.start - b.start; }).reduce(function (merged, span) {
       var previous = merged[merged.length - 1];
-      if (previous && span.start >= previous.end && !/[\p{L}\p{N}_]/u.test(normalize(text.slice(previous.end, span.start)))) previous.end = span.end;
+      if (previous && (span.start <= previous.end || !/[\p{L}\p{N}_]/u.test(normalize(text.slice(previous.end, span.start))))) previous.end = Math.max(previous.end, span.end);
       else merged.push({ start: span.start, end: span.end });
       return merged;
     }, []);
@@ -371,35 +371,44 @@
     return output + escape(text.slice(cursor, end)) + (end < text.length ? "..." : "");
   }
   function excerptFor(hit) {
-    var doc = hit.doc, match = hit.match, blockIndex = doc.blocks.indexOf(match.text);
-    // Ranking may choose a short heading or an admonition label. Excerpts are
-    // independent of ranking: prefer the matching body, then include adjacent
-    // blocks belonging to this indexed section rather than repeating its title.
-    if (blockIndex === -1) {
-      var terms = match.spans.map(function (span) { return span.term; }), best;
-      doc.blocks.forEach(function (text, index) {
-        var candidate = findMatch(text, terms, "exact", false);
-        if (!candidate) return;
-        if (!best || candidate.errors < best.match.errors || candidate.errors === best.match.errors &&
-          (candidate.gap < best.match.gap || candidate.gap === best.match.gap && candidate.end - candidate.start < best.match.end - best.match.start)) {
-          best = { match: candidate, index: index };
-        }
-      });
-      if (best) { match = best.match; blockIndex = best.index; }
+    // Rank the result as before, but describe its first body occurrence. The
+    // section text is already scoped by Material; neither neighbouring titles
+    // nor another section's paragraphs can enter these excerpts.
+    var text = hit.doc.blocks.join(" "), anchors = [];
+    if (!text) text = hit.match.text;
+    var lists = occurrences(text, hit.queryTerms, hit.matchMode);
+    // Material highlights accepted words individually, including a quoted
+    // query's words. Keep the mandatory excerpt aligned with the first such
+    // body mark; strict phrase acceptance remains exclusively in retrieval.
+    var unique = new Map();
+    lists.forEach(function (list) { list.forEach(function (span) {
+      unique.set(span.start + ":" + span.end, { start: span.start, end: span.end, spans: [span] });
+    }); });
+    anchors = Array.from(unique.values()).sort(function (a, b) { return a.start - b.start || b.end - a.end; });
+    if (!anchors.length) {
+      var bodyBounds = snippetBounds(text, []);
+      return [{ text: text.slice(bodyBounds.start, bodyBounds.end), spans: [],
+        before: bodyBounds.start > 0, after: bodyBounds.end < text.length }];
     }
-    if (!doc.blocks.length) return { text: match.text, spans: match.spans };
-    if (blockIndex === -1) { blockIndex = 0; match = { text: doc.blocks[0], spans: [] }; }
-    var first = blockIndex, last = blockIndex, before = 0, after = 0;
-    // Do not build a whole chapter-sized string for a single result. A generous
-    // source window lets the view fit two actual lines at desktop/mobile widths.
-    while (first > 0 && before < 1200) before += doc.blocks[--first].length + 1;
-    while (last + 1 < doc.blocks.length && after < 1200) after += doc.blocks[++last].length + 1;
-    var parts = doc.blocks.slice(first, last + 1), offset = parts.slice(0, blockIndex - first).join(" ").length;
-    if (blockIndex > first) offset++;
-    return {
-      text: parts.join(" "),
-      spans: match.spans.map(function (span) { return Object.assign({}, span, { start: span.start + offset, end: span.end + offset }); })
-    };
+    var firstBounds = snippetBounds(text, [anchors[0]]);
+    var hasDistant = anchors.some(function (anchor) { return anchor.start >= firstBounds.end; });
+    var contextBudget = hasDistant ? 160 : 480, windows = [], cursor = 0, count = 0;
+    while (cursor < anchors.length && count++ < 3) {
+      var bounds = snippetBounds(text, [anchors[cursor]], contextBudget);
+      var previousWindow = windows[windows.length - 1];
+      if (previousWindow && bounds.start <= previousWindow.end) previousWindow.end = Math.max(previousWindow.end, bounds.end);
+      else windows.push(bounds);
+      do { cursor++; } while (cursor < anchors.length && anchors[cursor].start < bounds.end);
+    }
+    return windows.map(function (bounds) {
+      var spans = [];
+      anchors.forEach(function (anchor) {
+        if (anchor.start >= bounds.start && anchor.end <= bounds.end) anchor.spans.forEach(function (span) {
+          spans.push(Object.assign({}, span, { start: span.start - bounds.start, end: span.end - bounds.start }));
+        });
+      });
+      return { text: text.slice(bounds.start, bounds.end), spans: spans, before: bounds.start > 0, after: bounds.end < text.length };
+    });
   }
   function createEngine(rawDocs, lunr, serialized) {
     var docs = prepare(rawDocs), index;
@@ -434,7 +443,8 @@
         [doc.title].concat(doc.blocks, doc.tags).forEach(function (text) {
           var match = findMatch(text, parsed.terms, mode, parsed.quoted);
           if (!match) return;
-          var result = { doc: doc, match: match, tier: mode === "fuzzy" ? 4 : mode === "prefix" ? 5 : match.phrase ? 1 : 2, nativeScore: candidate.score };
+          var result = { doc: doc, match: match, tier: mode === "fuzzy" ? 4 : mode === "prefix" ? 5 : match.phrase ? 1 : 2, nativeScore: candidate.score,
+            queryTerms: parsed.terms, matchMode: mode };
           if (!best || compare(result, best) < 0) best = result;
         });
         if (!best && !parsed.quoted && mode === "exact" && doc.location !== doc.page) {
@@ -450,7 +460,8 @@
             doc.blocks.forEach(function (text) {
               var match = findMatch(text, remaining, "exact", false);
               if (!match) return;
-              var result = { doc: doc, match: match, tier: 3, nativeScore: candidate.score, headingSpans: headingSpans };
+              var result = { doc: doc, match: match, tier: 3, nativeScore: candidate.score, headingSpans: headingSpans,
+                queryTerms: parsed.terms, matchMode: mode };
               if (!best || compare(result, best) < 0) best = result;
             });
           }
@@ -465,10 +476,16 @@
       var titleSpans = hit.headingSpans || (titleMatch ? titleMatch.spans : []);
       var terms = {};
       hit.match.spans.concat(hit.headingSpans || []).forEach(function (span) { terms[span.term] = true; });
-      var excerpt = excerptFor(hit);
+      var excerpts = excerptFor(hit);
+      excerpts.forEach(function (excerpt) { excerpt.spans.forEach(function (span) { terms[span.term] = true; }); });
+      var text = excerpts.map(function (excerpt, index) {
+        return (index ? " ... " : excerpt.before ? "..." : "") +
+          '<span data-edwinos-search-segment="' + index + '" data-start-truncated="' + excerpt.before +
+          '" data-end-truncated="' + excerpt.after + '">' + highlighted(excerpt.text, excerpt.spans, false) + "</span>";
+      }).join("") + (excerpts[excerpts.length - 1].after ? "..." : "");
       return {
         location: doc.location, title: highlighted(doc.title, titleSpans, false),
-        text: "<p>" + highlighted(excerpt.text, excerpt.spans, true) + "</p>",
+        text: "<p>" + text + "</p>",
         score: Math.max(1, (6 - hit.tier) * 100000 - hit.match.errors * 1000 - hit.match.gap * 100 - Math.min(999, hit.match.end - hit.match.start)) + Math.min(1, hit.nativeScore),
         terms: terms, tags: doc.tags.map(escape)
       };

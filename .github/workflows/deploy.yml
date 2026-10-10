@@ -64,6 +64,7 @@ jobs:
           node tools/test_search_worker.cjs
           node tools/test_search_loader.cjs
           node tools/test_search_interaction.cjs
+          node tools/test_fragment_navigation.cjs
           node tools/test_search_math.cjs
           node tools/test_article_math.cjs
 

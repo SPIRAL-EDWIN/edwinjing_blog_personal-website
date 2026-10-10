@@ -30,6 +30,14 @@ function locations(result) {
 function sections(result) {
   return result.items.flat().filter(item => item.location.includes('#'));
 }
+function snippetHtml(item) {
+  return item.text.replace(/<span data-edwinos-search-segment="\d+" data-start-truncated="(?:true|false)" data-end-truncated="(?:true|false)">|<\/span>/g, '');
+}
+function snippetSegments(item) {
+  return Array.from(item.text.matchAll(/<span data-edwinos-search-segment="(\d+)" data-start-truncated="(true|false)" data-end-truncated="(true|false)">([\s\S]*?)<\/span>/g), match => ({
+    index: Number(match[1]), before: match[2] === 'true', after: match[3] === 'true', html: match[4]
+  }));
+}
 function fixture(page, title, text, anchor = 'target') {
   return [
     {location: 'OsdNotes/test/' + page + '/', title: page, text: ''},
@@ -135,7 +143,7 @@ check('snippets center a late match and only emit escaped text plus safe paragra
   assert.match(item.text, /learning/);
   assert.match(item.text, /<mark>/);
   assert(item.text.length < 1000, 'snippet should be bounded');
-  assert.doesNotMatch(item.text + item.title, /<(?!\/?(?:mark|p)>)/i);
+  assert.doesNotMatch(snippetHtml(item) + item.title, /<(?!\/?(?:mark|p)>)/i);
   assert.doesNotMatch(item.text, /onerror=/i);
 });
 check('compact late-hit excerpts center the full phrase with literal truncation markers', () => {
@@ -163,7 +171,7 @@ check('wide-script excerpts use a smaller character budget and keep the keyword 
 });
 check('short excerpts do not imply truncation and long match spans keep every concept', () => {
   const short = sections(engine.search('reinforcement learning')).find(item => item.location.includes('/phrase/'));
-  assert.equal(short.text, '<p><mark>reinforcement learning</mark> supports robotics.</p>');
+  assert.equal(snippetHtml(short), '<p><mark>reinforcement learning</mark> supports robotics.</p>');
   const target = make(fixture('long-match', 'Target', '<p>' + 'before '.repeat(30) + 'alpha ' + ('contextual'.repeat(4) + ' ').repeat(4) + 'beta ' + 'after '.repeat(30) + '</p>'));
   const item = sections(target.search('alpha beta'))[0];
   assert(item, 'expected a bounded nearby match');
@@ -190,8 +198,76 @@ check('heading-only hits excerpt their section body instead of duplicating the h
   ]);
   const item = sections(target.search('2s'))[0];
   assert.match(item.title, /<mark>2s<\/mark>/);
-  assert.equal(item.text, '<p>The s and p orbitals are mixed together into equivalent orbitals.</p>');
+  assert.equal(snippetHtml(item), '<p>The s and p orbitals are mixed together into equivalent orbitals.</p>');
   assert.doesNotMatch(item.text, /Unrelated neighbouring/);
+});
+check('snippets start at the first body keyword even when a later phrase ranks better', () => {
+  const target = make(fixture('first-keyword', 'Target', '<p>First reinforcement reference has useful context.</p><p>' +
+    'unrelated explanation '.repeat(90) + '</p><p>Later reinforcement learning phrase has different context.</p>'));
+  const item = sections(target.search('reinforcement learning'))[0];
+  const segments = snippetSegments(item);
+  assert.equal(segments[0].index, 0);
+  assert.match(segments[0].html, /First <mark>reinforcement<\/mark> reference/);
+  assert.match(segments[1].html, /Later <mark>reinforcement learning<\/mark> phrase/);
+  assert.match(item.text, /<\/span> \.\.\. <span/);
+  assert.equal(item.score > 499000, true, 'later exact phrase still owns ranking');
+});
+check('quoted retrieval stays strict while excerpts follow the first highlighted body keyword', () => {
+  const target = make([
+    ...fixture('quoted-first', 'Target', '<p>First reinforcement reference supplies context.</p><p>' +
+      'unrelated explanation '.repeat(90) + '</p><p>Later reinforcement learning phrase is the accepted query.</p>'),
+    ...fixture('quoted-distractor', 'Target', '<p>reinforcement is separated from practical learning.</p>')
+  ]);
+  const result = target.search('"reinforcement learning"');
+  assert.deepEqual(pages(result), ['OsdNotes/test/quoted-first/']);
+  const segments = snippetSegments(sections(result)[0]);
+  assert.match(segments[0].html, /First <mark>reinforcement<\/mark> reference/);
+  assert.match(segments[1].html, /Later <mark>reinforcement learning<\/mark> phrase/);
+});
+check('distant repeated hits keep surrounding words and never copy the intervening chapter', () => {
+  const target = make(fixture('repeated-excerpts', 'Target', '<p>First EDWIN context one.</p><p>' +
+    'unrelated explanation '.repeat(80) + '</p><p>Second EDWIN context two.</p><p>' +
+    'other unrelated explanation '.repeat(80) + '</p><p>Third EDWIN context three.</p>'));
+  const item = sections(target.search('edwin'))[0];
+  const segments = snippetSegments(item);
+  assert.equal(segments.length, 3);
+  for (const [index, word] of ['First', 'Second', 'Third'].entries()) {
+    assert.equal(segments[index].index, index);
+    assert.match(segments[index].html, new RegExp(word + ' <mark>EDWIN</mark> context'));
+  }
+  assert(snippetHtml(item).length < 550, 'source budget is shared by distant excerpts');
+});
+check('Chinese excerpts preserve first-match context and later contexts with ellipses', () => {
+  const target = make(fixture('first-han', 'Target', '<p>首次强化学习帮助机器人行动。</p><p>' + '不相关说明'.repeat(90) +
+    '</p><p>随后强化学习用于实际部署。</p>'));
+  const item = sections(target.search('强化学习'))[0];
+  const segments = snippetSegments(item);
+  assert.match(segments[0].html, /首次<mark>强化学习<\/mark>帮助机器人/);
+  assert.match(segments[1].html, /随后<mark>强化学习<\/mark>用于实际部署/);
+});
+check('first fuzzy and prefix variants appear in snippets and destination highlighting terms', () => {
+  for (const [query, first, later, mode] of [
+    ['reinforcment', 'reinforcemeut', 'reinforcement', 'fuzzy'],
+    ['embod', 'embodiment', 'embodied', 'prefix']
+  ]) {
+    const target = make(fixture('first-' + mode, 'Target', '<p>First ' + first + ' contextual occurrence.</p><p>' +
+      'unrelated explanation '.repeat(90) + '</p><p>Later ' + later + ' preferred short hit.</p>'));
+    const result = target.search(query), item = sections(result)[0];
+    assert.equal(result.mode, mode);
+    assert.match(snippetSegments(item)[0].html, new RegExp('First <mark>' + first + '</mark> contextual'));
+    assert.equal(item.terms[first], true);
+    assert.equal(item.terms[later], true);
+  }
+});
+check('snippet segments retain escaped author code and complete matching formulas', () => {
+  const formula = '$$x + target + y$$';
+  const target = make(fixture('safe-segments', 'Target', '<pre>First &lt;script&gt;target&lt;/script&gt; code context.</pre><p>' +
+    'unrelated '.repeat(90) + '</p><p>Later ' + formula + ' formula context.</p>'));
+  const item = sections(target.search('target'))[0];
+  const segments = snippetSegments(item);
+  assert.match(segments[0].html, /&lt;script&gt;<mark>target<\/mark>&lt;\/script&gt;/);
+  assert.match(segments[1].html, /\$\$x \+ <mark>target<\/mark> \+ y\$\$/);
+  assert.doesNotMatch(snippetHtml(item), /<(?!\/?(?:p|mark)>)/);
 });
 check('Material result groups carry one parent and object-valued highlight terms', () => {
   for (const group of engine.search('reinforcement learning').items) {
@@ -214,7 +290,7 @@ check('excerpt boundaries preserve complete matching TeX and omit sliced context
     assert(item.text.includes('x + '.repeat(50)) && item.text.includes('y + '.repeat(50)), 'matching formula remains complete');
     const edges = make(fixture('math-edges', 'Context formulas', '<p>' + formula + ' keyword ' + formula + '</p>'));
     const edgeItem = sections(edges.search('keyword'))[0];
-    assert.equal(edgeItem.text, '<p>... <mark>keyword</mark> ...</p>');
+    assert.equal(snippetHtml(edgeItem), '<p>... <mark>keyword</mark> ...</p>');
   }
 });
 check('serialized and runtime-built indexes have equivalent results', () => {

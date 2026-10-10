@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-10-09
+Last updated: 2026-10-10
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -121,14 +121,22 @@ Material scrollwrap scrolls, with height bounded by the visual viewport.
 The shell follows the rendered input and result heights each animation frame;
 do not animate the shell height again or empty activation will grow late.
 Result content layers are transparent; do not add another backdrop or tint.
-Excerpts use nearby blocks from the same indexed section, then fit around all
-keyword marks to approximately two lines with off-DOM font measurement. Fit
+Excerpts use the first body keyword in the indexed section as the mandatory
+match, then offer up to three source-ordered contextual segments separated by
+ellipses. Width fitting reserves that first match and context, adds later
+segments when space allows, and measures approximately two lines off-DOM. Fit
 and formula work is limited to visible rows plus 96px overscan; scrolling and
 opening more results refresh that window. Article provenance follows each
 section title rather than consuming a separate grouping row. IME preedit does
 not query; committed input coalesces into one 100ms-delayed query. Selecting a
-result closes search before same-page fragment capture. Closing clears the query and any saved
-query, removes only `q`/`query` from the current URL, and preserves result links
+result closes search before same-page fragment capture. Closing empties the
+visible input but preserves one same-origin localStorage query memory across
+document, history, instant and new-tab navigation. Opening restores the latest
+shared query. A document reload publishes a reset generation to clear memory
+in all tabs, including active inputs after any IME composition ends. Ordinary
+closing must not overwrite a newer query from another tab. Restricted storage
+falls back to document-local memory. Closing removes only `q`/`query` from the
+current URL, and preserves result links
 with their `h` highlighting parameter and fragment.
 Search results that change the document or highlighting terms use native
 document navigation, captured at window click before closing can detach the
@@ -137,6 +145,11 @@ and its request has no timeout. Native loading commits the URL with the new
 document and retains browser loading/error handling. Same-document fragments
 with unchanged highlighting remain with `block-links.js`; modified clicks,
 new tabs and downloads retain native semantics.
+Before Material initializes on a reload, `search-loader.js` removes only
+`q`/`query` so an old query URL cannot reopen search; `h` and fragments survive.
+The sticky Header needs no root scroll padding: its obsolete global rule made
+Chromium shift the document on search key events. Fragment header offsets stay
+with the existing fragment owner and element scroll margins.
 `mathjax.js` owns lazy, targeted search-formula typesetting on the existing
 queue. The snippet fitter preserves complete TeX units, retains raw text before
 typesetting, and refits from that source on resize. Search typesetting must not
@@ -149,6 +162,14 @@ CSSOM glyph rules while MathJax still caches them as emitted.
 Explicit heading fragments also coordinate the exact TOC selection. Cross-page
 links retain their intended fragment through Material's outgoing scrollspy and
 post-MathJax settling; reader motion releases the selection immediately.
+Search arrivals instead position the first body keyword in the selected
+indexed section at one third of the viewport below the header, clamped at the
+document bottom. Heading-only matches retain heading positioning. A bounded,
+article-scoped highlight observer and the same layout-settled handoff cover
+delayed marks/formulas; search focus and reader motion cancel pending work.
+Validate Material's substring marks against the retrieval word boundaries before
+choosing the landing. Reveal only closed native details ancestors concealing
+that first match; geometry alone does not establish collapsed-content visibility.
 Generated article dates/author metadata is marked `data-search-exclude` by
 `hooks/archive.py`, preserving it visually while excluding it from the index.
 

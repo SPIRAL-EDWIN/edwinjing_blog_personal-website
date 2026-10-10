@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync(require('node:path').join(__dirname, '../docs/javascripts/search-loader.js'), 'utf8');
-function harness({query='', saveData=false}={}) {
+function harness({query='', saveData=false, navigationType='navigate'}={}) {
   const events={}, timers=[], frames=[], idle=[], workers=[];
   const meta={textContent:''}; let now=2000;
   const address='https://example.test/site/assets/javascripts/workers/search-exact-worker.js?v=test';
@@ -18,6 +18,8 @@ function harness({query='', saveData=false}={}) {
   const window={Worker,location:{href:'https://example.test/site/'+query},navigator:{connection:{saveData}},
     addEventListener:on,setTimeout(fn){timers.push(fn);return timers.length;},clearTimeout(){},
     requestAnimationFrame(fn){frames.push(fn);},requestIdleCallback(fn){idle.push(fn);return idle.length;},cancelIdleCallback(){}};
+  window.performance={getEntriesByType:()=>[{type:navigationType}]};
+  window.history={state:{test:true},replaceState(state,_,url){assert.equal(state.test,true);window.location.href=url;}};
   const document={readyState:'loading',baseURI:window.location.href,addEventListener:on,
     getElementById(){return {textContent:JSON.stringify({search:address})};},querySelector(){return meta;}};
   vm.runInNewContext(source,{window,document,URL,Date:{now:()=>now},Object});
@@ -49,6 +51,17 @@ function harness({query='', saveData=false}={}) {
 }
 for (const query of ['?q=robot','?query=robot']) {
   const h=harness({query});const worker=new h.window.Worker(h.address);assert.deepEqual(worker.messages,[4]);
+}
+for (const query of ['?q=robot&h=robot&lang=zh#section','?query=robot&h=robot&lang=zh#section']) {
+  const h=harness({query,navigationType:'reload',saveData:true});
+  const url=new URL(h.window.location.href);
+  assert.equal(url.searchParams.has('q'),false);
+  assert.equal(url.searchParams.has('query'),false);
+  assert.equal(url.searchParams.get('h'),'robot');
+  assert.equal(url.searchParams.get('lang'),'zh');
+  assert.equal(url.hash,'#section');
+  const worker=new h.window.Worker(h.address);
+  assert.deepEqual(worker.messages,[],'reload must not resurrect a shared query or eagerly start search');
 }
 {
   const h=harness({query:'?h=t',saveData:true});const worker=new h.window.Worker(h.address);

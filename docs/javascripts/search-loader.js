@@ -1,6 +1,18 @@
 /** Search intent bridge. Material keeps its normal SETUP/READY/query protocol. */
 (function () {
   "use strict";
+  // A refreshed document starts with empty search memory. Remove search-input
+  // URL state before Material can open/focus it; destination highlights stay.
+  var navigation = window.performance && window.performance.getEntriesByType
+    ? window.performance.getEntriesByType("navigation")[0] : null;
+  if (navigation && navigation.type === "reload") {
+    var refreshedURL = new URL(window.location.href);
+    if (refreshedURL.searchParams.has("q") || refreshedURL.searchParams.has("query")) {
+      refreshedURL.searchParams.delete("q");
+      refreshedURL.searchParams.delete("query");
+      window.history.replaceState(window.history.state, "", refreshedURL.href);
+    }
+  }
   var node = document.getElementById("__config");
   if (!node || !window.Worker) return;
   var workerURL;
