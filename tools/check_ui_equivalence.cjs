@@ -34,12 +34,14 @@ const states = jsonSetting('STATES', '["rest","search","query","close","drawer",
 const stateWidths = jsonSetting('STATE_WIDTHS', '[1440,768,375]');
 const screenshotWidths = jsonSetting('SCREENSHOT_WIDTHS', '[1440,768,375]');
 const screenshotStates = jsonSetting('SCREENSHOT_STATES', '["rest"]');
+const browserArgs = jsonSetting('BROWSER_ARGS', '[]');
 const motion = process.env.MOTION || 'reduce';
 const knownStates = new Set([
   'rest', 'search', 'query', 'close', 'drawer', 'scrolled',
-  'profile-hover', 'profile-focus', 'friend-hover', 'tab-hover',
+  'profile-hover', 'profile-focus', 'friend-hover', 'archive-hover', 'tab-hover',
   'source-hover', 'palette-hover', 'search-hover', 'search-focus',
-  'drawer-button-hover'
+  'drawer-button-hover', 'fragment-pinned', 'fragment-fading',
+  'fragment-released', 'fragment-cleared'
 ]);
 
 function requireNonEmptyArray(name, value) {
@@ -60,6 +62,8 @@ if (routes.some(route => typeof route !== 'string' || !route.startsWith('/')))
 validateWidths('WIDTHS', widths);
 validateWidths('STATE_WIDTHS', stateWidths);
 validateWidths('SCREENSHOT_WIDTHS', screenshotWidths);
+if (!Array.isArray(browserArgs) || browserArgs.some(arg => typeof arg !== 'string' || !arg.trim()))
+  throw new Error('BROWSER_ARGS must be a JSON array of nonempty strings.');
 for (const [name, values] of [['STATES', states], ['SCREENSHOT_STATES', screenshotStates]]) {
   if (!Array.isArray(values) || values.some(state => !knownStates.has(state)))
     throw new Error(`${name} contains an unknown state. Allowed values: ${[...knownStates].join(', ')}.`);
@@ -74,6 +78,20 @@ const freezeMotion = motionPropertiesOnly ? false : requestedFreezeMotion;
 const comparisonMode = process.env.COMPARISON_MODE || 'same-page';
 if (!['same-page', 'fresh-page'].includes(comparisonMode))
   throw new Error('COMPARISON_MODE must be "same-page" or "fresh-page".');
+const fragmentStates = new Set(['fragment-pinned', 'fragment-fading', 'fragment-released', 'fragment-cleared']);
+if (states.some(state => fragmentStates.has(state))) {
+  if (comparisonMode !== 'fresh-page')
+    throw new Error('Fragment lifecycle states require COMPARISON_MODE=fresh-page so each side has an independent owner lifecycle.');
+  if (routes.some(route => !new URL(route, origin).hash))
+    throw new Error('Fragment lifecycle states require a heading hash in every ROUTES entry.');
+}
+function initialFragmentScheme(state, theme) {
+  // Load a hash target in its requested theme. Flipping palette after initial
+  // alignment can change article geometry and let Material tracking rewrite
+  // the hash before the fragment capture begins.
+  if (!fragmentStates.has(state)) return undefined;
+  return theme === 'slate' ? 'dark' : 'light';
+}
 const dependencyVersions = {
   playwright: require('playwright/package.json').version,
   pngjs: require('pngjs/package.json').version
@@ -114,6 +132,31 @@ function differentPixels(a, b) {
 function writeReport(result) {
   fs.mkdirSync(path.dirname(report), { recursive: true });
   fs.writeFileSync(report, JSON.stringify(result, null, 2));
+}
+
+function recordError(result, error) {
+  result.status = 'error';
+  if (!result.error) result.error = { name: error.name, message: error.message, stack: error.stack };
+  writeReport(result);
+}
+
+async function closeBounded(resource, label, result) {
+  let timer;
+  try {
+    await Promise.race([resource.close(), new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`${label} cleanup timed out after 10000ms.`)), 10000);
+    })]);
+  } catch (error) {
+    result.cleanupErrors.push({ phase: label, message: error.message });
+    const hadPrimaryError = Boolean(result.error);
+    recordError(result, error);
+    if (!hadPrimaryError) throw error;
+  } finally { clearTimeout(timer); }
+}
+
+function assertTocReleasePrerequisite(before) {
+  if (before.visibleMatchingLinks > 0 && before.selectedMatchingLinks === 0)
+    throw new Error(`Fragment release has no selected visible target to release: ${JSON.stringify(before)}`);
 }
 
 function compareSnapshots(baseline, candidate) {
@@ -205,10 +248,10 @@ async function synchronizeTheme(page, theme) {
 
 async function applyState(page, theme, state) {
   await synchronizeTheme(page, theme);
-  const assertion = await page.evaluate(async ({ requestedTheme, requestedState }) => {
+  let assertion = await page.evaluate(async ({ requestedTheme, requestedState }) => {
     document.activeElement?.blur();
-    history.replaceState(history.state, '', location.pathname + location.search);
-    try { sessionStorage.removeItem('edwinos.search-query.v1'); } catch (error) { /* unavailable storage */ }
+    if (!requestedState.startsWith('fragment-'))
+      history.replaceState(history.state, '', location.pathname + location.search);
     const input = document.querySelector('.md-search__input');
     const search = document.getElementById('__search');
     const drawer = document.getElementById('__drawer');
@@ -223,6 +266,14 @@ async function applyState(page, theme, state) {
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
     };
+    const openSearch = () => {
+      // Follow the real activation path: closing intentionally blocks delayed
+      // checkbox/focus reopen events until a new pointer activation occurs.
+      const form = document.querySelector('.md-search__form');
+      if (!form) throw new Error('Search form is missing.');
+      form.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      form.click();
+    };
     const scrollInstantly = top => {
       const rootStyle = document.documentElement.style;
       const oldValue = rootStyle.getPropertyValue('scroll-behavior');
@@ -232,30 +283,26 @@ async function applyState(page, theme, state) {
       if (oldValue) rootStyle.setProperty('scroll-behavior', oldValue, oldPriority);
       else rootStyle.removeProperty('scroll-behavior');
     };
-    const waitForFrames = () => new Promise(resolve =>
-      requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
+    // Reset through the input owner, not a second test-only query store.
     setQuery('');
     setToggle(search, false);
     setToggle(drawer, false);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    scrollInstantly(0);
+    // Fragment positioning belongs to block-links. Resetting its scroll here
+    // would also let Material publish a different hash before activation.
+    if (!requestedState.startsWith('fragment-')) {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      scrollInstantly(0);
+    }
 
-    if (requestedState === 'search') setToggle(search, true);
+    if (requestedState === 'search') openSearch();
     if (requestedState === 'query') {
-      setToggle(search, true);
+      openSearch();
       setQuery('reward');
     }
     if (requestedState === 'close') {
-      setToggle(search, true);
+      openSearch();
       setQuery('reward');
-      // Let Material's open/focus requestAnimationFrame finish before closing;
-      // otherwise its delayed focus can reopen the checkbox after this state.
-      await waitForFrames();
-      setQuery('');
-      input?.blur();
-      setToggle(search, false);
     }
     if (requestedState === 'drawer') setToggle(drawer, true);
     if (requestedState === 'scrolled') {
@@ -274,6 +321,22 @@ async function applyState(page, theme, state) {
     };
   }, { requestedTheme: theme, requestedState: state });
 
+  if (state === 'close') {
+    const activation = { ...assertion };
+    if (!activation.searchChecked || activation.query !== 'reward')
+      throw new Error(`Close preparation did not activate the real query: ${JSON.stringify(activation)}`);
+    // Exercise the trusted production close path. This bounded timer is not a
+    // claim that every deferred animation-frame focus callback has run.
+    await page.waitForTimeout(200);
+    await page.keyboard.press('Escape');
+    const closed = await page.evaluate(() => ({
+      searchChecked: Boolean(document.getElementById('__search')?.checked),
+      query: document.querySelector('.md-search__input')?.value || ''
+    }));
+    assertion = { ...assertion, ...closed, closeActivation: activation,
+      closeMethod: 'trusted Escape', closePreparation: '200ms timer' };
+  }
+
   if (assertion.theme !== theme) throw new Error(`Theme state failed: requested ${theme}, got ${assertion.theme}`);
   if (assertion.paletteScheme && assertion.paletteScheme !== theme)
     throw new Error(`Palette control failed: requested ${theme}, got ${assertion.paletteScheme}`);
@@ -285,7 +348,7 @@ async function applyState(page, theme, state) {
     throw new Error(`Search query reset failed for ${state}`);
   if (state === 'scrolled' && assertion.maxScroll > 0 && assertion.scrollY <= 0)
     throw new Error('Scrolled state did not move the document.');
-  if (state !== 'scrolled' && assertion.scrollY !== 0)
+  if (state !== 'scrolled' && !fragmentStates.has(state) && assertion.scrollY !== 0)
     throw new Error(`Scroll reset failed for ${state}: ${assertion.scrollY}`);
   return assertion;
 }
@@ -296,6 +359,7 @@ async function settleInteraction(page, state) {
     'profile-hover': '.btn-github-action',
     'profile-focus': '.btn-github-action',
     'friend-hover': '.friend-card',
+    'archive-hover': '.archive-card',
     'tab-hover': '.md-tabs__link',
     'source-hover': '.md-header__source',
     'palette-hover': '.md-header__option',
@@ -339,13 +403,26 @@ function shouldScreenshot(width, state) {
   return !motionPropertiesOnly && screenshotWidths.includes(width) && screenshotStates.includes(state);
 }
 
-async function capture(page, theme, state, screenshot) {
+async function capture(page, theme, state, screenshot, routeName) {
+  let timer;
+  try {
+    return await Promise.race([
+      captureState(page, theme, state, screenshot, routeName),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(
+        `Capture timed out after 30000ms: ${routeName} ${theme} ${state}; inspect browser frame/IPC readiness.`)), 30000); })
+    ]);
+  } finally { clearTimeout(timer); }
+}
+
+async function captureState(page, theme, state, screenshot, routeName) {
+  if (fragmentStates.has(state)) return captureFragment(page, theme, state, screenshot, routeName);
   // First pass clears delayed Material/runtime work from the freshly loaded
   // document. The second pass is the authoritative state for this capture.
   await applyState(page, theme, state);
   await page.waitForTimeout(600);
   const assertion = await applyState(page, theme, state);
   await settleInteraction(page, state);
+  const searchResults = state === 'query' ? await waitForSearchResults(page) : null;
   const settled = await page.evaluate(() => ({
     theme: document.body.getAttribute('data-md-color-scheme'),
     paletteScheme: document.querySelector('input.md-option[data-md-color-scheme]:checked')?.dataset.mdColorScheme || null,
@@ -371,12 +448,141 @@ async function capture(page, theme, state, screenshot) {
     assertion: {
       applied: assertion,
       settled,
+      searchResults,
       skipped: state === 'scrolled' && settled.maxScroll === 0,
       skipReason: state === 'scrolled' && settled.maxScroll === 0 ? 'document is not scrollable' : null
     },
     snapshot: await snapshotPage(page),
     shot: screenshot ? await page.screenshot({ animations: 'disabled' }) : null
   };
+}
+
+async function waitForSearchResults(page) {
+  // A matching query string alone can falsely pass with an empty/unready
+  // worker. Require real destinations and a stable result set before capture.
+  return page.evaluate(async () => {
+    const start = Date.now();
+    let last = '', stableSince = start;
+    while (Date.now() - start < 15000) {
+      const links = [...document.querySelectorAll('.md-search-result__link[href]')];
+      const destinations = links.map(link => link.getAttribute('href'));
+      const valid = destinations.length > 0 && destinations.every(href => {
+        if (!href || href === '#') return false;
+        return /^https?:$/.test(new URL(href, location.href).protocol);
+      });
+      const key = JSON.stringify(destinations);
+      if (!valid || key !== last) { last = key; stableSince = Date.now(); }
+      if (valid && Date.now() - stableSince >= 300) return {
+        count: links.length, destinations, stableForMs: 300,
+        query: document.querySelector('.md-search__input')?.value || ''
+      };
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    throw new Error('Query result state failed: no stable, nonempty search destinations within 15000ms.');
+  });
+}
+
+async function captureFragment(page, theme, state, screenshot, routeName) {
+  const requestedHash = new URL(routeName || page.url(), origin).hash;
+  await applyState(page, theme, state);
+  await settleInteraction(page, state);
+  const activated = await page.evaluate(({ requestedState, expectedHash }) => {
+    const hash = location.hash;
+    if (hash !== expectedHash) throw new Error(`Requested fragment changed before activation: ${expectedHash} -> ${hash}`);
+    const target = document.getElementById(decodeURIComponent(hash.slice(1)));
+    if (!target?.matches('h1,h2,h3,h4,h5,h6'))
+      throw new Error(`Fragment state requires an existing heading target: ${hash}`);
+    // Re-enter through block-links' hash owner, not a manually added class.
+    // Its native lifecycle is very short (500ms); pinned capture alone holds
+    // that proven state by removing later fading additions, never adding pin.
+    dispatchEvent(new HashChangeEvent('hashchange'));
+    if (!target.classList.contains('block-highlight--pinned') ||
+        target.classList.contains('block-highlight--fading'))
+      throw new Error(`Fragment owner did not activate the pinned heading: ${hash}`);
+    if (requestedState === 'fragment-pinned') {
+      const observer = new MutationObserver(() => {
+        if (target.classList.contains('block-highlight--fading'))
+          target.classList.remove('block-highlight--fading');
+      });
+      observer.observe(target, { attributes: true, attributeFilter: ['class'] });
+      window.__equivalenceFragmentHold = observer;
+    }
+    return { hash, id: target.id, tagName: target.tagName,
+      ownerActivated: true, selectedTocCount: document.querySelectorAll('.edwinos-toc-link--selected').length };
+  }, { requestedState: state, expectedHash: requestedHash });
+
+  if (state !== 'fragment-pinned') {
+    try {
+      await page.waitForFunction(id =>
+        document.getElementById(id)?.classList.contains('block-highlight--fading'), activated.id,
+        { timeout: 10000, polling: 100 });
+    } catch (error) {
+      const observed = await page.evaluate(id => ({ hash: location.hash,
+        classes: document.getElementById(id)?.className || null,
+        highlights: [...document.querySelectorAll('.block-highlight')].map(node => node.id) }), activated.id);
+      throw new Error(`Fragment owner did not enter fading: ${JSON.stringify(observed)}; ${error.message}`);
+    }
+  }
+  // Allow the owner's bounded alignment repair to complete on both sides.
+  await page.waitForTimeout(700);
+  let releaseBefore = null;
+  if (state === 'fragment-released') {
+    releaseBefore = await page.evaluate(hash => {
+      const matching = [...document.querySelectorAll('.md-sidebar--secondary a.md-nav__link[href*="#"]')]
+        .filter(link => link.hash === hash && link.getClientRects().length > 0 &&
+          link.getBoundingClientRect().width > 0 && getComputedStyle(link).visibility !== 'hidden');
+      return { visibleMatchingLinks: matching.length,
+        selectedMatchingLinks: matching.filter(link => link.classList.contains('edwinos-toc-link--selected')).length };
+    }, activated.hash);
+    assertTocReleasePrerequisite(releaseBefore);
+    // A trusted reader keyboard action follows the production release owner.
+    // Unlike mouse.wheel it does not await a compositor frame acknowledgement.
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(250);
+  }
+  if (state === 'fragment-cleared') {
+    const url = new URL(page.url());
+    url.hash = '';
+    // Empty hashchange does NOT clear heading classes in production. Only a
+    // new document/owner run clears them, so test that actual exit contract.
+    // A same-URL goto can otherwise be optimized into same-document hash
+    // removal; cross a real document boundary explicitly on both sides.
+    await page.goto('about:blank');
+    await openRoute(page, url.pathname + url.search);
+    await applyState(page, theme, 'rest');
+    await settleInteraction(page, 'rest');
+  }
+  const settled = await page.evaluate(id => {
+    const target = document.getElementById(id);
+    return { hash: location.hash, theme: document.body.getAttribute('data-md-color-scheme'),
+      pinned: Boolean(target?.classList.contains('block-highlight--pinned')),
+      fading: Boolean(target?.classList.contains('block-highlight--fading')),
+      highlightCount: document.querySelectorAll('.block-highlight').length,
+      selectedTocCount: document.querySelectorAll('.edwinos-toc-link--selected').length,
+      scrollY, searchChecked: Boolean(document.getElementById('__search')?.checked),
+      drawerChecked: Boolean(document.getElementById('__drawer')?.checked),
+      query: document.querySelector('.md-search__input')?.value || '' };
+  }, activated.id);
+  if (settled.theme !== theme || settled.searchChecked || settled.drawerChecked || settled.query)
+    throw new Error(`Fragment controls changed while settling: ${JSON.stringify(settled)}`);
+  if (state === 'fragment-cleared') {
+    if (settled.hash || settled.highlightCount || settled.selectedTocCount)
+      throw new Error(`Fragment document exit did not clear highlights: ${JSON.stringify(settled)}`);
+  } else {
+    if (!settled.pinned || settled.fading !== (state !== 'fragment-pinned'))
+      throw new Error(`Fragment lifecycle state failed for ${state}: ${JSON.stringify(settled)}`);
+    if (state !== 'fragment-released' && settled.hash !== activated.hash)
+      throw new Error(`Fragment hash was not preserved: ${JSON.stringify(settled)}`);
+    if (state === 'fragment-released' && settled.selectedTocCount !== 0)
+      throw new Error(`Reader ArrowDown did not release the TOC override: ${JSON.stringify(settled)}`);
+  }
+  return { assertion: { applied: activated, settled, skipped: false, skipReason: null,
+    pinnedCaptureHold: state === 'fragment-pinned', releaseMethod: state === 'fragment-released' ? 'reader ArrowDown' : null,
+    releaseBefore, releaseAfter: state === 'fragment-released' ? { selectedTocCount: settled.selectedTocCount } : null,
+    releaseSelectionApplicable: state === 'fragment-released' ? releaseBefore.visibleMatchingLinks > 0 : null,
+    releaseSelectionSkipReason: state === 'fragment-released' && !releaseBefore.visibleMatchingLinks ? 'no visible secondary TOC target link' : null,
+    exitMethod: state === 'fragment-cleared' ? 'new document without hash' : null },
+    snapshot: await snapshotPage(page), shot: screenshot ? await page.screenshot({ animations: 'disabled' }) : null };
 }
 
 async function main() {
@@ -387,14 +593,14 @@ async function main() {
   const result = {
     status: 'running', baselinePath, candidatePath, hashes, warnings,
     config: { routes, widths, states, stateWidths, screenshotWidths, screenshotStates,
-      motion, freezeMotion, motionPropertiesOnly, comparisonMode, dependencyVersions },
-    total: 0, completedRoutes: [], stateAssertions: [], skipped: [], failures: [], error: null
+      motion, freezeMotion, motionPropertiesOnly, comparisonMode, browserArgs, dependencyVersions },
+    total: 0, currentScenario: null, completedRoutes: [], stateAssertions: [], skipped: [], failures: [], error: null, cleanupErrors: []
   };
   writeReport(result);
 
   let browser = null;
   try {
-    browser = await chromium.launch({ headless: true,
+    browser = await chromium.launch({ headless: true, args: browserArgs,
       ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}) });
     for (const routeName of routes) {
       let activeStyle = null;
@@ -411,6 +617,8 @@ async function main() {
         const scenarioStates = stateWidths.includes(width) ? states : ['rest'];
         for (const state of scenarioStates) {
           const key = { routeName, width, theme, state };
+          result.currentScenario = key;
+          writeReport(result);
           const screenshot = shouldScreenshot(width, state);
           const captures = [];
 
@@ -420,28 +628,37 @@ async function main() {
             await openRoute(sharedPage, routeName);
             await installComparisonStyle(sharedPage);
             await setComparisonStyle(sharedPage, styles[0]);
-            captures.push(await capture(sharedPage, theme, state, screenshot));
+            captures.push(await capture(sharedPage, theme, state, screenshot, routeName));
             await setComparisonStyle(sharedPage, styles[1]);
-            captures.push(await capture(sharedPage, theme, state, screenshot));
+            captures.push(await capture(sharedPage, theme, state, screenshot, routeName));
           } else {
             for (let cssIndex = 0; cssIndex < styles.length; cssIndex++) {
               const sideStyle = { value: cssIndex };
               const sideContext = await browser.newContext({
-                viewport: { width, height: 1000 }, reducedMotion: motion
+                viewport: { width, height: 1000 }, reducedMotion: motion,
+                colorScheme: initialFragmentScheme(state, theme)
               });
               try {
                 await installRoute(sideContext, sideStyle);
                 const page = await sideContext.newPage();
                 await openRoute(page, routeName);
-                captures.push(await capture(page, theme, state, screenshot));
+                captures.push(await capture(page, theme, state, screenshot, routeName));
+              } catch (error) {
+                // Persist the primary capture error before close() can itself
+                // stall on browser IPC. Cleanup must never replace this cause.
+                recordError(result, error);
+                throw error;
               } finally {
-                await sideContext.close();
+                await closeBounded(sideContext, 'fresh-page context', result);
               }
             }
           }
 
           result.stateAssertions.push({ ...key,
             baseline: captures[0].assertion, candidate: captures[1].assertion });
+          const searchResults = captures.map(capture => capture.assertion.searchResults);
+          if (state === 'query' && JSON.stringify(searchResults[0].destinations) !== JSON.stringify(searchResults[1].destinations))
+            result.failures.push({ ...key, searchResults: { baseline: searchResults[0], candidate: searchResults[1] } });
           const skippedSides = captures.map(capture => capture.assertion.skipped);
           if (skippedSides[0] && skippedSides[1]) {
             result.skipped.push({ ...key, reason: 'document is not scrollable in either stylesheet' });
@@ -458,13 +675,20 @@ async function main() {
           if (differences.length) result.failures.push({ ...key, differences });
           if (captures[0].shot && captures[1].shot) {
             const pixels = differentPixels(captures[0].shot, captures[1].shot);
-            if (pixels) result.failures.push({ ...key, pixels });
+            if (pixels) {
+              const artifactBase = report.replace(/\.json$/, '') + `-scenario-${result.total}`;
+              const screenshots = { baseline: `${artifactBase}-baseline.png`, candidate: `${artifactBase}-candidate.png` };
+              fs.writeFileSync(screenshots.baseline, captures[0].shot);
+              fs.writeFileSync(screenshots.candidate, captures[1].shot);
+              result.failures.push({ ...key, pixels, screenshots });
+            }
           }
           result.total++;
+          writeReport(result);
         }
       }
-      if (sharedPage) await sharedPage.close();
-      if (context) await context.close();
+      if (sharedPage) await closeBounded(sharedPage, 'same-page document', result);
+      if (context) await closeBounded(context, 'same-page context', result);
       result.completedRoutes.push(routeName);
       writeReport(result);
       console.log(JSON.stringify({ routeName, total: result.total, failures: result.failures.length }));
@@ -474,14 +698,13 @@ async function main() {
     if (result.total === result.skipped.length)
       throw new Error('Every configured scenario was skipped; no stylesheet comparison was exercised.');
     result.status = 'complete';
+    result.currentScenario = null;
     writeReport(result);
   } catch (error) {
-    result.status = 'error';
-    result.error = { name: error.name, message: error.message, stack: error.stack };
-    writeReport(result);
+    recordError(result, error);
     throw error;
   } finally {
-    if (browser) await browser.close();
+    if (browser) await closeBounded(browser, 'browser', result);
   }
   console.log(`Report: ${report}`);
   process.exitCode = result.failures.length ? 1 : 0;

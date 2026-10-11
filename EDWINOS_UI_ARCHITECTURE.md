@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -73,13 +73,14 @@ target order:
 1. Imports, font faces, and tokens.
 2. Typography and prose primitives: lists, code, callouts, math, tables, links.
 3. Header, tabs, search, and repository source facts.
-4. Drawer, sidebars, TOC, and fragment targets.
+4. Drawer, sidebars, and TOC.
 5. Profile shell.
 6. Overview sections.
 7. Friends.
 8. Archive.
-9. Content hubs, article metadata, and PDF utilities.
-10. Footer.
+9. Shared fragment targets (after Archive heading resets).
+10. Content hubs, article metadata, and PDF utilities.
+11. Footer.
 
 Keep each component's responsive and reduced-motion rules beside that
 component once the component is migrated. Never introduce `@layer` as a
@@ -97,6 +98,26 @@ must not regain an earlier historical patch block:
 - Overview section-title primitives. The rest of Overview remains a separate
   incremental migration target.
 - Friends Page.
+- Archive cards, hero, responsive layout and navigation feedback. Shared
+  Archive-specific typography remains in Typography and is restricted to
+  `font-family` and `letter-spacing` by the ownership test.
+- Fragment Targets is a single shared heading-state owner immediately after
+  Archive and before Content Hubs. Archive hero/year resets and pinned heading
+  rules have equal specificity; Fragment must win their margin/padding/border
+  intersection, as it did before Archive's migration. All four base/dark/fading/
+  pseudo-element rules stay together. Shared consumers are not limited to
+  selectors containing an `archive-` class: inspect dynamic heading classes too.
+
+HOME selectors use `body:is(.is-homepage, .is-home-profile-page)` plus a
+separate `body:has(.academic-home-layout)` selector with the same suffix.
+The class branches have identical specificity; grouping them removes duplicate
+selectors without weakening the existing cascade. Keep `:has()` outside the
+forgiving `:is()` list so older browsers retain the original selector-list
+failure behavior. Do not replace this with `:where()` (zero specificity).
+
+Star/fork SVG masks have one token pair in the Header owner:
+`--edwinos-star-icon` and `--edwinos-fork-icon`. Header and drawer source facts
+consume these same assets; separate mask aliases are unnecessary.
 
 The Header owner intentionally retains a few unscoped `.md-source*` primitives:
 Material also renders the repository source inside the mobile drawer, so those
@@ -211,6 +232,12 @@ different by design in the existing data. Do not normalize them during a UI
 refactor without confirming the intended repository mapping.
 
 ## Change protocol
+
+For an editing-oriented map of content, configuration, runtime functions and
+cross-file events, see [UI Maintenance](UI_MAINTENANCE.md). The read-only cascade
+inventory and browser checks are documented in
+[UI Regression](tools/UI_REGRESSION.md). Inventory candidates are review leads,
+not a license for automatic deletion or removing all `!important`.
 
 For every UI component migration:
 

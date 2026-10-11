@@ -18,6 +18,11 @@ def section_span(stylesheet, start, end):
     return start_index, end_index, stylesheet[start_index:end_index]
 
 
+def final_zone_start(stylesheet):
+    """Match the real section marker, not the similarly named file-header index."""
+    return stylesheet.index(" * 2. EdwinOS final component layer\n")
+
+
 def qualified_rules(stylesheet):
     """Yield flat qualified rules; sufficient for ownership/property guardrails."""
     without_comments = re.sub(r"/\*.*?\*/", "", stylesheet, flags=re.S)
@@ -70,7 +75,7 @@ class UiArchitectureContractTests(unittest.TestCase):
 
     def test_migrated_components_have_one_final_owner(self):
         stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")
-        final_zone = stylesheet.index("2. EdwinOS final component layer")
+        final_zone = final_zone_start(stylesheet)
         owners = (
             ("Markdown Lists", "Code Blocks"),
             ("Header, tabs, search, and source", "Drawer Navigation"),
@@ -129,7 +134,7 @@ class UiArchitectureContractTests(unittest.TestCase):
 
     def test_overview_section_titles_stay_in_final_typography_owner(self):
         stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")
-        final_zone = stylesheet.index("2. EdwinOS final component layer")
+        final_zone = final_zone_start(stylesheet)
         start, end, owned = section_span(
             stylesheet,
             "\n   Typography\n",
@@ -140,6 +145,45 @@ class UiArchitectureContractTests(unittest.TestCase):
         self.assertGreater(start, final_zone)
         self.assertRegex(owned, r"\.section-title")
         self.assertNotRegex(outside, r"\.section-title")
+
+    def test_archive_selectors_have_one_owner_with_typography_exceptions(self):
+        stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")
+        title = "\n   Archive\n"
+        self.assertEqual(stylesheet.count(title), 1)
+        start, end, owned = section_span(stylesheet, title, "\n   Fragment Targets\n")
+        self.assertGreater(start, final_zone_start(stylesheet))
+        for token in (".archive-hero", ".archive-card", ".archive-grid", ".archive-navigation-help"):
+            self.assertIn(token, owned)
+        for selectors, properties in qualified_rules(stylesheet[:start] + stylesheet[end:]):
+            if re.search(r"\.archive-", selectors):
+                self.assertTrue(properties <= {"font-family", "letter-spacing"},
+                                f"Archive selector escaped its owner: {selectors}: {properties}")
+
+    def test_shared_fragment_owner_follows_archive_heading_resets(self):
+        stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")
+        title = "\n   Fragment Targets\n"
+        self.assertEqual(stylesheet.count(title), 1)
+        start, end, owned = section_span(stylesheet, title, "\n   Content Hubs\n")
+        _, archive_end, archive = section_span(stylesheet, "\n   Archive\n", title)
+        self.assertEqual(archive_end, start)
+        self.assertIn(".md-typeset .archive-hero h1", archive)
+        self.assertIn(".md-typeset .archive-year__heading h2", archive)
+        self.assertNotIn(".block-highlight--pinned", stylesheet[:start] + stylesheet[end:])
+        rules = [(selectors, properties) for selectors, properties in qualified_rules(owned)
+                 if ".block-highlight--pinned" in selectors]
+        self.assertEqual(len(rules), 4, "base, dark, fading and pseudo-element stay together")
+        self.assertTrue({"margin-inline", "padding", "border"} <= rules[0][1])
+        self.assertIn('data-md-color-scheme="slate"', rules[1][0])
+        self.assertIn(".block-highlight--fading", rules[2][0])
+        self.assertIn("::before", rules[3][0])
+
+    def test_home_route_group_keeps_the_has_fallback_outside_is(self):
+        stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")
+        self.assertIn("body:is(.is-homepage, .is-home-profile-page)", stylesheet)
+        self.assertNotIn("body:is(.is-homepage, .is-home-profile-page, :has(", stylesheet)
+        for selectors, _ in qualified_rules(stylesheet):
+            for suffix in re.findall(r"body:is\(\.is-homepage, \.is-home-profile-page\)([^,]+)", selectors):
+                self.assertIn("body:has(.academic-home-layout)" + suffix.rstrip(), selectors)
 
     def test_pre_owner_header_references_are_shared_primitives_only(self):
         stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")

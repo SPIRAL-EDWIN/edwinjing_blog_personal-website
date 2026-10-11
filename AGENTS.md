@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -19,9 +19,17 @@ Current stylesheet policy:
 - Its source order is part of the visual contract. It currently preserves a
   historical baseline zone followed by the EdwinOS final component zone.
 - Markdown Lists, Header/Tabs/Search/Source, Drawer/Article TOC, Profile
-  Card/HOME shell, Overview section-title primitives, and Friends Page are
+  Card/HOME shell, Overview section-title primitives, Friends Page, and Archive are
   verified single-owner components in the final zone. Do not add a historical
   or tail copy of their rules.
+- HOME route selectors may group the two equal-specificity body classes with
+  `:is()`, but retain the `body:has(.academic-home-layout)` fallback as a
+  separate top-level selector. Folding it into a forgiving `:is()` list changes
+  the old-browser fallback. Archive-specific selectors outside its owner are
+  restricted to typography primitives; its layout, responsive and feedback
+  rules stay together. Shared Fragment Targets must follow Archive's heading
+  resets: their equal-specificity margin/padding/border relationship is part
+  of the baseline contract. Keep all four Fragment rules in that single owner.
 - Do not recreate `extra.css`, `edwinos-overrides.css`, or another tail-patch
   stylesheet.
 - `docs/javascripts/ui-perf.js` is the runtime adaptation layer. It owns body
@@ -124,6 +132,10 @@ Do not start with a full rewrite. Use a gradual migration plan:
 7. Keep the old rules until the migrated component is verified.
 8. Remove superseded legacy rules only after the replacement is proven.
 9. Update this `AGENTS.md` file whenever the governance model changes.
+
+For heading/layout migrations, also compare real fragment navigation in pinned,
+fading, reader-released and document-exit states. An unchanged rule body is not
+enough when moving it across another rule with intersecting consumers.
 
 ## Local Preview Standard
 

@@ -11,9 +11,8 @@
  *
  * ARCHITECTURE / CONTENTS
  * -----------------------
- * 1. Font imports (must remain before every non-import rule)
- * 2. Historical Material and site baseline (formerly extra.css)
- * 3. EdwinOS final component layer (formerly edwinos-overrides.css)
+ * 1. Historical Material and site baseline (shared primitives and Overview)
+ * 2. EdwinOS final component layer (site-hosted fonts, then component owners)
  *
  * Maintenance rule: extend the existing component section in the appropriate
  * cascade layer. Before removing or moving a rule, prove equivalent selector,
@@ -125,7 +124,6 @@ html {
 .md-typeset h1,
 .md-typeset h2,
 .md-typeset h3 {
-    font-family: "Playfair Display", "Noto Serif SC", serif;
     line-height: 1.3;
 }
 
@@ -143,9 +141,6 @@ html {
 a {
     transition: color 0.25s ease, opacity 0.25s ease, border-color 0.25s ease;
 }
-
-/* 搜索框优化 */
-
 
 /* 内容卡片化效果 */
 .md-content {
@@ -201,12 +196,6 @@ a {
     /* 自定义扩展变量 */
 }
 
-/* 页眉 - GitHub Dark */
-
-
-/* 导航标签页 */
-
-
 /* 内容区域 */
 [data-md-color-scheme="slate"] .md-content {
     background: #0d1117;
@@ -254,9 +243,6 @@ a {
 [data-md-color-scheme="slate"] .md-footer-meta {
     background: transparent;
 }
-
-/* 搜索框美化 */
-
 
 /* 选中文本颜色 */
 [data-md-color-scheme="slate"] ::selection {
@@ -593,9 +579,6 @@ html, body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Glass nav effect */
-
-
 /* Hover lift behavior */
 .md-button {
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.25s ease;
@@ -705,438 +688,6 @@ html, body {
     padding: 0 0.1em;
     border-radius: 2px;
 }
-/* ==============================================
-   Archive - 自动内容归档卡片
-   ============================================== */
-.archive-hero {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    margin: 0 0 1.55rem;
-    padding: 1.35rem clamp(1.4rem, 3.5vw, 2.5rem) 1.45rem;
-    border: 1px solid rgba(30, 58, 138, 0.12);
-    border-radius: 20px;
-    background:
-        radial-gradient(circle at 88% 12%, rgba(59, 130, 246, 0.17), transparent 34%),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(239, 246, 255, 0.72));
-    box-shadow: 0 14px 38px rgba(30, 58, 138, 0.075);
-}
-
-.archive-hero::after {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    width: 7rem;
-    height: 7rem;
-    right: -2rem;
-    bottom: -3.5rem;
-    border: 1px solid rgba(30, 58, 138, 0.13);
-    border-radius: 50%;
-    box-shadow: 0 0 0 1.6rem rgba(59, 130, 246, 0.035),
-                0 0 0 3.2rem rgba(59, 130, 246, 0.025);
-}
-
-.archive-hero__eyebrow {
-    margin: 0 0 0.38rem !important;
-    color: #1e3a8a;
-    font: 600 0.58rem/1.2 "Cinzel", "Inter", sans-serif;
-    letter-spacing: 0.2em;
-}
-
-.md-typeset .archive-hero h1 {
-    margin: 0;
-    color: #111827;
-    font: 600 clamp(2rem, 5vw, 3.4rem)/0.92 "Cormorant Garamond", "Playfair Display", serif;
-    letter-spacing: -0.035em;
-}
-
-.archive-hero__lead {
-    max-width: 38rem;
-    margin: 0.55rem 0 0 !important;
-    color: #475569;
-    font: 500 clamp(0.86rem, 1.4vw, 1rem)/1.45 "Cormorant Garamond", "Noto Serif SC", serif;
-}
-
-.archive-hero__stats {
-    position: absolute;
-    right: clamp(1.4rem, 3.5vw, 2.5rem);
-    bottom: 1.35rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.65rem;
-}
-
-.archive-hero__stats span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.28rem;
-    padding: 0.34rem 0.62rem;
-    color: #475569;
-    font-size: 0.62rem;
-    line-height: 1;
-    border: 1px solid rgba(30, 58, 138, 0.11);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.62);
-    backdrop-filter: blur(8px);
-}
-
-.archive-hero__stats strong {
-    color: #1e3a8a;
-}
-
-.archive-year {
-    margin: 0 0 3.4rem;
-}
-
-.archive-year__heading {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-    margin: 0 0 0.85rem;
-    padding: 0 0 0.52rem;
-    border-bottom: 1px solid rgba(30, 58, 138, 0.12);
-}
-
-.md-typeset .archive-year__heading h2 {
-    margin: 0;
-    padding: 0;
-    color: #172554;
-    font: 600 clamp(1.55rem, 3vw, 2rem)/1 "Cormorant Garamond", "Playfair Display", serif;
-    border: 0;
-}
-
-.archive-year__heading > span {
-    color: #64748b;
-    font: 500 0.66rem/1 "JetBrains Mono", monospace;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.archive-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.9rem;
-}
-
-.archive-card {
-    min-width: 0;
-    overflow: hidden;
-    border: 1px solid rgba(15, 23, 42, 0.09);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.72);
-    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
-    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.archive-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(30, 58, 138, 0.26);
-    box-shadow: 0 13px 32px rgba(30, 58, 138, 0.11);
-}
-
-.md-typeset .archive-card__link,
-.md-typeset .archive-card__link:hover {
-    display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(8rem, 1fr);
-    height: 100%;
-    min-height: 8.6rem;
-    color: inherit;
-    text-decoration: none;
-    border: 0;
-}
-
-.archive-card__cover {
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    max-width: 100%;
-    min-height: 100%;
-    background: #e2e8f0;
-}
-
-.archive-card__image {
-    display: block;
-    width: 100%;
-    height: 100%;
-    margin: 0 !important;
-    object-fit: cover;
-    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.archive-card:hover .archive-card__image {
-    transform: scale(1.035);
-}
-
-.archive-card__cover--emoji {
-    display: grid;
-    place-items: center;
-    background:
-        radial-gradient(circle at 68% 28%, rgba(255, 255, 255, 0.6), transparent 22%),
-        linear-gradient(135deg, #dbeafe, #e0e7ff);
-}
-
-.archive-card--robotics .archive-card__cover--emoji {
-    background: linear-gradient(135deg, #dbeafe, #c7d2fe);
-}
-
-.archive-card--science .archive-card__cover--emoji {
-    background: linear-gradient(135deg, #d1fae5, #cffafe);
-}
-
-.archive-card--humanities .archive-card__cover--emoji {
-    background: linear-gradient(135deg, #fef3c7, #fee2e2);
-}
-
-.archive-card--code .archive-card__cover--emoji {
-    background: linear-gradient(135deg, #e0e7ff, #dbeafe);
-}
-
-.archive-card--writing .archive-card__cover--emoji {
-    background: linear-gradient(135deg, #ffedd5, #fce7f3);
-}
-
-.archive-card--profile .archive-card__cover--emoji,
-.archive-card--study .archive-card__cover--emoji {
-    background: linear-gradient(135deg, #ede9fe, #e0f2fe);
-}
-
-.archive-card__emoji {
-    font-size: clamp(2.7rem, 6vw, 4.2rem);
-    filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.13));
-    transform: translateY(-0.06em);
-}
-
-.archive-card__status {
-    flex: 0 0 auto;
-    padding: 0.3rem 0.54rem;
-    color: #1e3a8a;
-    font: 650 0.52rem/1 "Inter", sans-serif;
-    letter-spacing: 0.1em;
-    border: 1px solid rgba(30, 58, 138, 0.13);
-    border-radius: 999px;
-    background: rgba(30, 58, 138, 0.07);
-}
-
-.archive-card__status--published {
-    color: #166534;
-    border-color: rgba(22, 101, 52, 0.14);
-    background: rgba(22, 101, 52, 0.07);
-}
-
-.archive-card__body {
-    display: flex;
-    min-width: 0;
-    padding: 1rem 1.2rem 0.95rem;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.archive-card__meta {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    color: #64748b;
-    font: 500 0.64rem/1.4 "JetBrains Mono", monospace;
-}
-
-.archive-card__title-row {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: 0.58rem;
-    margin: 0.6rem 0 0.8rem;
-}
-
-.md-typeset .archive-card__title {
-    display: -webkit-box;
-    min-width: 0;
-    flex: 1 1 auto;
-    overflow: hidden;
-    margin: 0;
-    color: #172033;
-    font: 600 clamp(1.12rem, 2.3vw, 1.38rem)/1.3 "Playfair Display", "Noto Serif SC", serif;
-    letter-spacing: -0.012em;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-}
-
-.archive-card__footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-top: auto;
-}
-
-.archive-card__category {
-    overflow: hidden;
-    padding: 0.34rem 0.6rem;
-    color: #1e3a8a;
-    font: 600 0.6rem/1 "Inter", sans-serif;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    border-radius: 999px;
-    background: rgba(30, 58, 138, 0.075);
-}
-
-.archive-card__arrow {
-    color: #1e3a8a;
-    font-size: 1rem;
-    transition: transform 0.25s ease;
-}
-
-.archive-card:hover .archive-card__arrow {
-    transform: translate(2px, -2px);
-}
-
-.archive-note,
-.archive-empty {
-    margin-top: 2.6rem !important;
-    padding-top: 1rem;
-    color: #64748b;
-    font-size: 0.68rem;
-    text-align: center;
-    border-top: 1px solid rgba(30, 58, 138, 0.1);
-}
-
-[data-md-color-scheme="slate"] .archive-hero {
-    border-color: #30363d;
-    background:
-        radial-gradient(circle at 88% 12%, rgba(88, 166, 255, 0.12), transparent 34%),
-        #161b22;
-    box-shadow: none;
-}
-
-[data-md-color-scheme="slate"] .archive-hero__eyebrow,
-[data-md-color-scheme="slate"] .archive-hero__stats strong,
-[data-md-color-scheme="slate"] .archive-card__category,
-[data-md-color-scheme="slate"] .archive-card__arrow {
-    color: #58a6ff;
-}
-
-[data-md-color-scheme="slate"] .md-typeset .archive-hero h1,
-[data-md-color-scheme="slate"] .md-typeset .archive-year__heading h2,
-[data-md-color-scheme="slate"] .md-typeset .archive-card__title {
-    color: #f8fafc !important;
-}
-
-[data-md-color-scheme="slate"] .archive-hero__lead,
-[data-md-color-scheme="slate"] .archive-hero__stats span,
-[data-md-color-scheme="slate"] .archive-year__heading > span,
-[data-md-color-scheme="slate"] .archive-card__meta,
-[data-md-color-scheme="slate"] .archive-note {
-    color: #8b949e;
-}
-
-[data-md-color-scheme="slate"] .archive-hero__stats span {
-    border-color: #30363d;
-    background: #0d1117;
-}
-
-[data-md-color-scheme="slate"] .archive-year__heading,
-[data-md-color-scheme="slate"] .archive-note {
-    border-color: #30363d;
-}
-
-[data-md-color-scheme="slate"] .archive-card {
-    border-color: #30363d;
-    background: #161b22;
-    box-shadow: none;
-}
-
-[data-md-color-scheme="slate"] .archive-card:hover {
-    border-color: rgba(88, 166, 255, 0.45);
-    box-shadow: none;
-}
-
-[data-md-color-scheme="slate"] .archive-card__category {
-    background: rgba(88, 166, 255, 0.1);
-}
-
-[data-md-color-scheme="slate"] .archive-card__status {
-    color: #58a6ff;
-    border-color: rgba(88, 166, 255, 0.24);
-    background: rgba(88, 166, 255, 0.11);
-}
-
-[data-md-color-scheme="slate"] .archive-card__status--published {
-    color: #86efac;
-    border-color: rgba(134, 239, 172, 0.18);
-    background: rgba(34, 197, 94, 0.1);
-}
-
-@media screen and (max-width: 48rem) {
-    .archive-hero__stats {
-        position: static;
-        margin-top: 0.8rem;
-    }
-
-    .md-typeset .archive-card__link,
-    .md-typeset .archive-card__link:hover {
-        grid-template-columns: minmax(0, 3fr) minmax(7rem, 1fr);
-        min-height: 7.8rem;
-    }
-}
-
-@media screen and (max-width: 30rem) {
-    .archive-hero {
-        padding: 1rem 1.05rem 1.05rem;
-        border-radius: 16px;
-    }
-
-    .archive-card {
-        border-radius: 14px;
-    }
-
-    .archive-year__heading {
-        align-items: center;
-    }
-
-    .md-typeset .archive-card__link,
-    .md-typeset .archive-card__link:hover {
-        grid-template-columns: minmax(0, 3fr) minmax(5.8rem, 1fr);
-        min-height: 7.1rem;
-    }
-
-    .archive-card__body {
-        padding: 0.78rem 0.85rem 0.75rem;
-    }
-
-    .archive-card__meta {
-        font-size: 0.56rem;
-    }
-
-    .archive-card__title-row {
-        gap: 0.42rem;
-        margin: 0.42rem 0 0.58rem;
-    }
-
-    .md-typeset .archive-card__title {
-        font-size: 0.96rem;
-        line-height: 1.28;
-    }
-
-    .archive-card__category {
-        max-width: 9rem;
-        padding: 0.28rem 0.48rem;
-        font-size: 0.54rem;
-    }
-
-    .archive-card__status {
-        padding: 0.27rem 0.45rem;
-        font-size: 0.52rem;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .archive-card,
-    .archive-card__image,
-    .archive-card__arrow {
-        transition: none;
-    }
-}
 
 /* ==========================================================================
    Academic Homepage
@@ -1165,13 +716,6 @@ body[data-md-color-scheme="slate"] .academic-home-layout {
     --academic-date: #3fb950;
     --academic-rule: #30363d;
     --academic-soft: #161b22;
-}
-
-body[data-md-color-scheme="slate"],
-body[data-md-color-scheme="slate"] .md-main,
-body[data-md-color-scheme="slate"] .md-content,
-body[data-md-color-scheme="slate"] .md-content__inner {
-    background-color: #0d1117 !important;
 }
 
 
@@ -1335,7 +879,6 @@ body[data-md-color-scheme="slate"] .md-content__inner {
 .cv-time,
 .proj-year {
     color: var(--academic-date) !important;
-    font-family: "JetBrains Mono", "Fira Code", monospace !important;
     font-size: 0.76rem;
     font-weight: 700 !important;
     letter-spacing: 0.03em;
@@ -1343,7 +886,6 @@ body[data-md-color-scheme="slate"] .md-content__inner {
 
 .news-date {
     color: var(--academic-date) !important;
-    font-family: "JetBrains Mono", "Fira Code", monospace !important;
     font-size: 0.76rem;
     font-weight: 700 !important;
     letter-spacing: 0.03em;
@@ -1826,21 +1368,6 @@ body[data-md-color-scheme="slate"] .academic-home-layout {
 }
 
 /* ==========================================================================
-   EdwinOS 2.0.3 header source and friends-page polish
-   ========================================================================== */
-
-:root {
-    --edwinos-star-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194-3.047-2.97a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z'/%3E%3C/svg%3E");
-    --edwinos-fork-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 3.25a1.75 1.75 0 1 1-2.5 1.58v6.34a1.75 1.75 0 1 1-1.5 0V4.83A1.75 1.75 0 1 1 5 3.25Zm6.5-1.75a1.75 1.75 0 1 1-1.5 2.664V5a2.5 2.5 0 0 1-2.5 2.5h-1A1.5 1.5 0 0 0 5 9v2.17a1.75 1.75 0 1 1-1.5 0V9a3 3 0 0 1 3-3h1a1 1 0 0 0 1-1v-.836A1.75 1.75 0 0 1 11.5 1.5Z'/%3E%3C/svg%3E");
-}
-
-
-/* ==========================================================================
-   EdwinOS 2.0.3 source micro-alignment pass
-   ========================================================================== */
-
-
-/* ==========================================================================
    Narrow viewport guardrails
    ========================================================================== */
 
@@ -1864,46 +1391,38 @@ body[data-md-color-scheme="slate"] .academic-home-layout {
    ========================================================================== */
 
 
-body.is-homepage .academic-content,
-body.is-home-profile-page .academic-content,
+body:is(.is-homepage, .is-home-profile-page) .academic-content,
 body:has(.academic-home-layout) .academic-content {
     gap: clamp(1.15rem, 2vw, 1.7rem) !important;
 }
 
-body.is-homepage .title-dash,
-body.is-home-profile-page .title-dash,
+body:is(.is-homepage, .is-home-profile-page) .title-dash,
 body:has(.academic-home-layout) .title-dash {
     width: 1.45rem !important;
 }
 
 
-body.is-homepage .project-card,
-body.is-homepage .education-card,
-body.is-homepage .visitor-container,
-body.is-home-profile-page .project-card,
-body.is-home-profile-page .education-card,
-body.is-home-profile-page .visitor-container,
+body:is(.is-homepage, .is-home-profile-page) .project-card,
 body:has(.academic-home-layout) .project-card,
+body:is(.is-homepage, .is-home-profile-page) .education-card,
 body:has(.academic-home-layout) .education-card,
+body:is(.is-homepage, .is-home-profile-page) .visitor-container,
 body:has(.academic-home-layout) .visitor-container {
     padding: 0.85rem !important;
 }
 
-body.is-homepage .project-card,
-body.is-home-profile-page .project-card,
+body:is(.is-homepage, .is-home-profile-page) .project-card,
 body:has(.academic-home-layout) .project-card {
     min-height: 8.4rem !important;
 }
 
-body.is-homepage .education-card,
-body.is-home-profile-page .education-card,
+body:is(.is-homepage, .is-home-profile-page) .education-card,
 body:has(.academic-home-layout) .education-card {
     grid-template-columns: 5.4rem minmax(0, 1fr) !important;
     gap: 0.95rem !important;
 }
 
-body.is-homepage .education-logo,
-body.is-home-profile-page .education-logo,
+body:is(.is-homepage, .is-home-profile-page) .education-logo,
 body:has(.academic-home-layout) .education-logo {
     width: 4.4rem !important;
     height: 4.4rem !important;
@@ -1913,24 +1432,19 @@ body:has(.academic-home-layout) .education-logo {
 @media screen and (max-width: 48em) {
 
 
-    body.is-homepage .education-card,
-    body.is-home-profile-page .education-card,
+    body:is(.is-homepage, .is-home-profile-page) .education-card,
     body:has(.academic-home-layout) .education-card {
         grid-template-columns: minmax(0, 1fr) !important;
     }
 }
 
-body.is-homepage .md-typeset .about-focus-list li,
-body.is-homepage .project-card p,
-body.is-homepage .cv-desc,
-body.is-homepage .award-list li,
-body.is-home-profile-page .md-typeset .about-focus-list li,
-body.is-home-profile-page .project-card p,
-body.is-home-profile-page .cv-desc,
-body.is-home-profile-page .award-list li,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .about-focus-list li,
 body:has(.academic-home-layout) .md-typeset .about-focus-list li,
+body:is(.is-homepage, .is-home-profile-page) .project-card p,
 body:has(.academic-home-layout) .project-card p,
+body:is(.is-homepage, .is-home-profile-page) .cv-desc,
 body:has(.academic-home-layout) .cv-desc,
+body:is(.is-homepage, .is-home-profile-page) .award-list li,
 body:has(.academic-home-layout) .award-list li {
     font-size: 0.76rem !important;
     line-height: 1.48 !important;
@@ -1938,75 +1452,56 @@ body:has(.academic-home-layout) .award-list li {
 
 
 @media screen and (max-width: 48em) {
-    body.is-homepage .md-typeset .about-focus-list li,
-    body.is-homepage .project-card p,
-    body.is-homepage .cv-desc,
-    body.is-homepage .award-list li,
-    body.is-home-profile-page .md-typeset .about-focus-list li,
-    body.is-home-profile-page .project-card p,
-    body.is-home-profile-page .cv-desc,
-    body.is-home-profile-page .award-list li,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .about-focus-list li,
     body:has(.academic-home-layout) .md-typeset .about-focus-list li,
+    body:is(.is-homepage, .is-home-profile-page) .project-card p,
     body:has(.academic-home-layout) .project-card p,
+    body:is(.is-homepage, .is-home-profile-page) .cv-desc,
     body:has(.academic-home-layout) .cv-desc,
+    body:is(.is-homepage, .is-home-profile-page) .award-list li,
     body:has(.academic-home-layout) .award-list li {
         font-size: 0.74rem !important;
     }
 }
 
 
-body.is-homepage .academic-section p,
-body.is-homepage .academic-section li,
-body.is-homepage .news-text,
-body.is-homepage .education-degree,
-body.is-homepage .education-time,
-body.is-homepage .cv-subtitle,
-body.is-homepage .cv-time,
-body.is-homepage .award-copy,
-body.is-home-profile-page .academic-section p,
-body.is-home-profile-page .academic-section li,
-body.is-home-profile-page .news-text,
-body.is-home-profile-page .education-degree,
-body.is-home-profile-page .education-time,
-body.is-home-profile-page .cv-subtitle,
-body.is-home-profile-page .cv-time,
-body.is-home-profile-page .award-copy,
+body:is(.is-homepage, .is-home-profile-page) .academic-section p,
 body:has(.academic-home-layout) .academic-section p,
+body:is(.is-homepage, .is-home-profile-page) .academic-section li,
 body:has(.academic-home-layout) .academic-section li,
+body:is(.is-homepage, .is-home-profile-page) .news-text,
 body:has(.academic-home-layout) .news-text,
+body:is(.is-homepage, .is-home-profile-page) .education-degree,
 body:has(.academic-home-layout) .education-degree,
+body:is(.is-homepage, .is-home-profile-page) .education-time,
 body:has(.academic-home-layout) .education-time,
+body:is(.is-homepage, .is-home-profile-page) .cv-subtitle,
 body:has(.academic-home-layout) .cv-subtitle,
+body:is(.is-homepage, .is-home-profile-page) .cv-time,
 body:has(.academic-home-layout) .cv-time,
+body:is(.is-homepage, .is-home-profile-page) .award-copy,
 body:has(.academic-home-layout) .award-copy {
     font-size: 0.76rem !important;
     line-height: 1.48 !important;
 }
 
-body.is-homepage .project-card h3,
-body.is-homepage .education-school,
-body.is-homepage .cv-title,
-body.is-home-profile-page .project-card h3,
-body.is-home-profile-page .education-school,
-body.is-home-profile-page .cv-title,
+body:is(.is-homepage, .is-home-profile-page) .project-card h3,
 body:has(.academic-home-layout) .project-card h3,
+body:is(.is-homepage, .is-home-profile-page) .education-school,
 body:has(.academic-home-layout) .education-school,
+body:is(.is-homepage, .is-home-profile-page) .cv-title,
 body:has(.academic-home-layout) .cv-title {
     font-size: 0.84rem !important;
     line-height: 1.35 !important;
 }
 
-body.is-homepage .news-date,
-body.is-homepage .proj-year,
-body.is-homepage .award-year,
-body.is-homepage .proj-tags span,
-body.is-home-profile-page .news-date,
-body.is-home-profile-page .proj-year,
-body.is-home-profile-page .award-year,
-body.is-home-profile-page .proj-tags span,
+body:is(.is-homepage, .is-home-profile-page) .news-date,
 body:has(.academic-home-layout) .news-date,
+body:is(.is-homepage, .is-home-profile-page) .proj-year,
 body:has(.academic-home-layout) .proj-year,
+body:is(.is-homepage, .is-home-profile-page) .award-year,
 body:has(.academic-home-layout) .award-year,
+body:is(.is-homepage, .is-home-profile-page) .proj-tags span,
 body:has(.academic-home-layout) .proj-tags span {
     font-size: 0.64rem !important;
     line-height: 1.25 !important;
@@ -2015,12 +1510,10 @@ body:has(.academic-home-layout) .proj-tags span {
 @media screen and (max-width: 48em) {
 
 
-    body.is-homepage .academic-section p,
-body.is-homepage .academic-section li,
-body.is-home-profile-page .academic-section p,
-body.is-home-profile-page .academic-section li,
-body:has(.academic-home-layout) .academic-section p,
-body:has(.academic-home-layout) .academic-section li {
+    body:is(.is-homepage, .is-home-profile-page) .academic-section p,
+    body:has(.academic-home-layout) .academic-section p,
+    body:is(.is-homepage, .is-home-profile-page) .academic-section li,
+    body:has(.academic-home-layout) .academic-section li {
         font-size: 0.74rem !important;
     }
 }
@@ -2193,10 +1686,8 @@ body.is-homepage .academic-home-layout .academic-content {
     margin: 0 0 1.2rem 0 !important;
     color: var(--academic-ink) !important;
     border-bottom: 0 !important;
-    font-family: "Inter", "Noto Sans SC", sans-serif !important;
     font-size: 1.35rem !important;
     font-weight: 750 !important;
-    letter-spacing: 0 !important;
 }
 
 .md-typeset .section-title,
@@ -2209,23 +1700,17 @@ body.is-homepage .academic-home-layout .academic-content {
     letter-spacing: 0 !important;
 }
 
-body.is-homepage .md-typeset .proj-header h3,
-body.is-home-profile-page .md-typeset .proj-header h3,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .proj-header h3,
 body:has(.academic-home-layout) .md-typeset .proj-header h3,
-body.is-homepage .md-typeset .education-school,
-body.is-homepage .md-typeset .education-school a,
-body.is-home-profile-page .md-typeset .education-school,
-body.is-home-profile-page .md-typeset .education-school a,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .education-school,
 body:has(.academic-home-layout) .md-typeset .education-school,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .education-school a,
 body:has(.academic-home-layout) .md-typeset .education-school a,
-body.is-homepage .md-typeset .cv-title,
-body.is-home-profile-page .md-typeset .cv-title,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .cv-title,
 body:has(.academic-home-layout) .md-typeset .cv-title,
-body.is-homepage .md-typeset .archive-card__title,
-body.is-home-profile-page .md-typeset .archive-card__title,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .archive-card__title,
 body:has(.academic-home-layout) .md-typeset .archive-card__title,
-body.is-homepage .md-typeset .friend-name,
-body.is-home-profile-page .md-typeset .friend-name,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .friend-name,
 body:has(.academic-home-layout) .md-typeset .friend-name {
     font-family: var(--edwinos-font-serif) !important;
     letter-spacing: 0 !important;
@@ -2239,8 +1724,7 @@ body.is-homepage .md-typeset .cv-title {
     letter-spacing: -0.01em !important;
 }
 
-body.is-homepage .section-title,
-body.is-home-profile-page .section-title,
+body:is(.is-homepage, .is-home-profile-page) .section-title,
 body:has(.academic-home-layout) .section-title {
     gap: 0.55rem !important;
     margin-bottom: 10px !important;
@@ -2250,17 +1734,13 @@ body:has(.academic-home-layout) .section-title {
 }
 
 
-body.is-homepage .md-typeset .proj-header h3,
-body.is-home-profile-page .md-typeset .proj-header h3,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .proj-header h3,
 body:has(.academic-home-layout) .md-typeset .proj-header h3,
-body.is-homepage .md-typeset .education-school,
-body.is-homepage .md-typeset .education-school a,
-body.is-home-profile-page .md-typeset .education-school,
-body.is-home-profile-page .md-typeset .education-school a,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .education-school,
 body:has(.academic-home-layout) .md-typeset .education-school,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .education-school a,
 body:has(.academic-home-layout) .md-typeset .education-school a,
-body.is-homepage .md-typeset .cv-title,
-body.is-home-profile-page .md-typeset .cv-title,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .cv-title,
 body:has(.academic-home-layout) .md-typeset .cv-title {
     font-size: 1.04rem !important;
     font-weight: 600 !important;
@@ -2883,6 +2363,12 @@ body[data-md-color-scheme="slate"] .md-typeset :is(.admonition.quote, .admonitio
    Header, tabs, search, and source
    ========================================================================== */
 
+/* Shared repository icons: both the header and Material drawer use these. */
+:root {
+    --edwinos-star-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194-3.047-2.97a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z'/%3E%3C/svg%3E");
+    --edwinos-fork-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 3.25a1.75 1.75 0 1 1-2.5 1.58v6.34a1.75 1.75 0 1 1-1.5 0V4.83A1.75 1.75 0 1 1 5 3.25Zm6.5-1.75a1.75 1.75 0 1 1-1.5 2.664V5a2.5 2.5 0 0 1-2.5 2.5h-1A1.5 1.5 0 0 0 5 9v2.17a1.75 1.75 0 1 1-1.5 0V9a3 3 0 0 1 3-3h1a1 1 0 0 0 1-1v-.836A1.75 1.75 0 0 1 11.5 1.5Z'/%3E%3C/svg%3E");
+}
+
 /* Retained palette, controls, tabs and search state primitives.
    Values below survive the historical cascade; geometry is owned by the
    responsive coordinate system that follows. The unscoped source primitives
@@ -3303,13 +2789,6 @@ body[data-md-color-scheme="slate"] .md-tabs,
 
 }
 
-@media screen and (max-width: 88em) and (min-width: 76.25em) {
-    .md-source__facts {
-        font-size: 0.52rem !important;
-        gap: 0.24rem !important;
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
     .md-header .md-header__source,
     .md-header .md-search,
@@ -3435,7 +2914,6 @@ body[data-md-color-scheme="slate"] .md-tabs,
 @media screen and (max-width: 76.1875em) {
     :root {
         --edwinos-mobile-header-height: 3.5rem;
-        --edwinos-mobile-header-control-space: 5.25rem;
         --edwinos-mobile-drawer-space: 0rem;
     }
 
@@ -3589,24 +3067,11 @@ body[data-md-color-scheme="slate"] .md-tabs,
 }
 
 @media screen and (max-width: 35rem) {
-    :root {
-        --edwinos-mobile-header-control-space: 4.65rem;
-    }
-
-
     .md-header__option,
     .md-header__option .md-header__button,
     .md-header__button[for="__search"] {
         width: 2rem !important;
         height: 2rem !important;
-    }
-
-
-}
-
-@media screen and (max-width: 27rem) {
-    :root {
-        --edwinos-mobile-header-control-space: 2.55rem;
     }
 
 
@@ -4091,8 +3556,6 @@ body[data-md-color-scheme="slate"] .md-tabs,
  * search capsule contracts. Once the capsule is circular it cannot re-expand.
  */
 :root {
-    --edwinos-source-star-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194-3.047-2.97a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z'/%3E%3C/svg%3E");
-    --edwinos-source-fork-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 3.25a1.75 1.75 0 1 1-2.5 1.58v6.34a1.75 1.75 0 1 1-1.5 0V4.83A1.75 1.75 0 1 1 5 3.25Zm6.5-1.75a1.75 1.75 0 1 1-1.5 2.664V5a2.5 2.5 0 0 1-2.5 2.5h-1A1.5 1.5 0 0 0 5 9v2.17a1.75 1.75 0 1 1-1.5 0V9a3 3 0 0 1 3-3h1a1 1 0 0 0 1-1v-.836A1.75 1.75 0 0 1 11.5 1.5Z'/%3E%3C/svg%3E");
     --edwinos-header-edge: clamp(8px, 2vw, 32px);
     --edwinos-header-right-edge: 12px;
     --edwinos-mobile-header-height: 3.5rem;
@@ -4510,8 +3973,8 @@ body[data-md-color-scheme="slate"] .md-tabs,
     content: "" !important;
     background-color: currentColor !important;
     border: 0 !important;
-    -webkit-mask: var(--edwinos-source-star-mask) center / contain no-repeat !important;
-    mask: var(--edwinos-source-star-mask) center / contain no-repeat !important;
+    -webkit-mask: var(--edwinos-star-icon) center / contain no-repeat !important;
+    mask: var(--edwinos-star-icon) center / contain no-repeat !important;
     transform: translateY(-0.5px);
     transition: none !important;
 }
@@ -4519,8 +3982,8 @@ body[data-md-color-scheme="slate"] .md-tabs,
 .md-header .md-source__fact[data-source-fact="forks"]::before,
 .md-header .md-source__fact--forks::before,
 .md-header .md-source__fact:nth-child(2)::before {
-    -webkit-mask-image: var(--edwinos-source-fork-mask) !important;
-    mask-image: var(--edwinos-source-fork-mask) !important;
+    -webkit-mask-image: var(--edwinos-fork-icon) !important;
+    mask-image: var(--edwinos-fork-icon) !important;
 }
 
 /* Covered header controls remain visually static behind the expanding search
@@ -6173,16 +5636,14 @@ body.is-home-profile-page .md-content {
     color: #8b949e;
 }
 
-body.is-homepage .md-content__inner,
-body.is-home-profile-page .md-content__inner,
+body:is(.is-homepage, .is-home-profile-page) .md-content__inner,
 body:has(.academic-home-layout) .md-content__inner {
     max-width: none !important;
     margin: 0 !important;
     padding: clamp(0.75rem, 1.55vw, 1.15rem) clamp(0.9rem, 3.4vw, 2rem) 4rem !important;
 }
 
-body.is-homepage .academic-home-layout,
-body.is-home-profile-page .academic-home-layout,
+body:is(.is-homepage, .is-home-profile-page) .academic-home-layout,
 body:has(.academic-home-layout) .academic-home-layout {
     align-items: start !important;
     grid-template-columns: 260px minmax(0, 1fr) !important;
@@ -6191,8 +5652,7 @@ body:has(.academic-home-layout) .academic-home-layout {
     width: min(100%, 80rem) !important;
 }
 
-body.is-homepage .academic-sidebar,
-body.is-home-profile-page .academic-sidebar,
+body:is(.is-homepage, .is-home-profile-page) .academic-sidebar,
 body:has(.academic-home-layout) .academic-sidebar {
     position: sticky !important;
     align-self: flex-start !important;
@@ -6215,62 +5675,52 @@ body:has(.academic-home-layout) .academic-sidebar {
     }
 
 }
-body.is-homepage .academic-home-layout .profile-card,
-body.is-home-profile-page .academic-home-layout .profile-card,
+body:is(.is-homepage, .is-home-profile-page) .academic-home-layout .profile-card,
 body:has(.academic-home-layout) .academic-home-layout .profile-card {
     align-items: flex-start !important;
     text-align: left !important;
 }
 
-body.is-homepage .profile-avatar,
-body.is-home-profile-page .profile-avatar,
+body:is(.is-homepage, .is-home-profile-page) .profile-avatar,
 body:has(.academic-home-layout) .profile-avatar {
     width: 100% !important;
     max-width: 260px !important;
     margin: 0 0 0.8rem !important;
 }
 
-body.is-homepage .profile-name-wrap,
-body.is-home-profile-page .profile-name-wrap,
+body:is(.is-homepage, .is-home-profile-page) .profile-name-wrap,
 body:has(.academic-home-layout) .profile-name-wrap {
     width: 100% !important;
     margin: 0 0 0.75rem !important;
     text-align: left !important;
 }
 
-body.is-homepage .profile-pronouns,
-body.is-home-profile-page .profile-pronouns,
+body:is(.is-homepage, .is-home-profile-page) .profile-pronouns,
 body:has(.academic-home-layout) .profile-pronouns {
     transform: none !important;
     font-size: 0.92rem !important;
     line-height: 1.2 !important;
 }
 
-body.is-homepage .profile-role,
-body.is-home-profile-page .profile-role,
+body:is(.is-homepage, .is-home-profile-page) .profile-role,
 body:has(.academic-home-layout) .profile-role {
     margin-top: 0.12rem !important;
     font-size: 0.76rem !important;
     line-height: 1.25 !important;
 }
 
-body.is-homepage .profile-actions,
-body.is-home-profile-page .profile-actions,
+body:is(.is-homepage, .is-home-profile-page) .profile-actions,
 body:has(.academic-home-layout) .profile-actions,
-body.is-homepage .profile-followers,
-body.is-home-profile-page .profile-followers,
+body:is(.is-homepage, .is-home-profile-page) .profile-followers,
 body:has(.academic-home-layout) .profile-followers {
     margin-bottom: 0.72rem !important;
 }
 
-body.is-homepage .md-typeset .btn-github-action,
-body.is-homepage .md-typeset .btn-github-action:hover,
-body.is-homepage .md-typeset .btn-github-action:focus,
-body.is-home-profile-page .md-typeset .btn-github-action,
-body.is-home-profile-page .md-typeset .btn-github-action:hover,
-body.is-home-profile-page .md-typeset .btn-github-action:focus,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .btn-github-action,
 body:has(.academic-home-layout) .md-typeset .btn-github-action,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .btn-github-action:hover,
 body:has(.academic-home-layout) .md-typeset .btn-github-action:hover,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .btn-github-action:focus,
 body:has(.academic-home-layout) .md-typeset .btn-github-action:focus {
     min-height: 26px !important;
     height: 26px !important;
@@ -6282,21 +5732,17 @@ body:has(.academic-home-layout) .md-typeset .btn-github-action:focus {
     line-height: 1.2 !important;
 }
 
-body.is-homepage .md-typeset .follower-link,
-body.is-homepage .md-typeset .follower-text,
-body.is-homepage .md-typeset .profile-meta li,
-body.is-home-profile-page .md-typeset .follower-link,
-body.is-home-profile-page .md-typeset .follower-text,
-body.is-home-profile-page .md-typeset .profile-meta li,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .follower-link,
 body:has(.academic-home-layout) .md-typeset .follower-link,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .follower-text,
 body:has(.academic-home-layout) .md-typeset .follower-text,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta li,
 body:has(.academic-home-layout) .md-typeset .profile-meta li {
     font-size: 0.84rem !important;
     line-height: 1.45 !important;
 }
 
-body.is-homepage .md-typeset .profile-meta,
-body.is-home-profile-page .md-typeset .profile-meta,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta,
 body:has(.academic-home-layout) .md-typeset .profile-meta {
     margin-bottom: 0.65rem !important;
     display: flex !important;
@@ -6308,18 +5754,15 @@ body:has(.academic-home-layout) .md-typeset .profile-meta {
     overflow: visible !important;
 }
 
-body.is-homepage .md-typeset .profile-meta .meta-icon,
-body.is-homepage .follower-link .meta-icon,
-body.is-home-profile-page .md-typeset .profile-meta .meta-icon,
-body.is-home-profile-page .follower-link .meta-icon,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta .meta-icon,
 body:has(.academic-home-layout) .md-typeset .profile-meta .meta-icon,
+body:is(.is-homepage, .is-home-profile-page) .follower-link .meta-icon,
 body:has(.academic-home-layout) .follower-link .meta-icon {
     width: 15px !important;
     height: 15px !important;
 }
 
-body.is-homepage .profile-social-left,
-body.is-home-profile-page .profile-social-left,
+body:is(.is-homepage, .is-home-profile-page) .profile-social-left,
 body:has(.academic-home-layout) .profile-social-left {
     justify-content: flex-start !important;
     margin-top: 0.15rem !important;
@@ -6329,8 +5772,7 @@ body:has(.academic-home-layout) .profile-social-left {
 }
 
 @media screen and (max-width: 63.25em) {
-    body.is-homepage .academic-home-layout,
-    body.is-home-profile-page .academic-home-layout,
+    body:is(.is-homepage, .is-home-profile-page) .academic-home-layout,
     body:has(.academic-home-layout) .academic-home-layout {
         grid-template-columns: minmax(0, 1fr) !important;
         row-gap: 1.6rem !important;
@@ -6338,8 +5780,7 @@ body:has(.academic-home-layout) .profile-social-left {
         width: min(100%, 56rem) !important;
     }
 
-    body.is-homepage .academic-sidebar,
-    body.is-home-profile-page .academic-sidebar,
+    body:is(.is-homepage, .is-home-profile-page) .academic-sidebar,
     body:has(.academic-home-layout) .academic-sidebar {
         position: static !important;
         width: 100% !important;
@@ -6349,8 +5790,7 @@ body:has(.academic-home-layout) .profile-social-left {
         border-bottom: 1px solid var(--academic-card-border) !important;
     }
 
-    body.is-homepage .academic-home-layout .profile-card,
-    body.is-home-profile-page .academic-home-layout .profile-card,
+    body:is(.is-homepage, .is-home-profile-page) .academic-home-layout .profile-card,
     body:has(.academic-home-layout) .academic-home-layout .profile-card {
         display: grid !important;
         row-gap: 0.45rem !important;
@@ -6359,15 +5799,13 @@ body:has(.academic-home-layout) .profile-social-left {
         text-align: left !important;
     }
 
-    body.is-homepage .profile-avatar,
-    body.is-home-profile-page .profile-avatar,
+    body:is(.is-homepage, .is-home-profile-page) .profile-avatar,
     body:has(.academic-home-layout) .profile-avatar {
         grid-column: 1 !important;
         margin: 0 !important;
     }
 
-    body.is-homepage .profile-name-wrap,
-    body.is-home-profile-page .profile-name-wrap,
+    body:is(.is-homepage, .is-home-profile-page) .profile-name-wrap,
     body:has(.academic-home-layout) .profile-name-wrap {
         grid-column: 2 !important;
         grid-row: 1 !important;
@@ -6375,8 +5813,7 @@ body:has(.academic-home-layout) .profile-social-left {
         text-align: left !important;
     }
 
-    body.is-homepage .profile-actions,
-    body.is-home-profile-page .profile-actions,
+    body:is(.is-homepage, .is-home-profile-page) .profile-actions,
     body:has(.academic-home-layout) .profile-actions {
         grid-column: 2 !important;
         grid-row: 2 !important;
@@ -6384,8 +5821,7 @@ body:has(.academic-home-layout) .profile-social-left {
         margin-bottom: 0.25rem !important;
     }
 
-    body.is-homepage .profile-followers,
-    body.is-home-profile-page .profile-followers,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers,
     body:has(.academic-home-layout) .profile-followers {
         grid-column: 2 !important;
         grid-row: 3 !important;
@@ -6394,23 +5830,20 @@ body:has(.academic-home-layout) .profile-social-left {
         text-align: left !important;
     }
 
-    body.is-homepage .md-typeset .profile-meta,
-    body.is-home-profile-page .md-typeset .profile-meta,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta,
     body:has(.academic-home-layout) .md-typeset .profile-meta {
         grid-row: 5 !important;
         margin: 0.65rem 0 0 !important;
     }
 
-    body.is-homepage .md-typeset .profile-meta li,
-    body.is-home-profile-page .md-typeset .profile-meta li,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta li,
     body:has(.academic-home-layout) .md-typeset .profile-meta li {
         width: auto !important;
         justify-content: flex-start !important;
         text-align: left !important;
     }
 
-    body.is-homepage .profile-social-left,
-    body.is-home-profile-page .profile-social-left,
+    body:is(.is-homepage, .is-home-profile-page) .profile-social-left,
     body:has(.academic-home-layout) .profile-social-left {
         grid-row: 6 !important;
         justify-content: flex-start !important;
@@ -6419,86 +5852,72 @@ body:has(.academic-home-layout) .profile-social-left {
 
 }
 @media screen and (max-width: 48em) {
-    body.is-homepage .md-content__inner,
-    body.is-home-profile-page .md-content__inner,
+    body:is(.is-homepage, .is-home-profile-page) .md-content__inner,
     body:has(.academic-home-layout) .md-content__inner {
         padding: 0.8rem 0.85rem 3rem !important;
     }
 
-    body.is-homepage .academic-home-layout,
-    body.is-home-profile-page .academic-home-layout,
+    body:is(.is-homepage, .is-home-profile-page) .academic-home-layout,
     body:has(.academic-home-layout) .academic-home-layout {
         row-gap: 1.2rem !important;
         column-gap: 1.2rem !important;
         width: 100% !important;
     }
 
-    body.is-homepage .academic-home-layout .profile-card,
-    body.is-home-profile-page .academic-home-layout .profile-card,
+    body:is(.is-homepage, .is-home-profile-page) .academic-home-layout .profile-card,
     body:has(.academic-home-layout) .academic-home-layout .profile-card {
         grid-template-columns: 5.4rem minmax(0, 1fr) !important;
         column-gap: 0.85rem !important;
         row-gap: 0.35rem !important;
     }
 
-    body.is-homepage .profile-avatar,
-    body.is-home-profile-page .profile-avatar,
+    body:is(.is-homepage, .is-home-profile-page) .profile-avatar,
     body:has(.academic-home-layout) .profile-avatar {
         grid-row: 1 / span 3 !important;
         max-width: 5.4rem !important;
     }
 
-    body.is-homepage .profile-actions,
-    body.is-home-profile-page .profile-actions,
+    body:is(.is-homepage, .is-home-profile-page) .profile-actions,
     body:has(.academic-home-layout) .profile-actions,
-    body.is-homepage .profile-followers,
-    body.is-home-profile-page .profile-followers,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers,
     body:has(.academic-home-layout) .profile-followers {
         grid-column: 2 !important;
     }
 
-    body.is-homepage .md-typeset .profile-meta,
-    body.is-home-profile-page .md-typeset .profile-meta,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta,
     body:has(.academic-home-layout) .md-typeset .profile-meta,
-    body.is-homepage .profile-social-left,
-    body.is-home-profile-page .profile-social-left,
+    body:is(.is-homepage, .is-home-profile-page) .profile-social-left,
     body:has(.academic-home-layout) .profile-social-left {
         grid-column: 1 / -1 !important;
     }
 
-    body.is-homepage .profile-pronouns,
-    body.is-home-profile-page .profile-pronouns,
+    body:is(.is-homepage, .is-home-profile-page) .profile-pronouns,
     body:has(.academic-home-layout) .profile-pronouns {
         font-size: 0.82rem !important;
     }
 
-    body.is-homepage .profile-role,
-    body.is-home-profile-page .profile-role,
+    body:is(.is-homepage, .is-home-profile-page) .profile-role,
     body:has(.academic-home-layout) .profile-role {
         font-size: 0.74rem !important;
     }
 
 }
-body.is-homepage .md-typeset .profile-name,
-body.is-home-profile-page .md-typeset .profile-name,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-name,
 body:has(.academic-home-layout) .md-typeset .profile-name,
-body.is-homepage .md-typeset .profile-cn-name,
-body.is-home-profile-page .md-typeset .profile-cn-name,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-cn-name,
 body:has(.academic-home-layout) .md-typeset .profile-cn-name {
     font-family: var(--edwinos-font-serif) !important;
     letter-spacing: 0 !important;
 }
 
-body.is-homepage .md-typeset .profile-name,
-body.is-home-profile-page .md-typeset .profile-name,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-name,
 body:has(.academic-home-layout) .md-typeset .profile-name {
     font-size: 1.42rem !important;
     font-weight: 600 !important;
     line-height: 1.12 !important;
 }
 
-body.is-homepage .md-typeset .profile-cn-name,
-body.is-home-profile-page .md-typeset .profile-cn-name,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-cn-name,
 body:has(.academic-home-layout) .md-typeset .profile-cn-name {
     font-weight: 400 !important;
 }
@@ -6529,81 +5948,64 @@ body:has(.academic-home-layout) .md-typeset .profile-cn-name {
     font-family: var(--edwinos-font-mono) !important;
 }
 
-body.is-homepage .profile-followers,
-body.is-homepage .profile-followers a,
-body.is-homepage .profile-followers .follower-text,
-body.is-homepage .profile-followers .follower-count,
-body.is-homepage .profile-followers .follower-separator,
-body.is-home-profile-page .profile-followers,
-body.is-home-profile-page .profile-followers a,
-body.is-home-profile-page .profile-followers .follower-text,
-body.is-home-profile-page .profile-followers .follower-count,
-body.is-home-profile-page .profile-followers .follower-separator,
+body:is(.is-homepage, .is-home-profile-page) .profile-followers,
 body:has(.academic-home-layout) .profile-followers,
+body:is(.is-homepage, .is-home-profile-page) .profile-followers a,
 body:has(.academic-home-layout) .profile-followers a,
+body:is(.is-homepage, .is-home-profile-page) .profile-followers .follower-text,
 body:has(.academic-home-layout) .profile-followers .follower-text,
+body:is(.is-homepage, .is-home-profile-page) .profile-followers .follower-count,
 body:has(.academic-home-layout) .profile-followers .follower-count,
+body:is(.is-homepage, .is-home-profile-page) .profile-followers .follower-separator,
 body:has(.academic-home-layout) .profile-followers .follower-separator {
     font-family: var(--edwinos-font-reading-sans) !important;
     font-weight: 500 !important;
     letter-spacing: 0 !important;
 }
 
-body.is-homepage .profile-followers .follower-count,
-body.is-home-profile-page .profile-followers .follower-count,
+body:is(.is-homepage, .is-home-profile-page) .profile-followers .follower-count,
 body:has(.academic-home-layout) .profile-followers .follower-count {
     font-family: var(--edwinos-font-mono) !important;
 }
 
-body.is-homepage .profile-followers .follower-text,
-body.is-home-profile-page .profile-followers .follower-text,
+body:is(.is-homepage, .is-home-profile-page) .profile-followers .follower-text,
 body:has(.academic-home-layout) .profile-followers .follower-text {
     row-gap: 0.16rem !important;
     column-gap: 0.16rem !important;
 }
 
-body.is-homepage .profile-followers,
-body.is-homepage .profile-followers a,
-body.is-homepage .md-typeset .profile-meta li,
-body.is-homepage .md-typeset .profile-meta a,
-body.is-homepage .md-typeset .profile-meta .meta-text,
-body.is-home-profile-page .profile-followers,
-body.is-home-profile-page .profile-followers a,
-body.is-home-profile-page .md-typeset .profile-meta li,
-body.is-home-profile-page .md-typeset .profile-meta a,
-body.is-home-profile-page .md-typeset .profile-meta .meta-text,
+body:is(.is-homepage, .is-home-profile-page) .profile-followers,
 body:has(.academic-home-layout) .profile-followers,
+body:is(.is-homepage, .is-home-profile-page) .profile-followers a,
 body:has(.academic-home-layout) .profile-followers a,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta li,
 body:has(.academic-home-layout) .md-typeset .profile-meta li,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta a,
 body:has(.academic-home-layout) .md-typeset .profile-meta a,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta .meta-text,
 body:has(.academic-home-layout) .md-typeset .profile-meta .meta-text {
     font-size: 0.78rem !important;
     line-height: 1.38 !important;
 }
 
-body.is-homepage .md-typeset .profile-social-left a,
-body.is-homepage .md-typeset .profile-social-left a:hover,
-body.is-homepage .md-typeset .profile-social-left a:focus,
-body.is-home-profile-page .md-typeset .profile-social-left a,
-body.is-home-profile-page .md-typeset .profile-social-left a:hover,
-body.is-home-profile-page .md-typeset .profile-social-left a:focus,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-social-left a,
 body:has(.academic-home-layout) .md-typeset .profile-social-left a,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-social-left a:hover,
 body:has(.academic-home-layout) .md-typeset .profile-social-left a:hover,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-social-left a:focus,
 body:has(.academic-home-layout) .md-typeset .profile-social-left a:focus {
     width: 1.08rem !important;
     height: 1.08rem !important;
 }
 
-body.is-homepage .profile-social-left .social-icon,
-body.is-home-profile-page .profile-social-left .social-icon,
+body:is(.is-homepage, .is-home-profile-page) .profile-social-left .social-icon,
 body:has(.academic-home-layout) .profile-social-left .social-icon {
     width: 0.96rem !important;
     height: 0.96rem !important;
 }
 
 @media screen and (min-width: 46em) and (max-width: 63.25em) {
-    body.is-homepage .md-typeset .profile-meta,
-    body.is-home-profile-page .md-typeset .profile-meta,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta,
     body:has(.academic-home-layout) .md-typeset .profile-meta {
         grid-column: 2 !important;
         grid-row: 4 !important;
@@ -6614,36 +6016,27 @@ body:has(.academic-home-layout) .profile-social-left .social-icon {
         text-align: left !important;
     }
 
-    body.is-homepage .profile-followers,
-    body.is-homepage .profile-followers a,
-    body.is-homepage .profile-followers .follower-text,
-    body.is-homepage .profile-followers .follower-count,
-    body.is-homepage .profile-followers .follower-separator,
-    body.is-home-profile-page .profile-followers,
-    body.is-home-profile-page .profile-followers a,
-    body.is-home-profile-page .profile-followers .follower-text,
-    body.is-home-profile-page .profile-followers .follower-count,
-    body.is-home-profile-page .profile-followers .follower-separator,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers,
     body:has(.academic-home-layout) .profile-followers,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers a,
     body:has(.academic-home-layout) .profile-followers a,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers .follower-text,
     body:has(.academic-home-layout) .profile-followers .follower-text,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers .follower-count,
     body:has(.academic-home-layout) .profile-followers .follower-count,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers .follower-separator,
     body:has(.academic-home-layout) .profile-followers .follower-separator,
-    body.is-homepage .md-typeset .profile-meta li,
-    body.is-homepage .md-typeset .profile-meta a,
-    body.is-homepage .md-typeset .profile-meta .meta-text,
-    body.is-home-profile-page .md-typeset .profile-meta li,
-    body.is-home-profile-page .md-typeset .profile-meta a,
-    body.is-home-profile-page .md-typeset .profile-meta .meta-text,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta li,
     body:has(.academic-home-layout) .md-typeset .profile-meta li,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta a,
     body:has(.academic-home-layout) .md-typeset .profile-meta a,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta .meta-text,
     body:has(.academic-home-layout) .md-typeset .profile-meta .meta-text {
         min-width: 0 !important;
         white-space: nowrap !important;
     }
 
-    body.is-homepage .profile-social-left,
-    body.is-home-profile-page .profile-social-left,
+    body:is(.is-homepage, .is-home-profile-page) .profile-social-left,
     body:has(.academic-home-layout) .profile-social-left {
         grid-column: 2 !important;
         grid-row: 5 !important;
@@ -6654,8 +6047,7 @@ body:has(.academic-home-layout) .profile-social-left .social-icon {
 
 }
 @media screen and (min-width: 43em) and (max-width: 45.9375em) {
-    body.is-homepage .academic-home-layout .profile-card,
-    body.is-home-profile-page .academic-home-layout .profile-card,
+    body:is(.is-homepage, .is-home-profile-page) .academic-home-layout .profile-card,
     body:has(.academic-home-layout) .academic-home-layout .profile-card {
         display: grid !important;
         row-gap: 0.32rem !important;
@@ -6663,50 +6055,41 @@ body:has(.academic-home-layout) .profile-social-left .social-icon {
         text-align: left !important;
     }
 
-    body.is-homepage .profile-name-wrap,
-    body.is-home-profile-page .profile-name-wrap,
+    body:is(.is-homepage, .is-home-profile-page) .profile-name-wrap,
     body:has(.academic-home-layout) .profile-name-wrap,
-    body.is-homepage .profile-actions,
-    body.is-home-profile-page .profile-actions,
+    body:is(.is-homepage, .is-home-profile-page) .profile-actions,
     body:has(.academic-home-layout) .profile-actions,
-    body.is-homepage .profile-followers,
-    body.is-home-profile-page .profile-followers,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers,
     body:has(.academic-home-layout) .profile-followers,
-    body.is-homepage .md-typeset .profile-meta,
-    body.is-home-profile-page .md-typeset .profile-meta,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta,
     body:has(.academic-home-layout) .md-typeset .profile-meta,
-    body.is-homepage .profile-social-left,
-    body.is-home-profile-page .profile-social-left,
+    body:is(.is-homepage, .is-home-profile-page) .profile-social-left,
     body:has(.academic-home-layout) .profile-social-left {
         grid-column: 2 !important;
         width: 100% !important;
         text-align: left !important;
     }
 
-    body.is-homepage .profile-name-wrap,
-    body.is-home-profile-page .profile-name-wrap,
+    body:is(.is-homepage, .is-home-profile-page) .profile-name-wrap,
     body:has(.academic-home-layout) .profile-name-wrap {
         grid-row: 1 !important;
         margin-bottom: 0.1rem !important;
     }
 
-    body.is-homepage .profile-actions,
-    body.is-home-profile-page .profile-actions,
+    body:is(.is-homepage, .is-home-profile-page) .profile-actions,
     body:has(.academic-home-layout) .profile-actions {
         grid-row: 2 !important;
         max-width: 15rem !important;
         margin-bottom: 0.12rem !important;
     }
 
-    body.is-homepage .profile-followers,
-    body.is-home-profile-page .profile-followers,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers,
     body:has(.academic-home-layout) .profile-followers {
         grid-row: 3 !important;
         margin-bottom: 0 !important;
     }
 
-    body.is-homepage .md-typeset .profile-meta,
-    body.is-home-profile-page .md-typeset .profile-meta,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta,
     body:has(.academic-home-layout) .md-typeset .profile-meta {
         justify-content: flex-start !important;
         margin-right: 0 !important;
@@ -6714,27 +6097,21 @@ body:has(.academic-home-layout) .profile-social-left .social-icon {
         margin-left: 0 !important;
     }
 
-    body.is-homepage .profile-followers,
-    body.is-homepage .profile-followers a,
-    body.is-home-profile-page .profile-followers,
-    body.is-home-profile-page .profile-followers a,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers,
     body:has(.academic-home-layout) .profile-followers,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers a,
     body:has(.academic-home-layout) .profile-followers a,
-    body.is-homepage .md-typeset .profile-meta li,
-    body.is-homepage .md-typeset .profile-meta a,
-    body.is-homepage .md-typeset .profile-meta .meta-text,
-    body.is-home-profile-page .md-typeset .profile-meta li,
-    body.is-home-profile-page .md-typeset .profile-meta a,
-    body.is-home-profile-page .md-typeset .profile-meta .meta-text,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta li,
     body:has(.academic-home-layout) .md-typeset .profile-meta li,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta a,
     body:has(.academic-home-layout) .md-typeset .profile-meta a,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta .meta-text,
     body:has(.academic-home-layout) .md-typeset .profile-meta .meta-text {
         min-width: 0 !important;
         white-space: nowrap !important;
     }
 
-    body.is-homepage .profile-social-left,
-    body.is-home-profile-page .profile-social-left,
+    body:is(.is-homepage, .is-home-profile-page) .profile-social-left,
     body:has(.academic-home-layout) .profile-social-left {
         justify-content: flex-start !important;
         margin-top: 0.18rem !important;
@@ -6742,8 +6119,7 @@ body:has(.academic-home-layout) .profile-social-left .social-icon {
 
 }
 @media screen and (min-width: 40em) and (max-width: 42.9375em) {
-    body.is-homepage .academic-home-layout .profile-card,
-    body.is-home-profile-page .academic-home-layout .profile-card,
+    body:is(.is-homepage, .is-home-profile-page) .academic-home-layout .profile-card,
     body:has(.academic-home-layout) .academic-home-layout .profile-card {
         display: grid !important;
         row-gap: 0.26rem !important;
@@ -6751,50 +6127,41 @@ body:has(.academic-home-layout) .profile-social-left .social-icon {
         text-align: left !important;
     }
 
-    body.is-homepage .profile-name-wrap,
-    body.is-home-profile-page .profile-name-wrap,
+    body:is(.is-homepage, .is-home-profile-page) .profile-name-wrap,
     body:has(.academic-home-layout) .profile-name-wrap,
-    body.is-homepage .profile-actions,
-    body.is-home-profile-page .profile-actions,
+    body:is(.is-homepage, .is-home-profile-page) .profile-actions,
     body:has(.academic-home-layout) .profile-actions,
-    body.is-homepage .profile-followers,
-    body.is-home-profile-page .profile-followers,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers,
     body:has(.academic-home-layout) .profile-followers,
-    body.is-homepage .md-typeset .profile-meta,
-    body.is-home-profile-page .md-typeset .profile-meta,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta,
     body:has(.academic-home-layout) .md-typeset .profile-meta,
-    body.is-homepage .profile-social-left,
-    body.is-home-profile-page .profile-social-left,
+    body:is(.is-homepage, .is-home-profile-page) .profile-social-left,
     body:has(.academic-home-layout) .profile-social-left {
         grid-column: 2 !important;
         width: 100% !important;
         text-align: left !important;
     }
 
-    body.is-homepage .profile-name-wrap,
-    body.is-home-profile-page .profile-name-wrap,
+    body:is(.is-homepage, .is-home-profile-page) .profile-name-wrap,
     body:has(.academic-home-layout) .profile-name-wrap {
         grid-row: 1 !important;
         margin-bottom: 0.08rem !important;
     }
 
-    body.is-homepage .profile-actions,
-    body.is-home-profile-page .profile-actions,
+    body:is(.is-homepage, .is-home-profile-page) .profile-actions,
     body:has(.academic-home-layout) .profile-actions {
         grid-row: 2 !important;
         max-width: 13.5rem !important;
         margin-bottom: 0.08rem !important;
     }
 
-    body.is-homepage .profile-followers,
-    body.is-home-profile-page .profile-followers,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers,
     body:has(.academic-home-layout) .profile-followers {
         grid-row: 3 !important;
         margin-bottom: 0 !important;
     }
 
-    body.is-homepage .md-typeset .profile-meta,
-    body.is-home-profile-page .md-typeset .profile-meta,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta,
     body:has(.academic-home-layout) .md-typeset .profile-meta {
         justify-content: flex-start !important;
         margin-right: 0 !important;
@@ -6802,36 +6169,27 @@ body:has(.academic-home-layout) .profile-social-left .social-icon {
         margin-left: 0 !important;
     }
 
-    body.is-homepage .profile-followers,
-    body.is-homepage .profile-followers a,
-    body.is-homepage .profile-followers .follower-text,
-    body.is-homepage .profile-followers .follower-count,
-    body.is-homepage .profile-followers .follower-separator,
-    body.is-home-profile-page .profile-followers,
-    body.is-home-profile-page .profile-followers a,
-    body.is-home-profile-page .profile-followers .follower-text,
-    body.is-home-profile-page .profile-followers .follower-count,
-    body.is-home-profile-page .profile-followers .follower-separator,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers,
     body:has(.academic-home-layout) .profile-followers,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers a,
     body:has(.academic-home-layout) .profile-followers a,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers .follower-text,
     body:has(.academic-home-layout) .profile-followers .follower-text,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers .follower-count,
     body:has(.academic-home-layout) .profile-followers .follower-count,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers .follower-separator,
     body:has(.academic-home-layout) .profile-followers .follower-separator,
-    body.is-homepage .md-typeset .profile-meta li,
-    body.is-homepage .md-typeset .profile-meta a,
-    body.is-homepage .md-typeset .profile-meta .meta-text,
-    body.is-home-profile-page .md-typeset .profile-meta li,
-    body.is-home-profile-page .md-typeset .profile-meta a,
-    body.is-home-profile-page .md-typeset .profile-meta .meta-text,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta li,
     body:has(.academic-home-layout) .md-typeset .profile-meta li,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta a,
     body:has(.academic-home-layout) .md-typeset .profile-meta a,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta .meta-text,
     body:has(.academic-home-layout) .md-typeset .profile-meta .meta-text {
         min-width: 0 !important;
         white-space: nowrap !important;
     }
 
-    body.is-homepage .profile-social-left,
-    body.is-home-profile-page .profile-social-left,
+    body:is(.is-homepage, .is-home-profile-page) .profile-social-left,
     body:has(.academic-home-layout) .profile-social-left {
         justify-content: flex-start !important;
         margin-top: 0.12rem !important;
@@ -6839,43 +6197,37 @@ body:has(.academic-home-layout) .profile-social-left .social-icon {
 
 }
 @media screen and (max-width: 35.9375em) {
-    body.is-homepage .academic-home-layout .profile-card,
-    body.is-home-profile-page .academic-home-layout .profile-card,
+    body:is(.is-homepage, .is-home-profile-page) .academic-home-layout .profile-card,
     body:has(.academic-home-layout) .academic-home-layout .profile-card {
         grid-template-columns: 5.4rem minmax(0, 1fr) !important;
         column-gap: 0.85rem !important;
     }
 
-    body.is-homepage .profile-avatar,
-    body.is-home-profile-page .profile-avatar,
+    body:is(.is-homepage, .is-home-profile-page) .profile-avatar,
     body:has(.academic-home-layout) .profile-avatar {
         max-width: 5.4rem !important;
     }
 
 }
-body.is-homepage .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
-body.is-home-profile-page .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator),
 body:has(.academic-home-layout) .md-typeset .profile-followers :is(.follower-link, .follower-text, .follower-count, .follower-separator) {
     font-family: var(--edwinos-font-reading-sans) !important;
     font-weight: 500 !important;
     letter-spacing: 0 !important;
 }
 
-body.is-homepage .md-typeset .profile-followers .follower-count,
-body.is-home-profile-page .md-typeset .profile-followers .follower-count,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-followers .follower-count,
 body:has(.academic-home-layout) .md-typeset .profile-followers .follower-count {
     font-family: var(--edwinos-font-mono) !important;
 }
 
-body.is-homepage .md-typeset .profile-meta :is(li, a, .meta-text),
-body.is-home-profile-page .md-typeset .profile-meta :is(li, a, .meta-text),
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta :is(li, a, .meta-text),
 body:has(.academic-home-layout) .md-typeset .profile-meta :is(li, a, .meta-text) {
     font-size: 0.78rem !important;
     line-height: 1.38 !important;
 }
 
-body.is-homepage .md-typeset .profile-meta li,
-body.is-home-profile-page .md-typeset .profile-meta li,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta li,
 body:has(.academic-home-layout) .md-typeset .profile-meta li {
     flex: 0 0 auto !important;
     min-width: max-content !important;
@@ -6885,14 +6237,12 @@ body:has(.academic-home-layout) .md-typeset .profile-meta li {
     column-gap: 0.42rem !important;
 }
 
-body.is-homepage .md-typeset .profile-meta .meta-icon,
-body.is-home-profile-page .md-typeset .profile-meta .meta-icon,
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta .meta-icon,
 body:has(.academic-home-layout) .md-typeset .profile-meta .meta-icon {
     flex: 0 0 auto !important;
 }
 
-body.is-homepage .md-typeset .profile-meta :is(a, .meta-text),
-body.is-home-profile-page .md-typeset .profile-meta :is(a, .meta-text),
+body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta :is(a, .meta-text),
 body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
     min-width: max-content !important;
     white-space: nowrap !important;
@@ -6901,8 +6251,7 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
 }
 
 @media screen and (min-width: 26.0625rem) and (max-width: 59.9375rem) {
-    body.is-homepage .md-typeset .profile-meta,
-    body.is-home-profile-page .md-typeset .profile-meta,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta,
     body:has(.academic-home-layout) .md-typeset .profile-meta {
         grid-column: 2 !important;
         grid-row: 4 !important;
@@ -6917,8 +6266,7 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         margin-top: 0 !important;
     }
 
-    body.is-homepage .profile-social-left,
-    body.is-home-profile-page .profile-social-left,
+    body:is(.is-homepage, .is-home-profile-page) .profile-social-left,
     body:has(.academic-home-layout) .profile-social-left {
         grid-column: 2 !important;
         grid-row: 5 !important;
@@ -6939,8 +6287,7 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
 
 }
 @media screen and (max-width: 26rem) {
-    body.is-homepage .profile-followers,
-    body.is-home-profile-page .profile-followers,
+    body:is(.is-homepage, .is-home-profile-page) .profile-followers,
     body:has(.academic-home-layout) .profile-followers {
         grid-column: 1 / -1 !important;
         grid-row: 3 !important;
@@ -6948,8 +6295,7 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         text-align: left !important;
     }
 
-    body.is-homepage .md-typeset .profile-meta,
-    body.is-home-profile-page .md-typeset .profile-meta,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-meta,
     body:has(.academic-home-layout) .md-typeset .profile-meta {
         grid-column: 1 / -1 !important;
         grid-row: 4 !important;
@@ -6964,8 +6310,7 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         margin-top: 0 !important;
     }
 
-    body.is-homepage .profile-social-left,
-    body.is-home-profile-page .profile-social-left,
+    body:is(.is-homepage, .is-home-profile-page) .profile-social-left,
     body:has(.academic-home-layout) .profile-social-left {
         grid-column: 1 / -1 !important;
         grid-row: 5 !important;
@@ -6979,8 +6324,7 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
 }
 
 @media screen and (min-width: 36rem) and (max-width: 63.25rem) {
-    body.is-homepage .academic-home-layout .profile-card,
-    body.is-home-profile-page .academic-home-layout .profile-card,
+    body:is(.is-homepage, .is-home-profile-page) .academic-home-layout .profile-card,
     body:has(.academic-home-layout) .academic-home-layout .profile-card {
         grid-template-columns: 13rem minmax(0, 1fr) !important;
         grid-template-rows: auto !important;
@@ -6988,8 +6332,7 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         align-items: start !important;
     }
 
-    body.is-homepage .profile-avatar,
-    body.is-home-profile-page .profile-avatar,
+    body:is(.is-homepage, .is-home-profile-page) .profile-avatar,
     body:has(.academic-home-layout) .profile-avatar {
         grid-column: 1 !important;
         grid-row: 1 !important;
@@ -6998,8 +6341,7 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         margin: 0 !important;
     }
 
-    body.is-homepage .profile-details,
-    body.is-home-profile-page .profile-details,
+    body:is(.is-homepage, .is-home-profile-page) .profile-details,
     body:has(.academic-home-layout) .profile-details {
         grid-column: 2 !important;
         grid-row: 1 !important;
@@ -7013,31 +6355,26 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         text-align: left !important;
     }
 
-    body.is-homepage .profile-details > *,
-    body.is-home-profile-page .profile-details > *,
+    body:is(.is-homepage, .is-home-profile-page) .profile-details > *,
     body:has(.academic-home-layout) .profile-details > * {
         width: 100% !important;
         margin: 0 !important;
     }
 
-    body.is-homepage .profile-details .profile-actions,
-    body.is-home-profile-page .profile-details .profile-actions,
+    body:is(.is-homepage, .is-home-profile-page) .profile-details .profile-actions,
     body:has(.academic-home-layout) .profile-details .profile-actions {
         max-width: 14rem !important;
     }
 
-    body.is-homepage .profile-details .profile-followers,
-    body.is-home-profile-page .profile-details .profile-followers,
+    body:is(.is-homepage, .is-home-profile-page) .profile-details .profile-followers,
     body:has(.academic-home-layout) .profile-details .profile-followers,
-    body.is-homepage .profile-details .profile-social-left,
-    body.is-home-profile-page .profile-details .profile-social-left,
+    body:is(.is-homepage, .is-home-profile-page) .profile-details .profile-social-left,
     body:has(.academic-home-layout) .profile-details .profile-social-left {
         justify-self: auto !important;
         text-align: left !important;
     }
 
-    body.is-homepage .md-typeset .profile-details .profile-meta,
-    body.is-home-profile-page .md-typeset .profile-details .profile-meta,
+    body:is(.is-homepage, .is-home-profile-page) .md-typeset .profile-details .profile-meta,
     body:has(.academic-home-layout) .md-typeset .profile-details .profile-meta {
         display: flex !important;
         min-width: 0 !important;
@@ -7048,8 +6385,7 @@ body:has(.academic-home-layout) .md-typeset .profile-meta :is(a, .meta-text) {
         column-gap: 0.32rem !important;
     }
 
-    body.is-homepage .profile-details .profile-social-left,
-    body.is-home-profile-page .profile-details .profile-social-left,
+    body:is(.is-homepage, .is-home-profile-page) .profile-details .profile-social-left,
     body:has(.academic-home-layout) .profile-details .profile-social-left {
         margin-top: 0.06rem !important;
     }
@@ -7138,19 +6474,6 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
 }
 
 
-/*
- * The top-profile layout has enough horizontal room to retain the desktop
- * avatar through tablet widths. Use one deliberate phone breakpoint instead
- * of the previous 180/152/130/108px staircase.
- */
-
-
-/*
- * Keep the tablet avatar at its intended size without making it span several
- * independent grid rows. The details column now owns its natural rhythm.
- */
-
-
 /* ========================================================================
    Education rows (Tianxing Chen reference layout)
    ======================================================================== */
@@ -7210,8 +6533,7 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
     border-top: 1px solid var(--academic-card-border);
 }
 
-body.is-homepage .news-list li,
-body.is-home-profile-page .news-list li,
+body:is(.is-homepage, .is-home-profile-page) .news-list li,
 body:has(.academic-home-layout) .news-list li {
     display: grid !important;
     grid-template-columns: 72px minmax(0, 1fr) !important;
@@ -7222,18 +6544,15 @@ body:has(.academic-home-layout) .news-list li {
     padding: 7px 0 !important;
 }
 
-body.is-homepage .news-date,
-body.is-homepage .news-text,
-body.is-home-profile-page .news-date,
-body.is-home-profile-page .news-text,
+body:is(.is-homepage, .is-home-profile-page) .news-date,
 body:has(.academic-home-layout) .news-date,
+body:is(.is-homepage, .is-home-profile-page) .news-text,
 body:has(.academic-home-layout) .news-text {
     display: block !important;
     margin-top: 0 !important;
 }
 
-body.is-homepage .news-date,
-body.is-home-profile-page .news-date,
+body:is(.is-homepage, .is-home-profile-page) .news-date,
 body:has(.academic-home-layout) .news-date {
     align-self: baseline !important;
     align-self: first baseline !important;
@@ -7246,8 +6565,7 @@ body:has(.academic-home-layout) .news-date {
     white-space: nowrap !important;
 }
 
-body.is-homepage .news-text,
-body.is-home-profile-page .news-text,
+body:is(.is-homepage, .is-home-profile-page) .news-text,
 body:has(.academic-home-layout) .news-text {
     align-self: baseline !important;
     align-self: first baseline !important;
@@ -7846,8 +7164,7 @@ body:has(.academic-home-layout) .cv-desc li {
     display: list-item !important;
 }
 
-body.is-homepage .timeline-cv,
-body.is-home-profile-page .timeline-cv,
+body:is(.is-homepage, .is-home-profile-page) .timeline-cv,
 body:has(.academic-home-layout) .timeline-cv {
     --cv-axis-x: 7px;
     --cv-marker-size: 14px;
@@ -7856,8 +7173,7 @@ body:has(.academic-home-layout) .timeline-cv {
     border-left: 0 !important;
 }
 
-body.is-homepage .timeline-cv::before,
-body.is-home-profile-page .timeline-cv::before,
+body:is(.is-homepage, .is-home-profile-page) .timeline-cv::before,
 body:has(.academic-home-layout) .timeline-cv::before {
     content: "" !important;
     position: absolute !important;
@@ -7869,15 +7185,13 @@ body:has(.academic-home-layout) .timeline-cv::before {
     transform: translateX(-0.5px) !important;
 }
 
-body.is-homepage .cv-item,
-body.is-home-profile-page .cv-item,
+body:is(.is-homepage, .is-home-profile-page) .cv-item,
 body:has(.academic-home-layout) .cv-item {
     position: relative !important;
     padding-left: 0 !important;
 }
 
-body.is-homepage .cv-marker,
-body.is-home-profile-page .cv-marker,
+body:is(.is-homepage, .is-home-profile-page) .cv-marker,
 body:has(.academic-home-layout) .cv-marker {
     box-sizing: border-box !important;
     top: 0.32rem !important;
@@ -8062,55 +7376,6 @@ html:has(> head > link[rel="canonical"][href$="/OsdNotes/CS101/MATLAB/"])
 body .md-content__inner > .md-typeset__scrollwrap + h2#matlab-python {
     margin-top: 2em !important;
     transition: none !important;
-}
-
-/* ==========================================================================
-   Fragment Targets
-   ========================================================================== */
-
-/* A heading selected from the right-hand TOC remains identifiable through the
-   scroll, then its yellow glass highlight fades without dimming the text. */
-.md-typeset :is(h1, h2, h3, h4, h5, h6).block-highlight--pinned {
-    box-sizing: border-box;
-    width: calc(100% + 1.4rem);
-    margin-inline: -0.7rem;
-    padding: 0.42rem 0.7rem;
-    border: 1px solid rgba(234, 179, 8, 0.26);
-    border-radius: 1rem;
-    background: rgba(255, 221, 36, 0.14);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.24),
-        0 0.5rem 1.35rem rgba(234, 179, 8, 0.06);
-    -webkit-backdrop-filter: blur(8px) saturate(115%);
-    backdrop-filter: blur(8px) saturate(115%);
-}
-
-[data-md-color-scheme="slate"]
-.md-typeset :is(h1, h2, h3, h4, h5, h6).block-highlight--pinned {
-    border-color: rgba(255, 243, 138, 0.4);
-    background: rgba(255, 232, 64, 0.2);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 252, 214, 0.18),
-        0 0 1.55rem rgba(255, 220, 24, 0.08),
-        0 0.55rem 1.45rem rgba(0, 0, 0, 0.12);
-}
-
-.md-typeset :is(h1, h2, h3, h4, h5, h6).block-highlight--pinned.block-highlight--fading {
-    border-color: transparent;
-    background-color: transparent;
-    box-shadow: none;
-    -webkit-backdrop-filter: blur(0) saturate(100%);
-    backdrop-filter: blur(0) saturate(100%);
-    transition:
-        border-color 1.15s ease,
-        background-color 1.15s ease,
-        box-shadow 1.15s ease,
-        -webkit-backdrop-filter 1.15s ease,
-        backdrop-filter 1.15s ease;
-}
-
-.md-typeset :is(h1, h2, h3, h4, h5, h6).block-highlight--pinned::before {
-    content: none;
 }
 
 /* ==========================================================================
@@ -8654,6 +7919,436 @@ body:has(.friend-links)
    Archive
    ========================================================================== */
 
+.archive-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    margin: 0 0 1.55rem;
+    padding: 1.35rem clamp(1.4rem, 3.5vw, 2.5rem) 1.45rem;
+    border: 1px solid rgba(30, 58, 138, 0.12);
+    border-radius: 20px;
+    background:
+        radial-gradient(circle at 88% 12%, rgba(59, 130, 246, 0.17), transparent 34%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(239, 246, 255, 0.72));
+    box-shadow: 0 14px 38px rgba(30, 58, 138, 0.075);
+}
+
+.archive-hero::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: 7rem;
+    height: 7rem;
+    right: -2rem;
+    bottom: -3.5rem;
+    border: 1px solid rgba(30, 58, 138, 0.13);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1.6rem rgba(59, 130, 246, 0.035),
+                0 0 0 3.2rem rgba(59, 130, 246, 0.025);
+}
+
+.archive-hero__eyebrow {
+    margin: 0 0 0.38rem !important;
+    color: #1e3a8a;
+    font: 600 0.58rem/1.2 "Cinzel", "Inter", sans-serif;
+    letter-spacing: 0.2em;
+}
+
+.md-typeset .archive-hero h1 {
+    margin: 0;
+    color: #111827;
+    font: 600 clamp(2rem, 5vw, 3.4rem)/0.92 "Cormorant Garamond", "Playfair Display", serif;
+    letter-spacing: -0.035em;
+}
+
+.archive-hero__lead {
+    max-width: 38rem;
+    margin: 0.55rem 0 0 !important;
+    color: #475569;
+    font: 500 clamp(0.86rem, 1.4vw, 1rem)/1.45 "Cormorant Garamond", "Noto Serif SC", serif;
+}
+
+.archive-hero__stats {
+    position: absolute;
+    right: clamp(1.4rem, 3.5vw, 2.5rem);
+    bottom: 1.35rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.archive-hero__stats span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    padding: 0.34rem 0.62rem;
+    color: #475569;
+    font-size: 0.62rem;
+    line-height: 1;
+    border: 1px solid rgba(30, 58, 138, 0.11);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.62);
+    backdrop-filter: blur(8px);
+}
+
+.archive-hero__stats strong {
+    color: #1e3a8a;
+}
+
+.archive-year {
+    margin: 0 0 3.4rem;
+}
+
+.archive-year__heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0 0 0.85rem;
+    padding: 0 0 0.52rem;
+    border-bottom: 1px solid rgba(30, 58, 138, 0.12);
+}
+
+.md-typeset .archive-year__heading h2 {
+    margin: 0;
+    padding: 0;
+    color: #172554;
+    font: 600 clamp(1.55rem, 3vw, 2rem)/1 "Cormorant Garamond", "Playfair Display", serif;
+    border: 0;
+}
+
+.archive-year__heading > span {
+    color: #64748b;
+    font: 500 0.66rem/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.archive-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.9rem;
+}
+
+.archive-card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgba(15, 23, 42, 0.09);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.archive-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(30, 58, 138, 0.26);
+    box-shadow: 0 13px 32px rgba(30, 58, 138, 0.11);
+}
+
+.md-typeset .archive-card__link,
+.md-typeset .archive-card__link:hover {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(8rem, 1fr);
+    height: 100%;
+    min-height: 8.6rem;
+    color: inherit;
+    text-decoration: none;
+    border: 0;
+}
+
+.archive-card__cover {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+    min-height: 100%;
+    background: #e2e8f0;
+}
+
+.archive-card__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0 !important;
+    object-fit: cover;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.archive-card:hover .archive-card__image {
+    transform: scale(1.035);
+}
+
+.archive-card__cover--emoji {
+    display: grid;
+    place-items: center;
+    background:
+        radial-gradient(circle at 68% 28%, rgba(255, 255, 255, 0.6), transparent 22%),
+        linear-gradient(135deg, #dbeafe, #e0e7ff);
+}
+
+.archive-card--robotics .archive-card__cover--emoji {
+    background: linear-gradient(135deg, #dbeafe, #c7d2fe);
+}
+
+.archive-card--science .archive-card__cover--emoji {
+    background: linear-gradient(135deg, #d1fae5, #cffafe);
+}
+
+.archive-card--humanities .archive-card__cover--emoji {
+    background: linear-gradient(135deg, #fef3c7, #fee2e2);
+}
+
+.archive-card--code .archive-card__cover--emoji {
+    background: linear-gradient(135deg, #e0e7ff, #dbeafe);
+}
+
+.archive-card--writing .archive-card__cover--emoji {
+    background: linear-gradient(135deg, #ffedd5, #fce7f3);
+}
+
+.archive-card--profile .archive-card__cover--emoji,
+.archive-card--study .archive-card__cover--emoji {
+    background: linear-gradient(135deg, #ede9fe, #e0f2fe);
+}
+
+.archive-card__emoji {
+    font-size: clamp(2.7rem, 6vw, 4.2rem);
+    filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.13));
+    transform: translateY(-0.06em);
+}
+
+.archive-card__status {
+    flex: 0 0 auto;
+    padding: 0.3rem 0.54rem;
+    color: #1e3a8a;
+    font: 650 0.52rem/1 "Inter", sans-serif;
+    letter-spacing: 0.1em;
+    border: 1px solid rgba(30, 58, 138, 0.13);
+    border-radius: 999px;
+    background: rgba(30, 58, 138, 0.07);
+}
+
+.archive-card__status--published {
+    color: #166534;
+    border-color: rgba(22, 101, 52, 0.14);
+    background: rgba(22, 101, 52, 0.07);
+}
+
+.archive-card__body {
+    display: flex;
+    min-width: 0;
+    padding: 1rem 1.2rem 0.95rem;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.archive-card__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    color: #64748b;
+    font: 500 0.64rem/1.4 "JetBrains Mono", monospace;
+}
+
+.archive-card__title-row {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.58rem;
+    margin: 0.6rem 0 0.8rem;
+}
+
+.md-typeset .archive-card__title {
+    display: -webkit-box;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    margin: 0;
+    color: #172033;
+    font: 600 clamp(1.12rem, 2.3vw, 1.38rem)/1.3 "Playfair Display", "Noto Serif SC", serif;
+    letter-spacing: -0.012em;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.archive-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: auto;
+}
+
+.archive-card__category {
+    overflow: hidden;
+    padding: 0.34rem 0.6rem;
+    color: #1e3a8a;
+    font: 600 0.6rem/1 "Inter", sans-serif;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    border-radius: 999px;
+    background: rgba(30, 58, 138, 0.075);
+}
+
+.archive-card__arrow {
+    color: #1e3a8a;
+    font-size: 1rem;
+    transition: transform 0.25s ease;
+}
+
+.archive-card:hover .archive-card__arrow {
+    transform: translate(2px, -2px);
+}
+
+.archive-note,
+.archive-empty {
+    margin-top: 2.6rem !important;
+    padding-top: 1rem;
+    color: #64748b;
+    font-size: 0.68rem;
+    text-align: center;
+    border-top: 1px solid rgba(30, 58, 138, 0.1);
+}
+
+[data-md-color-scheme="slate"] .archive-hero {
+    border-color: #30363d;
+    background:
+        radial-gradient(circle at 88% 12%, rgba(88, 166, 255, 0.12), transparent 34%),
+        #161b22;
+    box-shadow: none;
+}
+
+[data-md-color-scheme="slate"] .archive-hero__eyebrow,
+[data-md-color-scheme="slate"] .archive-hero__stats strong,
+[data-md-color-scheme="slate"] .archive-card__category,
+[data-md-color-scheme="slate"] .archive-card__arrow {
+    color: #58a6ff;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .archive-hero h1,
+[data-md-color-scheme="slate"] .md-typeset .archive-year__heading h2,
+[data-md-color-scheme="slate"] .md-typeset .archive-card__title {
+    color: #f8fafc !important;
+}
+
+[data-md-color-scheme="slate"] .archive-hero__lead,
+[data-md-color-scheme="slate"] .archive-hero__stats span,
+[data-md-color-scheme="slate"] .archive-year__heading > span,
+[data-md-color-scheme="slate"] .archive-card__meta,
+[data-md-color-scheme="slate"] .archive-note {
+    color: #8b949e;
+}
+
+[data-md-color-scheme="slate"] .archive-hero__stats span {
+    border-color: #30363d;
+    background: #0d1117;
+}
+
+[data-md-color-scheme="slate"] .archive-year__heading,
+[data-md-color-scheme="slate"] .archive-note {
+    border-color: #30363d;
+}
+
+[data-md-color-scheme="slate"] .archive-card {
+    border-color: #30363d;
+    background: #161b22;
+    box-shadow: none;
+}
+
+[data-md-color-scheme="slate"] .archive-card:hover {
+    border-color: rgba(88, 166, 255, 0.45);
+    box-shadow: none;
+}
+
+[data-md-color-scheme="slate"] .archive-card__category {
+    background: rgba(88, 166, 255, 0.1);
+}
+
+[data-md-color-scheme="slate"] .archive-card__status {
+    color: #58a6ff;
+    border-color: rgba(88, 166, 255, 0.24);
+    background: rgba(88, 166, 255, 0.11);
+}
+
+[data-md-color-scheme="slate"] .archive-card__status--published {
+    color: #86efac;
+    border-color: rgba(134, 239, 172, 0.18);
+    background: rgba(34, 197, 94, 0.1);
+}
+
+@media screen and (max-width: 48rem) {
+    .archive-hero__stats {
+        position: static;
+        margin-top: 0.8rem;
+    }
+
+    .md-typeset .archive-card__link,
+    .md-typeset .archive-card__link:hover {
+        grid-template-columns: minmax(0, 3fr) minmax(7rem, 1fr);
+        min-height: 7.8rem;
+    }
+}
+
+@media screen and (max-width: 30rem) {
+    .archive-hero {
+        padding: 1rem 1.05rem 1.05rem;
+        border-radius: 16px;
+    }
+
+    .archive-card {
+        border-radius: 14px;
+    }
+
+    .archive-year__heading {
+        align-items: center;
+    }
+
+    .md-typeset .archive-card__link,
+    .md-typeset .archive-card__link:hover {
+        grid-template-columns: minmax(0, 3fr) minmax(5.8rem, 1fr);
+        min-height: 7.1rem;
+    }
+
+    .archive-card__body {
+        padding: 0.78rem 0.85rem 0.75rem;
+    }
+
+    .archive-card__meta {
+        font-size: 0.56rem;
+    }
+
+    .archive-card__title-row {
+        gap: 0.42rem;
+        margin: 0.42rem 0 0.58rem;
+    }
+
+    .md-typeset .archive-card__title {
+        font-size: 0.96rem;
+        line-height: 1.28;
+    }
+
+    .archive-card__category {
+        max-width: 9rem;
+        padding: 0.28rem 0.48rem;
+        font-size: 0.54rem;
+    }
+
+    .archive-card__status {
+        padding: 0.27rem 0.45rem;
+        font-size: 0.52rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .archive-card,
+    .archive-card__image,
+    .archive-card__arrow {
+        transition: none;
+    }
+}
+
 /* Keep every entry on one stable grid rhythm. The cover is taken out of the
    intrinsic-size calculation so portrait and panoramic source images cannot
    stretch the card; object-fit then crops each source to the cover viewport. */
@@ -8799,6 +8494,57 @@ body.is-archive-navigating::after {
     body.is-archive-navigating::after {
         animation: none;
     }
+}
+
+/* ==========================================================================
+   Fragment Targets
+   ========================================================================== */
+
+/* Keep this shared heading state after Archive: equal-specificity heading
+   resets must not override the selected target's spacing or border.
+   A heading selected from the right-hand TOC remains identifiable through the
+   scroll, then its yellow glass highlight fades without dimming the text. */
+.md-typeset :is(h1, h2, h3, h4, h5, h6).block-highlight--pinned {
+    box-sizing: border-box;
+    width: calc(100% + 1.4rem);
+    margin-inline: -0.7rem;
+    padding: 0.42rem 0.7rem;
+    border: 1px solid rgba(234, 179, 8, 0.26);
+    border-radius: 1rem;
+    background: rgba(255, 221, 36, 0.14);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.24),
+        0 0.5rem 1.35rem rgba(234, 179, 8, 0.06);
+    -webkit-backdrop-filter: blur(8px) saturate(115%);
+    backdrop-filter: blur(8px) saturate(115%);
+}
+
+[data-md-color-scheme="slate"]
+.md-typeset :is(h1, h2, h3, h4, h5, h6).block-highlight--pinned {
+    border-color: rgba(255, 243, 138, 0.4);
+    background: rgba(255, 232, 64, 0.2);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 252, 214, 0.18),
+        0 0 1.55rem rgba(255, 220, 24, 0.08),
+        0 0.55rem 1.45rem rgba(0, 0, 0, 0.12);
+}
+
+.md-typeset :is(h1, h2, h3, h4, h5, h6).block-highlight--pinned.block-highlight--fading {
+    border-color: transparent;
+    background-color: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: blur(0) saturate(100%);
+    backdrop-filter: blur(0) saturate(100%);
+    transition:
+        border-color 1.15s ease,
+        background-color 1.15s ease,
+        box-shadow 1.15s ease,
+        -webkit-backdrop-filter 1.15s ease,
+        backdrop-filter 1.15s ease;
+}
+
+.md-typeset :is(h1, h2, h3, h4, h5, h6).block-highlight--pinned::before {
+    content: none;
 }
 
 /* ==========================================================================
