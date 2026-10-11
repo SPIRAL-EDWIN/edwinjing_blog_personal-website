@@ -20,6 +20,9 @@
   <link rel="preload" href="{{ 'assets/fonts/outfit/outfit-latin.woff2' | url }}" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{{ 'assets/fonts/noto-sans-sc/noto-sans-sc-overview.woff2' | url }}" as="font" type="font/woff2" crossorigin>
   {% endif %}
+  {% if page and 'class="arithmatex' in page.content %}
+  <link rel="preload" href="{{ 'javascripts/vendor/mathjax/3.2.2/es5/tex-mml-chtml.js' | url }}" as="script">
+  {% endif %}
   {% if page.url == "" %}
   <script type="application/ld+json">
   {

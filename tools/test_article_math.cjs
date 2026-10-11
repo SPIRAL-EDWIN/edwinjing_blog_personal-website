@@ -17,6 +17,7 @@ class FakeNode {
     this.attributes = new Map();
     this.dataset = {};
     this.clientWidth = 800;
+    this.listeners = new Map();
   }
   get parentElement() { return this.parentNode; }
   get isConnected() { return this.connectedRoot || Boolean(this.parentNode && this.parentNode.isConnected); }
@@ -34,6 +35,25 @@ class FakeNode {
         this.className = [...classes].join(' ');
       }
     };
+  }
+  addEventListener(type, fn) { this.listeners.set(type, fn); }
+  emit(type) { this.listeners.get(type)?.(); }
+  setAttribute(name, value) { this.attributes.set(name, value); }
+  removeAttribute(name) { this.attributes.delete(name); }
+  cloneNode(deep) {
+    const clone = new FakeNode(this.nodeType === 3 ? '#text' : this.tagName, this.value);
+    clone.className = this.className;
+    clone.attributes = new Map(this.attributes);
+    clone.dataset = {...this.dataset};
+    if (deep) this.childNodes.forEach(child => clone.appendChild(child.cloneNode(true)));
+    return clone;
+  }
+  insertBefore(node, anchor) {
+    if (!anchor) return this.appendChild(node);
+    const index = this.childNodes.indexOf(anchor);
+    this.childNodes.splice(index, 0, node);
+    node.parentNode = this;
+    return node;
   }
   appendChild(node) {
     if (node.parentNode) node.parentNode.removeChild(node);
@@ -114,16 +134,21 @@ function highlight(text, author = false) {
   if (!author) mark.attributes.set('data-md-highlight', '');
   return mark;
 }
-function harness(article, search = '') {
+function harness(article, search = '', options = {}) {
   const body = element('body', '', article);
   body.connectedRoot = true;
   const observers = [];
-  const calls = {clear: [], reset: 0, typeset: []};
+  const calls = {clear: [], reset: 0, typeset: [], warnings: []};
   let documentCallback;
+  const timers = new Map();
+  let timerId = 0;
+  const head = element('head');
+  head.connectedRoot = true;
   const document = {
     currentScript: {src: 'http://edwinos.test/javascripts/mathjax.js'},
     baseURI: 'http://edwinos.test/',
-    body,
+    body, head,
+    getElementById: id => head.childNodes.find(node => node.id === id),
     querySelector: selector => body.querySelector(selector),
     querySelectorAll: selector => {
       if (selector === '.md-content__inner span.arithmatex:not(.arithmatex--display)') {
@@ -131,6 +156,7 @@ function harness(article, search = '') {
       }
       return body.querySelectorAll(selector);
     },
+    createElement: tag => element(tag),
     addEventListener() {},
     dispatchEvent() {}
   };
@@ -142,17 +168,21 @@ function harness(article, search = '') {
   }
   const window = {
     location: {hash: '', search},
+    setTimeout(fn, ms) { timers.set(++timerId, {fn, ms}); return timerId; },
+    clearTimeout(id) { timers.delete(id); },
     addEventListener() {},
     document$: {subscribe(callback) { documentCallback = callback; }}
   };
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../docs/javascripts/mathjax.js'), 'utf8'), vm.createContext({
-    window, document, URL, MutationObserver: FakeMutationObserver, console
+    window, document, URL, MutationObserver: FakeMutationObserver,
+    console: {...console, warn: (...args) => calls.warnings.push(args)}
   }));
+  function installRuntime(startupPromise) {
   Object.assign(window.MathJax, {
     typesetClear(nodes) { calls.clear.push(nodes); },
     texReset() { calls.reset++; },
     typesetPromise(nodes) {
-      const formulas = nodes ? Array.from(nodes) : document.querySelector('.md-content__inner').querySelectorAll('.arithmatex');
+      const formulas = nodes ? Array.from(nodes).flatMap(node => node.matches('.arithmatex') ? [node] : node.querySelectorAll('.arithmatex')) : document.querySelector('.md-content__inner').querySelectorAll('.arithmatex');
       formulas.forEach(formula => {
         assert.equal(formula.querySelectorAll('mark[data-md-highlight]').length, 0, 'search marks must be removed before typesetting');
       });
@@ -163,10 +193,19 @@ function harness(article, search = '') {
       return Promise.resolve();
     }
   });
-  return {body, calls, observers, navigate: () => documentCallback()};
+  if (startupPromise) window.MathJax.startup.promise = startupPromise;
+  }
+  if (!options.lazy) installRuntime();
+  return {body, head, window, document, calls, observers, installRuntime,
+    navigate: () => documentCallback(),
+    tick(ms) {
+      const due = [...timers].filter(([,timer]) => timer.ms <= ms);
+      due.forEach(([id, timer]) => { timers.delete(id); timer.fn(); });
+    }
+  };
 }
 
-async function settle() { for (let index = 0; index < 16; index++) await Promise.resolve(); }
+async function settle() { for (let index = 0; index < 64; index++) await Promise.resolve(); }
 
 async function main() {
   const keyword = highlight('t');
@@ -181,11 +220,11 @@ async function main() {
   assert.equal(formula.childNodes[0].nodeType, 3);
   assert.equal(formula.textContent, String.raw`\(\Delta\)`);
   assert.equal(keyword.parentNode, null);
-  assert.equal(proseMark.parentNode, article.childNodes[0], 'ordinary article search highlights survive');
+  assert.equal(proseMark.parentNode, article.querySelector('p'), 'ordinary article search highlights survive');
   assert.equal(authorMark.parentNode, authorFormula, 'author-authored marks inside math survive');
   await settle();
   assert.equal(test.calls.typeset.length, 1, 'document$ emits the initial typeset');
-  assert.equal(test.calls.typeset[0].nodes, undefined, 'initial document typeset uses the whole document lifecycle');
+  assert.deepEqual(test.calls.typeset[0].nodes, [article], 'initial typeset captures its article rather than discovering a later page');
   assert.equal(test.calls.typeset[0].sources[0], String.raw`\(\Delta\)`);
   assert(formula.querySelector('mjx-container'), 'the repaired source reaches the typeset adapter');
   assert.equal(test.calls.clear.length, 1);
@@ -216,10 +255,10 @@ async function main() {
   assert.equal(test.calls.reset, 1);
 
   const lateProseMark = highlight('epoch');
-  article.childNodes[0].appendChild(lateProseMark);
+  article.querySelector('p').appendChild(lateProseMark);
   test.observers[0].deliver(lateProseMark, new FakeNode('#text', 'ordinary text'));
   await settle();
-  assert.equal(lateProseMark.parentNode, article.childNodes[0]);
+  assert.equal(lateProseMark.parentNode, article.querySelector('p'));
   assert.equal(test.calls.typeset.length, 2, 'prose highlighting does not schedule math work');
 
   // Queue a repair, then navigate before its microtask runs. The old article
@@ -237,7 +276,7 @@ async function main() {
   assert.equal(test.observers[1].root, nextArticle);
   await settle();
   assert.equal(test.calls.typeset.length, 3, 'stale queued repair is superseded by the new document lifecycle');
-  assert.equal(test.calls.typeset[2].nodes, undefined);
+  assert.deepEqual(test.calls.typeset[2].nodes, [nextArticle]);
   assert.deepEqual(test.calls.typeset[2].sources, [String.raw`\(z\)`]);
   assert.equal(test.calls.reset, 2, 'only real navigations reset equation counters');
 
@@ -275,10 +314,10 @@ async function main() {
   escapedTest.observers[0].deliver(lateEntityText);
   assert.equal(lateEntityFormula.textContent, String.raw`\(x < y\)`, 'a late entity-only TextNode needs no keyword mark');
   await settle();
-  assert.equal(escapedTest.calls.typeset.length, 3);
-  assert.deepEqual(escapedTest.calls.typeset[2].nodes, [lateEntityFormula], 'entity-only observer repairs remain targeted');
-  assert.equal(escapedTest.calls.reset, 2, 'late entity-only repairs preserve counters');
-  assert.equal(escapedTest.calls.clear.length, 2);
+  assert.equal(escapedTest.calls.typeset.length, 2);
+  assert.deepEqual(escapedTest.calls.typeset[1].nodes, [lateEntityFormula], 'entity-only observer repairs remain targeted');
+  assert.equal(escapedTest.calls.reset, 1, 'repeat publication and late entity-only repairs preserve counters');
+  assert.equal(escapedTest.calls.clear.length, 1);
 
   const literalEntity = element('span', 'arithmatex', String.raw`\(\text{&gt; &amp; &quot;}\)`);
   const literalArticle = element('article', 'md-content__inner', element('p', '', literalEntity));
@@ -295,4 +334,5 @@ async function main() {
   console.log('Article math lifecycle: initial split-TeX cleanup, prose/author mark preservation, late targeted retry, rendered-math preservation, stale navigation cancellation and observer cleanup passed.');
   console.log('Article math entities: inequalities, alignments, split entities, text-only late arrival, safe literal HTML, one-time decoding and non-search preservation passed.');
 }
-main().catch(error => { console.error(error); process.exitCode = 1; });
+if (require.main === module) main().catch(error => { console.error(error); process.exitCode = 1; });
+module.exports = {harness, element, highlight, settle};

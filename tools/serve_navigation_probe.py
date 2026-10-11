@@ -8,6 +8,7 @@ slow HTML response, including Archive's loading-feedback lifecycle.
 
 import argparse
 import functools
+import html
 import json
 import re
 import time
@@ -28,8 +29,11 @@ PROBE_START = r"""<script>
   }
   function path(url) { return decodeURIComponent(new URL(url, location.href).pathname); }
   document.addEventListener('click', function (event) {
-    var link = event.target.closest && event.target.closest('.archive-card__link[href]');
+    var link = event.target.closest && event.target.closest('a[href]');
     if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (!link.closest('.md-sidebar--primary, .md-tabs, .md-content__inner') || link.hasAttribute('download') || (link.target && link.target !== '_self')) return;
+    var destination = new URL(link.href, location.href);
+    if (destination.origin !== location.origin || destination.pathname === location.pathname || /\.[a-z0-9]+$/i.test(destination.pathname)) return;
     pending = { start: performance.now(), source: path(location.href), target: path(link.href), href: link.href, feedback: [] };
     window.__navigationProbe.pending = pending;
     publish();
@@ -67,7 +71,7 @@ PROBE_START = r"""<script>
   document.addEventListener('DOMContentLoaded', function () {
     var observer = new MutationObserver(function (changes) {
       if (!pending || !changes.some(function (change) { return change.type === 'attributes' && change.attributeName === 'class' && change.target === document.body; })) return;
-      var visible = document.body.classList.contains('is-archive-navigating');
+      var visible = document.body.classList.contains('is-archive-navigating') || document.body.classList.contains('is-page-navigating');
       var last = pending.feedback[pending.feedback.length - 1];
       if (!last || last.visible !== visible) {
         pending.feedback.push({ ms: performance.now() - pending.start, visible: visible, oldArchivePresent: !!document.querySelector('.archive-card__link') });
@@ -80,7 +84,7 @@ PROBE_START = r"""<script>
   window.__navigationProbe.subscribe = function () {
     if (!window.document$) return;
     window.document$.subscribe(function () {
-      if (!pending || path(location.href) !== pending.target) return;
+      if (!pending || pending.clickToDocumentMs != null || path(location.href) !== pending.target) return;
       pending.clickToDocumentMs = performance.now() - pending.start;
       pending.afterXhrMs = pending.clickToXhrMs == null ? null : pending.clickToDocumentMs - pending.clickToXhrMs;
       var heading = document.querySelector('.md-content__inner h1');
@@ -88,6 +92,15 @@ PROBE_START = r"""<script>
       pending.oldArchivePresent = !!document.querySelector('.archive-card__link');
       records.push(JSON.parse(JSON.stringify(pending)));
       publish();
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          var record = records[records.length - 1];
+          if (record && record.start === pending.start) {
+            record.clickToPaintMs = performance.now() - record.start;
+            publish();
+          }
+        });
+      });
     });
   };
 })();
@@ -125,7 +138,7 @@ class ProbeHandler(SimpleHTTPRequestHandler):
         if translated.suffix == ".html" and translated.is_file():
             html = translated.read_text(encoding="utf-8")
             html = html.replace("</head>", PROBE_START + "</head>", 1)
-            html = html.replace("</body>", PROBE_END + "</body>", 1)
+            html = html.replace("</body>", self.warning_html() + PROBE_END + "</body>", 1)
             output = html.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -138,6 +151,22 @@ class ProbeHandler(SimpleHTTPRequestHandler):
                 pass
             return
         super().do_GET()
+
+    def warning_html(self):
+        modes = []
+        if self.delay_paths and self.delay_seconds:
+            paths = "、".join(sorted(self.delay_paths))
+            modes.append(f"HTML 人为延迟 {self.delay_seconds:g} 秒：{paths}")
+        if self.fail_paths:
+            modes.append("人为 HTTP 503：" + "、".join(sorted(self.fail_paths)))
+        if not modes:
+            return ""
+        message = html.escape("本地故障模拟（非正常预览） · " + "；".join(modes))
+        return ('<aside data-navigation-probe-warning role="status" '
+                'style="position:fixed;bottom:12px;right:12px;z-index:2147483647;'
+                'max-width:calc(100vw - 24px);padding:10px 14px;border-radius:8px;'
+                'background:#fff2cc;color:#5c3900;border:1px solid #a76e00;'
+                'font:14px/1.5 sans-serif;overflow-wrap:anywhere">' + message + '</aside>')
 
 
 def main():

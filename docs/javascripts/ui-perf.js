@@ -22,7 +22,16 @@
   var sectionNavigationDepthTimer = null;
   var archiveNavigationFeedbackReady = false;
   var archiveNavigationFallbackTimer = null;
+  var navigationFeedbackDelayTimer = null;
+  var navigationGlassRuntime = null;
+  // One pending navigation owns both Archive cards and ordinary page links.
   var activeArchiveNavigation = null;
+  var mountedNavigationContent = null;
+  var mountedNavigationHref = window.location.href;
+  var navigationLabels = Object.create(null);
+  var progressiveImages = new WeakSet();
+  var pdfViewers = new WeakMap();
+  var activePdfViewers = [];
   var friendCountRequest = null;
   var friendCountValue = null;
   var enhancedContent = null;
@@ -156,18 +165,22 @@
     window.addEventListener("popstate", rememberPrimarySidebarScrollForHistory);
   }
 
+  function navigationDocumentKey(value) {
+    try {
+      return new URL(value, window.location.href).pathname.replace(/\/index\.html$/i, "/");
+    } catch (error) { return ""; }
+  }
+
   function archiveDestination(link) {
     if (!link || link.hasAttribute("download")) return null;
     if (link.target && link.target !== "_self") return null;
-
+    if (link.closest(".md-search__result, [data-pdf-viewer]")) return null;
     try {
       var destination = new URL(link.getAttribute("href"), window.location.href);
-      if (!/^https?:$/.test(destination.protocol) || destination.origin !== window.location.origin) {
-        return null;
-      }
-      if (navigationPageKey(destination.href) === navigationPageKey(window.location.href)) {
-        return null;
-      }
+      if (!/^https?:$/.test(destination.protocol) || destination.origin !== window.location.origin) return null;
+      // Native assets and same-document fragments retain their own owners.
+      if (/\.(?:pdf|jpe?g|png|webp|gif|svg|avif|mp4|webm|zip|gz|txt|csv)$/i.test(destination.pathname)) return null;
+      if (navigationDocumentKey(destination.href) === navigationDocumentKey(window.location.href)) return null;
       return destination;
     } catch (error) {
       return null;
@@ -175,16 +188,25 @@
   }
 
   function clearArchiveNavigationFeedback() {
+    if (navigationFeedbackDelayTimer !== null) {
+      window.clearTimeout(navigationFeedbackDelayTimer);
+      navigationFeedbackDelayTimer = null;
+    }
+    if (navigationGlassRuntime) navigationGlassRuntime.destroy();
+    navigationGlassRuntime = null;
     if (archiveNavigationFallbackTimer !== null) {
       window.clearTimeout(archiveNavigationFallbackTimer);
       archiveNavigationFallbackTimer = null;
     }
     activeArchiveNavigation = null;
     if (!document.body) return;
-    document.body.classList.remove("is-archive-navigating");
-    var help = document.getElementById("archive-navigation-help");
-    if (help) help.remove();
-    document.querySelectorAll(".archive-card__link.is-opening").forEach(function (link) {
+    document.body.classList.remove("is-archive-navigating", "is-page-navigating");
+    document.body.style.removeProperty("--edwinos-navigation-top");
+    ["archive-navigation-help", "page-navigation-feedback"].forEach(function (id) {
+      var element = document.getElementById(id);
+      if (element) element.remove();
+    });
+    document.querySelectorAll("a.is-opening[aria-busy]").forEach(function (link) {
       link.classList.remove("is-opening");
       link.removeAttribute("aria-busy");
     });
@@ -196,84 +218,453 @@
     if (activeArchiveNavigation &&
         document.querySelector(".md-content__inner") === activeArchiveNavigation.content) return;
     clearArchiveNavigationFeedback();
+    var content = document.querySelector(".md-content__inner");
+    if (content && content !== mountedNavigationContent) {
+      mountedNavigationContent = content;
+      mountedNavigationHref = window.location.href;
+      var title = content.querySelector("h1");
+      navigationLabels[navigationPageKey(mountedNavigationHref)] = title ? title.textContent.trim() : document.title;
+    }
   }
 
   function cancelArchiveNavigation() {
     var pending = activeArchiveNavigation;
     if (!pending) return;
     clearArchiveNavigationFeedback();
-    if (navigationPageKey(window.location.href) !== pending.sourceKey) {
-      // Material's popstate handler cancels the outstanding request.
-      window.history.back();
-    }
+    // Rapid clicks may have pushed several URLs while the mounted article never
+    // changed. Native replacement restores that actual source and atomically
+    // disposes every pending request; history.back() can land on a stale target.
+    window.location.replace(pending.sourceHref);
+  }
+
+  function navigationRecoveryControls(pending, parent) {
+    var retry = document.createElement("button");
+    retry.type = "button";
+    retry.textContent = "直接打开";
+    retry.addEventListener("click", function () {
+      if (activeArchiveNavigation === pending) window.location.assign(pending.destination.href);
+    });
+    var cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = "取消并返回原文";
+    cancel.addEventListener("click", cancelArchiveNavigation);
+    parent.appendChild(retry);
+    parent.appendChild(cancel);
   }
 
   function showArchiveNavigationHelp() {
     if (!activeArchiveNavigation || !document.body) return;
     archiveNavigationFallbackTimer = null;
     var pending = activeArchiveNavigation;
+    if (!pending.archive) {
+      var recovery = document.querySelector(".page-navigation-feedback__recovery");
+      if (recovery) recovery.hidden = false;
+      return;
+    }
     var help = document.createElement("div");
     help.id = "archive-navigation-help";
     help.className = "archive-navigation-help";
     help.setAttribute("role", "status");
     help.setAttribute("aria-live", "polite");
     var message = document.createElement("p");
-    message.textContent = "仍在加载笔记。可以直接打开，或返回 Archive 后重试。";
-    var retry = document.createElement("button");
-    retry.type = "button";
-    retry.textContent = "直接打开";
-    retry.addEventListener("click", function () {
-      // Bypass a stalled instant-navigation request, not the HTTP cache.
-      window.location.assign(pending.destination.href);
-    });
-    var cancel = document.createElement("button");
-    cancel.type = "button";
-    cancel.textContent = "返回 Archive";
-    cancel.addEventListener("click", cancelArchiveNavigation);
+    message.textContent = "仍在打开笔记。可以直接打开，或取消并重新载入原文。";
     help.appendChild(message);
-    help.appendChild(retry);
-    help.appendChild(cancel);
+    navigationRecoveryControls(pending, help);
     document.body.appendChild(help);
+  }
+
+  function updateNavigationFeedbackGeometry(force) {
+    if (!activeArchiveNavigation || !document.body) return;
+    if (force !== true && !activeArchiveNavigation.archive && !document.getElementById("page-navigation-feedback")) return;
+    var header = document.querySelector(".md-header");
+    if (header) document.body.style.setProperty("--edwinos-navigation-top", Math.max(0, header.getBoundingClientRect().bottom) + "px");
+  }
+
+  function setupLayoutControlGlass(feedback, options) {
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var filterId = options.filterId;
+    var prefix = options.prefix;
+    var datasetMode = options.datasetMode;
+    var datasetBuilds = options.datasetBuilds;
+    var padding = 16;
+    var disposed = false;
+    var frame = 0;
+    var mapKey = '';
+    var builds = 0;
+    var definitions = null;
+    var resizeObserver = null;
+    var chromium = /\b(?:Chrome|Chromium|Edg|EdgA|OPR)\//.test(window.navigator.userAgent);
+    var refraction = chromium && window.CSS && typeof window.CSS.supports === 'function' &&
+      window.CSS.supports('backdrop-filter', 'url(#' + filterId + ')') &&
+      typeof window.SVGFEImageElement !== 'undefined' && typeof window.SVGFEDisplacementMapElement !== 'undefined';
+    var canvas = refraction ? document.createElement('canvas') : null;
+    var context = canvas ? canvas.getContext('2d') : null;
+    refraction = Boolean(context);
+    var highlight = document.createElement('span');
+    highlight.className = prefix + '-glass__highlight';
+    highlight.setAttribute('aria-hidden', 'true');
+    feedback.appendChild(highlight);
+    feedback.classList.add(prefix + '-glass');
+    feedback.classList.toggle(prefix + '-refraction', refraction);
+    feedback.dataset[datasetMode] = refraction ? 'refraction' : 'native-blur';
+    if (refraction && options.filterVariable) feedback.style.setProperty(options.filterVariable, 'url(#' + filterId + ')');
+    var filter;
+    var mapImage;
+    if (refraction) {
+      definitions = document.createElementNS(svgNS, 'svg');
+      definitions.setAttribute('width', '0');
+      definitions.setAttribute('height', '0');
+      definitions.setAttribute('aria-hidden', 'true');
+      definitions.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;overflow:hidden';
+      var defs = document.createElementNS(svgNS, 'defs');
+      filter = document.createElementNS(svgNS, 'filter');
+      filter.setAttribute('id', filterId);
+      filter.setAttribute('filterUnits', 'userSpaceOnUse');
+      filter.setAttribute('color-interpolation-filters', 'sRGB');
+      filter.setAttribute('x', String(-padding));
+      filter.setAttribute('y', String(-padding));
+      mapImage = document.createElementNS(svgNS, 'feImage');
+      mapImage.setAttribute('result', prefix + '-map');
+      mapImage.setAttribute('preserveAspectRatio', 'none');
+      mapImage.setAttribute('x', String(-padding));
+      mapImage.setAttribute('y', String(-padding));
+      var blur = document.createElementNS(svgNS, 'feGaussianBlur');
+      blur.setAttribute('in', 'SourceGraphic');
+      blur.setAttribute('stdDeviation', '4');
+      blur.setAttribute('result', prefix + '-blur');
+      var displacement = document.createElementNS(svgNS, 'feDisplacementMap');
+      displacement.setAttribute('in', prefix + '-blur');
+      displacement.setAttribute('in2', prefix + '-map');
+      displacement.setAttribute('xChannelSelector', 'R');
+      displacement.setAttribute('yChannelSelector', 'G');
+      displacement.setAttribute('scale', '22');
+      filter.appendChild(mapImage);
+      filter.appendChild(blur);
+      filter.appendChild(displacement);
+      defs.appendChild(filter);
+      definitions.appendChild(defs);
+      document.body.appendChild(definitions);
+    }
+    function update() {
+      frame = 0;
+      if (disposed || !feedback.isConnected || !refraction) return;
+      var box = feedback.getBoundingClientRect();
+      if (!(box.width > 0 && box.height > 0)) return;
+      var radius = Math.min(box.width / 2, box.height / 2,
+        parseFloat(window.getComputedStyle(feedback).borderTopLeftRadius) || 24);
+      var key = Math.round(box.width) + ':' + Math.round(box.height) + ':' + Math.round(radius);
+      if (key === mapKey) return;
+      var sampleWidth = box.width + padding * 2;
+      var sampleHeight = box.height + padding * 2;
+      canvas.width = Math.min(768, Math.max(24, Math.ceil(sampleWidth * 1.5)));
+      canvas.height = Math.min(512, Math.max(24, Math.ceil(sampleHeight * 1.5)));
+      var pixels = context.createImageData(canvas.width, canvas.height);
+      fillRoundedGlassDisplacementMap(pixels, box.width, box.height, padding, radius);
+      context.putImageData(pixels, 0, 0);
+      var url = canvas.toDataURL('image/png');
+      filter.setAttribute('width', sampleWidth);
+      filter.setAttribute('height', sampleHeight);
+      mapImage.setAttribute('width', sampleWidth);
+      mapImage.setAttribute('height', sampleHeight);
+      mapImage.setAttribute('href', url);
+      mapImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', url);
+      feedback.style.setProperty('--' + prefix + '-radius', radius + 'px');
+      mapKey = key;
+      builds += 1;
+      feedback.dataset[datasetBuilds] = String(builds);
+    }
+    function schedule() {
+      if (!disposed && refraction && !frame) frame = window.requestAnimationFrame(update);
+    }
+    if (refraction) {
+      window.addEventListener('resize', schedule, { passive: true });
+      if (typeof window.ResizeObserver === 'function') {
+        resizeObserver = new window.ResizeObserver(schedule);
+        resizeObserver.observe(feedback);
+      }
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+      schedule();
+    }
+    return {
+      destroy: function () {
+        disposed = true;
+        window.cancelAnimationFrame(frame);
+        window.removeEventListener('resize', schedule);
+        if (resizeObserver) resizeObserver.disconnect();
+        if (definitions) definitions.remove();
+        highlight.remove();
+        feedback.classList.remove(prefix + '-glass', prefix + '-refraction');
+        delete feedback.dataset[datasetMode];
+        delete feedback.dataset[datasetBuilds];
+        feedback.style.removeProperty('--' + prefix + '-radius');
+        if (options.filterVariable) feedback.style.removeProperty(options.filterVariable);
+      }
+    };
+  }
+
+  function setupNavigationFeedbackGlass(feedback) {
+    return setupLayoutControlGlass(feedback, {
+      prefix: 'edwinos-navigation',
+      filterId: 'edwinos-navigation-refraction',
+      datasetMode: 'edwinosNavigationMode',
+      datasetBuilds: 'edwinosNavigationMapBuilds'
+    });
+  }
+
+  function setupPdfButtonGlass(button) {
+    var glass = null;
+    var observer = null;
+    var visibilityObserver = null;
+    var disposed = false;
+    function dispose() {
+      disposed = true;
+      if (observer) observer.disconnect();
+      if (visibilityObserver) visibilityObserver.disconnect();
+      if (glass) glass.destroy();
+      observer = null;
+      visibilityObserver = null;
+      glass = null;
+    }
+    function initialize() {
+      if (disposed || glass || !button.isConnected || button.hidden) return;
+      // PDF controls live below the article introduction and previews. Do not
+      // build their map during unrelated first-screen or navigation work.
+      setupPdfButtonGlass.sequence = (setupPdfButtonGlass.sequence || 0) + 1;
+      glass = setupLayoutControlGlass(button, {
+        prefix: 'edwinos-pdf',
+        filterId: 'edwinos-pdf-refraction-' + setupPdfButtonGlass.sequence,
+        filterVariable: '--edwinos-pdf-filter',
+        datasetMode: 'edwinosPdfMode',
+        datasetBuilds: 'edwinosPdfMapBuilds'
+      });
+      if (observer) observer.disconnect();
+      observer = null;
+    }
+    if (typeof window.MutationObserver === 'function') {
+      visibilityObserver = new window.MutationObserver(function () {
+        if (button.hidden || !button.isConnected) dispose();
+      });
+      visibilityObserver.observe(button, { attributes: true, attributeFilter: ['hidden'] });
+    }
+    if (typeof window.IntersectionObserver === 'function') {
+      observer = new window.IntersectionObserver(function (entries) {
+        if (entries.some(function (entry) { return entry.isIntersecting; })) initialize();
+      });
+      observer.observe(button);
+    } else {
+      var box = button.getBoundingClientRect();
+      if (box.bottom > 0 && box.top < window.innerHeight) initialize();
+      // Older browsers keep the native CSS glass outside the first viewport.
+    }
+    return { destroy: dispose };
+  }
+
+  function showPageNavigationFeedback(pending, label) {
+    if (activeArchiveNavigation !== pending || !document.body) return;
+    updateNavigationFeedbackGeometry(true);
+    document.body.classList.add("is-page-navigating");
+    var feedback = document.createElement("div");
+    feedback.id = "page-navigation-feedback";
+    feedback.className = "page-navigation-feedback";
+    feedback.setAttribute("role", "status");
+    feedback.setAttribute("aria-live", "polite");
+    var message = document.createElement("p");
+    message.className = "page-navigation-feedback__message";
+    message.textContent = "正在打开「" + label + "」…";
+    var recovery = document.createElement("div");
+    recovery.className = "page-navigation-feedback__recovery";
+    recovery.hidden = true;
+    navigationRecoveryControls(pending, recovery);
+    feedback.appendChild(message);
+    feedback.appendChild(recovery);
+    document.body.appendChild(feedback);
+    navigationGlassRuntime = setupNavigationFeedbackGlass(feedback);
+  }
+
+  function startPageNavigationFeedback(destination, link) {
+    var content = document.querySelector(".md-content__inner");
+    if (!content || !document.body) return;
+    // Fragment/query edits belong to this still-mounted article. Preserve its
+    // latest address before the first cross-document click, never a pending URL.
+    if (!activeArchiveNavigation &&
+        navigationDocumentKey(window.location.href) === navigationDocumentKey(mountedNavigationHref)) {
+      mountedNavigationHref = window.location.href;
+    }
+    var archive = Boolean(link && link.matches(".archive-card__link"));
+    var label = link ? link.textContent.trim().replace(/\s+/g, " ") : navigationLabels[navigationPageKey(destination.href)];
+    if (!label) {
+      try { label = decodeURIComponent(destination.pathname.replace(/\/$/, "").split("/").pop()) || "页面"; }
+      catch (error) { label = "页面"; }
+    }
+    clearArchiveNavigationFeedback();
+    activeArchiveNavigation = {
+      destination: destination,
+      sourceHref: mountedNavigationHref,
+      sourceKey: navigationPageKey(mountedNavigationHref),
+      content: content,
+      archive: archive
+    };
+    var pending = activeArchiveNavigation;
+    if (link) {
+      link.classList.add("is-opening");
+      link.setAttribute("aria-busy", "true");
+    }
+    // Fast ordinary navigation does no layout measurement or body styling.
+    // Material owns fetching; feedback is measured only after its 2s delay.
+    if (archive) {
+      document.body.classList.add("is-archive-navigating");
+      updateNavigationFeedbackGeometry();
+    }
+    if (!archive) {
+      navigationFeedbackDelayTimer = window.setTimeout(function () {
+        navigationFeedbackDelayTimer = null;
+        if (activeArchiveNavigation !== pending) return;
+        if (document.querySelector(".md-content__inner") !== pending.content) {
+          finishArchiveNavigationFeedback();
+          return;
+        }
+        showPageNavigationFeedback(pending, label);
+      }, 2000);
+    }
+    // A slow request is not a completed request: recovery becomes available,
+    // while the waiting state remains until actual content replacement.
+    archiveNavigationFallbackTimer = window.setTimeout(showArchiveNavigationHelp, 10000);
   }
 
   function beginArchiveNavigationFeedback(event) {
     if (event.defaultPrevented || event.button !== 0) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-    var target = event.target && event.target.closest
-      ? event.target
-      : event.target && event.target.parentElement;
-    var link = target && target.closest
-      ? target.closest(".archive-card__link[href]")
-      : null;
+    var target = event.target && event.target.closest ? event.target : event.target && event.target.parentElement;
+    var link = target && target.closest ? target.closest("a[href]") : null;
+    if (!link || !link.closest(".md-sidebar--primary, .md-tabs, .md-content__inner")) return;
     var destination = archiveDestination(link);
-    if (!destination || !document.body) return;
+    if (destination) startPageNavigationFeedback(destination, link);
+  }
 
-    clearArchiveNavigationFeedback();
-    activeArchiveNavigation = {
-      destination: destination,
-      sourceKey: navigationPageKey(window.location.href),
-      content: document.querySelector(".md-content__inner")
-    };
-    link.classList.add("is-opening");
-    link.setAttribute("aria-busy", "true");
-    document.body.classList.add("is-archive-navigating");
-    // A slow request is not a completed request. Keep the spinner until actual
-    // content replacement, and offer recovery instead of silently dismissing it.
-    archiveNavigationFallbackTimer = window.setTimeout(showArchiveNavigationHelp, 10000);
+  function pageNavigationForHistory() {
+    if (navigationDocumentKey(window.location.href) === navigationDocumentKey(mountedNavigationHref)) {
+      mountedNavigationHref = window.location.href;
+      clearArchiveNavigationFeedback();
+      return;
+    }
+    startPageNavigationFeedback(new URL(window.location.href), null);
   }
 
   function setupArchiveNavigationFeedback() {
     if (archiveNavigationFeedbackReady) return;
     archiveNavigationFeedbackReady = true;
-
     document.addEventListener("click", beginArchiveNavigationFeedback, true);
     window.addEventListener("pageshow", finishArchiveNavigationFeedback);
-    window.addEventListener("popstate", clearArchiveNavigationFeedback);
+    window.addEventListener("popstate", pageNavigationForHistory);
+    window.addEventListener("resize", updateNavigationFeedbackGeometry, { passive: true });
     document.addEventListener("keydown", function (event) {
       if (event.key !== "Escape" || !activeArchiveNavigation) return;
+      if (event.target && event.target.closest("input, textarea, [contenteditable], .md-search")) return;
       event.preventDefault();
       cancelArchiveNavigation();
+    });
+  }
+
+  function setupProgressiveImages() {
+    document.querySelectorAll("[data-progressive-image]").forEach(function (shell) {
+      var image = shell.querySelector("img[data-progressive-full]");
+      if (!image || progressiveImages.has(image)) return;
+      progressiveImages.add(image);
+      shell.classList.add("is-loading");
+      function failed() {
+        if (!shell.isConnected) return;
+        shell.classList.remove("is-loading", "is-ready");
+        shell.classList.add("is-error");
+      }
+      function loaded() {
+        if (!image.complete || !image.naturalWidth) return;
+        var decoded;
+        try { decoded = image.decode ? image.decode() : Promise.resolve(); }
+        catch (error) { failed(); return; }
+        Promise.resolve(decoded).then(function () {
+          if (!shell.isConnected || !image.complete || !image.naturalWidth) return;
+          shell.classList.remove("is-loading", "is-error");
+          shell.classList.add("is-ready");
+        }).catch(failed);
+      }
+      image.addEventListener("load", loaded);
+      image.addEventListener("error", failed);
+      if (image.complete) {
+        if (image.naturalWidth) loaded();
+        else failed();
+      }
+    });
+  }
+
+  function setupPdfViewers() {
+    // Content replacement must also dispose timers for detached viewers.
+    activePdfViewers = activePdfViewers.filter(function (runtime) {
+      if (runtime.shell.isConnected) return true;
+      runtime.dispose();
+      return false;
+    });
+    document.querySelectorAll("[data-pdf-viewer]").forEach(function (shell) {
+      if (pdfViewers.has(shell)) return;
+      var iframe = shell.querySelector("iframe[data-src]");
+      var open = shell.querySelector("[data-pdf-open]");
+      var status = shell.querySelector("[data-pdf-status]");
+      if (!iframe || !open || !status) return;
+      var timer = null;
+      var buttonGlass = setupPdfButtonGlass(open);
+      var started = false;
+      var retry = document.createElement("button");
+      retry.type = "button";
+      retry.dataset.pdfRetry = "";
+      retry.textContent = "重新加载内嵌 PDF";
+      retry.hidden = true;
+      open.parentNode.insertBefore(retry, open.nextSibling);
+      function showStatus(message) {
+        status.hidden = false;
+        status.textContent = message;
+      }
+      function dispose() {
+        if (timer !== null) window.clearTimeout(timer);
+        timer = null;
+        if (buttonGlass) buttonGlass.destroy();
+        buttonGlass = null;
+      }
+      function start() {
+        dispose();
+        started = true;
+        shell.classList.remove("is-pdf-slow", "is-pdf-error");
+        shell.classList.add("is-pdf-active");
+        open.hidden = true;
+        retry.hidden = true;
+        iframe.hidden = false;
+        showStatus("正在打开内嵌 PDF。前两页预览仍可阅读，也可在新窗口打开完整文件。");
+        // Never request the original PDF until explicit reader intent.
+        iframe.setAttribute("src", iframe.getAttribute("data-src"));
+        timer = window.setTimeout(function () {
+          timer = null;
+          if (!shell.isConnected) return;
+          shell.classList.add("is-pdf-slow");
+          retry.hidden = false;
+          showStatus("如果内嵌 PDF 仍未显示，可重新加载，或在新窗口打开。前两页预览始终保留。");
+        }, 10000);
+      }
+      iframe.addEventListener("load", function () {
+        if (!started || !shell.isConnected) return;
+        // Browser PDF viewers can fire load before even page 1 is available.
+        // Keep previews and recovery intact; do not declare rendering complete.
+        showStatus("内嵌阅读器正在初始化；PDF 页面可能仍在加载。可继续阅读预览，或在新窗口打开。");
+      });
+      iframe.addEventListener("error", function () {
+        if (!started || !shell.isConnected) return;
+        dispose();
+        shell.classList.add("is-pdf-error");
+        retry.hidden = false;
+        showStatus("内嵌阅读器暂未打开。可重试，或在新窗口打开完整 PDF。");
+      });
+      open.addEventListener("click", start);
+      retry.addEventListener("click", start);
+      var runtime = { shell: shell, dispose: dispose };
+      pdfViewers.set(shell, runtime);
+      activePdfViewers.push(runtime);
     });
   }
 
@@ -2582,7 +2973,7 @@
     }
 
     document.querySelectorAll(".md-typeset details").forEach(function (details) {
-      if (!isCallout(details)) return;
+      if (details.hasAttribute("data-pdf-previews") || !isCallout(details)) return;
 
       var summary = directSummary(details);
       if (!summary) return;
@@ -2883,6 +3274,8 @@
     labelCodeBlockLanguages();
     setupCollapsibleCallouts();
     setupAuthorToggles();
+    setupProgressiveImages();
+    setupPdfViewers();
     setupVisitorBadge();
     afterFirstScreen(function () {
       updateSourceFacts();

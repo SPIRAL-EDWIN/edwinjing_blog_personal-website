@@ -60,6 +60,9 @@ jobs:
 
       - name: Verify search behavior
         run: |
+          node tools/test_navigation_media.cjs
+          node tools/test_navigation_glass.cjs
+          node tools/test_math_loading.cjs
           node tools/test_search_engine.cjs
           node tools/test_search_worker.cjs
           node tools/test_search_loader.cjs

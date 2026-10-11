@@ -4398,6 +4398,132 @@ body[data-md-color-scheme="slate"] .md-tabs,
     }
 }
 
+/* Navigation feedback: share the visible progress edge across all routes.
+   Material keeps its real request lifecycle; this bar never supplies a fake
+   completion percentage. Search keeps ownership of its expanded window. */
+body .md-progress {
+    top: calc(
+        var(--edwinos-navigation-top, var(--edwinos-header-height, 3.5rem))
+        - 0.15rem
+    ) !important;
+    z-index: 10005 !important;
+    height: 0.15rem !important;
+    background: #58a6ff !important;
+    box-shadow: 0 0 0.45rem rgba(88, 166, 255, 0.72);
+}
+
+.page-navigation-feedback {
+    position: fixed;
+    top: calc(var(--edwinos-navigation-top, var(--edwinos-header-height, 3.5rem)) + 0.5rem);
+    left: 50%;
+    z-index: 21;
+    width: max-content;
+    max-width: min(90vw, 30rem);
+    padding: 0.55rem 0.85rem;
+    border: 0;
+    border-radius: 1.5rem;
+    font: 400 0.72rem/1.5 var(--edwinos-font-reading-sans);
+    transform: translateX(-50%);
+}
+
+/* The toast samples the page directly, with the lighter Back to Top tuning.
+   Its filter and displacement geometry are independent of the other controls. */
+.page-navigation-feedback.edwinos-navigation-glass {
+    --edwinos-navigation-tint: rgba(246, 248, 250, 0.2);
+    --edwinos-navigation-border: rgba(60, 60, 67, 0.2);
+    --edwinos-navigation-highlight: rgba(255, 255, 255, 0.65);
+    --edwinos-navigation-shadow: 0 3px 14px rgba(31, 35, 40, 0.13);
+    overflow: visible;
+    background: var(--edwinos-navigation-tint);
+    -webkit-backdrop-filter: blur(4px) saturate(1.12);
+    backdrop-filter: blur(4px) saturate(1.12);
+    box-shadow: var(--edwinos-navigation-shadow);
+    color: #303641;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+[data-md-color-scheme="slate"] .page-navigation-feedback.edwinos-navigation-glass {
+    --edwinos-navigation-tint: rgba(25, 29, 37, 0.26);
+    --edwinos-navigation-border: rgba(240, 246, 252, 0.2);
+    --edwinos-navigation-highlight: rgba(240, 246, 252, 0.24);
+    --edwinos-navigation-shadow: 0 3px 14px rgba(1, 4, 9, 0.32);
+    color: #dce2ea;
+    text-shadow: 0 1px 2px rgba(1, 4, 9, 0.65);
+}
+
+.page-navigation-feedback.edwinos-navigation-refraction {
+    backdrop-filter: url(#edwinos-navigation-refraction) saturate(1.12);
+}
+
+.page-navigation-feedback > .edwinos-navigation-glass__highlight {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    display: block;
+    box-sizing: border-box;
+    border-radius: inherit;
+    border: 1px solid var(--edwinos-navigation-border);
+    box-shadow:
+        inset 0 1px 0 var(--edwinos-navigation-highlight),
+        inset 0 -1px 0 rgba(31, 35, 40, 0.07);
+    pointer-events: none;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .page-navigation-feedback.edwinos-navigation-glass {
+        --edwinos-navigation-tint: rgba(246, 248, 250, 0.94);
+    }
+
+    [data-md-color-scheme="slate"] .page-navigation-feedback.edwinos-navigation-glass {
+        --edwinos-navigation-tint: rgba(25, 29, 37, 0.94);
+    }
+}
+
+.page-navigation-feedback[hidden],
+.page-navigation-feedback__recovery[hidden] {
+    display: none;
+}
+
+.page-navigation-feedback__message {
+    display: block;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.page-navigation-feedback__recovery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.55rem;
+}
+
+.page-navigation-feedback__recovery button {
+    padding: 0.25rem 0.55rem;
+    border: 1px solid var(--md-default-fg-color--lighter);
+    border-radius: 0.35rem;
+    color: var(--md-primary-fg-color);
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+}
+
+.page-navigation-feedback__recovery button:focus-visible {
+    outline: 2px solid var(--md-accent-fg-color);
+    outline-offset: 3px;
+}
+
+body:has([data-md-toggle="search"]:checked) .md-progress,
+body:has([data-md-toggle="search"]:checked) .page-navigation-feedback {
+    visibility: hidden !important;
+}
+
+@media screen and (max-width: 44.984375em) {
+    .page-navigation-feedback {
+        max-width: calc(100vw - 1.5rem);
+        font-size: 0.68rem;
+    }
+}
+
 /*
  * Progressive Header Glass
  *
@@ -6580,6 +6706,72 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
     .academic-home-layout .overview-education-content { grid-column: 1 / -1; grid-row: 2; }
 }
 
+/* Homepage image previews keep the full image's intrinsic geometry. Full
+   thumbnails remain visible without JavaScript; only decoding opts into fade. */
+.academic-home-layout [data-progressive-image] {
+    position: relative;
+}
+
+.academic-home-layout [data-progressive-image]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: var(--progressive-preview);
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 180ms ease;
+}
+
+.academic-home-layout .overview-education-logo [data-progressive-full] {
+    aspect-ratio: 720 / 263;
+}
+
+.academic-home-layout .overview-workshop__media [data-progressive-full] {
+    aspect-ratio: 1550 / 1000;
+}
+
+.academic-home-layout .overview-education-logo[data-progressive-image]::before {
+    width: 180px;
+    max-width: 100%;
+}
+
+html.js .academic-home-layout [data-progressive-image]:not(.is-ready):not(.is-error)::before {
+    opacity: 1;
+}
+
+html.js .academic-home-layout [data-progressive-image] [data-progressive-full] {
+    position: relative;
+    opacity: 0;
+    transition: opacity 180ms ease;
+}
+
+html.js .academic-home-layout [data-progressive-image]:is(.is-ready, .is-error) [data-progressive-full] {
+    opacity: 1;
+}
+
+@media screen and (max-width: 48em) {
+    .academic-home-layout .overview-education-logo[data-progressive-image]::before {
+        width: 4.8rem;
+    }
+}
+
+@media screen and (max-width: 680px) {
+    .academic-home-layout .overview-education-logo[data-progressive-image]::before {
+        width: 80%;
+        transform: translateX(-1.509%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .academic-home-layout [data-progressive-image]::before,
+    html.js .academic-home-layout [data-progressive-image] [data-progressive-full] {
+        transition: none;
+    }
+}
+
 /* ==========================================================================
    Recent News first-line alignment
    ========================================================================== */
@@ -7502,6 +7694,64 @@ body .md-content__inner > .md-typeset__scrollwrap + h2#matlab-python {
     border-radius: 999px;
 }
 
+/* Article-only math status never blocks prose or search-snippet rendering. */
+.md-content__inner.md-typeset .edwinos-math-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.7rem;
+    margin-block: 0.75rem;
+    padding: 0.45rem 0.65rem;
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.45rem;
+    color: var(--md-default-fg-color--light);
+    background: color-mix(in srgb, var(--md-default-fg-color) 4%, var(--md-default-bg-color));
+    font: 400 0.7rem/1.5 var(--edwinos-font-reading-sans);
+}
+
+.md-content__inner.md-typeset .edwinos-math-status[hidden],
+.md-content__inner.md-typeset .edwinos-math-retry[hidden] {
+    display: none;
+}
+
+.md-content__inner.md-typeset .edwinos-math-status[data-state="error"] {
+    border-color: color-mix(in srgb, var(--md-accent-fg-color) 40%, transparent);
+    color: var(--md-default-fg-color);
+}
+
+.md-content__inner.md-typeset .edwinos-math-retry {
+    padding: 0.2rem 0.45rem;
+    border: 1px solid var(--md-default-fg-color--lighter);
+    border-radius: 0.3rem;
+    color: var(--md-accent-fg-color);
+    background: var(--md-default-bg-color);
+    font: inherit;
+    cursor: pointer;
+}
+
+.md-content__inner.md-typeset .edwinos-math-retry:focus-visible {
+    outline: 2px solid var(--md-accent-fg-color);
+    outline-offset: 3px;
+}
+
+.md-content__inner.md-typeset
+:is(div.arithmatex, span.arithmatex--display)[data-edwinos-math-state="pending"] {
+    position: relative;
+    min-height: 2.6em;
+    color: transparent;
+    overflow: hidden;
+}
+
+.md-content__inner.md-typeset
+:is(div.arithmatex, span.arithmatex--display)[data-edwinos-math-state="pending"]::after {
+    content: "";
+    position: absolute;
+    inset: 0.7em max(1em, 15%);
+    border-radius: 0.3rem;
+    background: color-mix(in srgb, var(--md-default-fg-color) 7%, var(--md-default-bg-color));
+    pointer-events: none;
+}
+
 /* ==========================================================================
    Tables
    ========================================================================== */
@@ -7578,7 +7828,6 @@ table :is(th, td):first-child code {
    ========================================================================== */
 
 .md-typeset .pdf-viewer-shell {
-    position: relative;
     width: 100%;
     margin-block: 1rem 0.75rem;
     overflow: hidden;
@@ -7592,71 +7841,203 @@ table :is(th, td):first-child code {
     background: #161b22;
 }
 
-/* Paint a small first-page preview immediately while the browser's native PDF
-   reader downloads and initializes. The actual PDF is requested eagerly; the
-   preview simply removes the otherwise blank, ambiguous waiting period. */
-.md-typeset .pdf-viewer-loading {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
+/* Two clear page images are useful before any native PDF reader is requested.
+   Previews stay in normal flow after opening; load never hides them. */
+.md-typeset .pdf-viewer-shell .pdf-viewer-previews {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    font-size: inherit;
+}
+
+.md-typeset .pdf-viewer-shell .pdf-viewer-previews > summary {
+    margin: 0;
+    padding: 0.65rem 2rem 0.65rem 0.9rem;
+    border: 0;
+    color: var(--md-default-fg-color);
+    background: transparent;
+    font: 500 0.75rem/1.5 var(--edwinos-font-reading-sans);
+    cursor: pointer;
+}
+
+.md-typeset .pdf-viewer-shell .pdf-viewer-previews > summary::before {
+    display: none;
+}
+
+.md-typeset .pdf-viewer-shell .pdf-viewer-previews > summary::after {
+    right: 0.8rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    background-color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .pdf-viewer-shell .pdf-viewer-previews > summary:focus-visible {
+    outline: 2px solid var(--md-accent-fg-color);
+    outline-offset: -3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .md-typeset .pdf-viewer-shell .pdf-viewer-previews > summary::after {
+        transition: none;
+    }
+}
+
+.md-typeset .pdf-viewer-preview-grid {
     display: grid;
-    place-items: center;
-    overflow: hidden;
-    background: inherit;
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 180ms ease, visibility 0s linear 180ms;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+    padding: 0 0.85rem 0.85rem;
+}
+
+.md-typeset .pdf-viewer-preview-page {
+    min-width: 0;
+    margin: 0;
+}
+
+.md-typeset .pdf-viewer-preview-page > a {
+    display: block;
+    border: 0;
+    text-decoration: none;
 }
 
 .md-typeset .pdf-viewer-preview {
     display: block;
     width: 100%;
-    height: 100%;
-    padding: clamp(0.4rem, 1.4vw, 0.9rem);
-    object-fit: contain;
-    background: transparent;
+    max-width: 100%;
+    height: auto;
+    margin: 0;
+    border: 1px solid rgb(13 17 23 / 12%);
+    border-radius: 0.2rem;
+    background: #fff;
+    box-shadow: 0 0.15rem 0.45rem rgb(13 17 23 / 10%);
 }
 
-.md-typeset .pdf-viewer-loading-status {
-    position: absolute;
-    inset-block-start: 0.8rem;
-    inset-inline-start: 50%;
+.md-typeset .pdf-viewer-preview-page figcaption {
+    margin: 0.4rem 0 0;
+    color: var(--md-default-fg-color--light);
+    font: 400 0.65rem/1.5 var(--edwinos-font-reading-sans);
+    text-align: center;
+}
+
+.md-typeset .pdf-viewer-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem 0.8rem;
+    padding: 0.65rem 0.85rem;
+    border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .pdf-viewer-shell :is([data-pdf-open], [data-pdf-retry]) {
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--md-accent-fg-color);
+    border-radius: 0.4rem;
+    color: var(--md-accent-fg-color);
+    background: var(--md-default-bg-color);
+    font: 500 0.75rem/1.4 var(--edwinos-font-reading-sans);
+    cursor: pointer;
+}
+
+.md-typeset .pdf-viewer-shell :is([data-pdf-open], [data-pdf-retry]):focus-visible {
+    outline: 2px solid var(--md-accent-fg-color);
+    outline-offset: 3px;
+}
+
+.md-typeset .pdf-viewer-shell :is([data-pdf-open], [data-pdf-retry]):disabled {
+    color: var(--md-default-fg-color--light);
+    border-color: var(--md-default-fg-color--lighter);
+    cursor: default;
+}
+
+/* The reader button shares Back to Top's lighter glass tuning. Its own
+   backdrop keeps the label sharp; each visible viewer owns its optical map. */
+.md-typeset .pdf-viewer-shell [data-pdf-open] {
+    --edwinos-pdf-tint: rgba(246, 248, 250, 0.2);
+    --edwinos-pdf-hover-tint: rgba(246, 248, 250, 0.28);
+    --edwinos-pdf-border: rgba(60, 60, 67, 0.2);
+    --edwinos-pdf-highlight: rgba(255, 255, 255, 0.65);
+    --edwinos-pdf-shadow: 0 3px 14px rgba(31, 35, 40, 0.13);
+    --edwinos-pdf-radius: 1.5rem;
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    max-width: calc(100% - 1.6rem);
-    padding: 0.38rem 0.7rem;
-    border: 1px solid rgb(255 255 255 / 18%);
-    border-radius: 999px;
-    color: #f0f6fc;
-    background: rgb(13 17 23 / 88%);
-    box-shadow: 0 0.35rem 1rem rgb(0 0 0 / 20%);
-    font-size: 0.72rem;
-    line-height: 1.25;
-    white-space: nowrap;
-    transform: translateX(-50%);
-    backdrop-filter: blur(8px);
+    justify-content: center;
+    box-sizing: border-box;
+    max-width: 100%;
+    padding: 0.5rem 0.9rem;
+    overflow: visible;
+    border: 0;
+    border-radius: var(--edwinos-pdf-radius);
+    background: var(--edwinos-pdf-tint);
+    -webkit-backdrop-filter: blur(4px) saturate(1.12);
+    backdrop-filter: blur(4px) saturate(1.12);
+    box-shadow: var(--edwinos-pdf-shadow);
+    color: #303641;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
 }
 
-.md-typeset .pdf-viewer-spinner {
-    width: 0.75rem;
-    height: 0.75rem;
-    flex: 0 0 auto;
-    border: 2px solid rgb(240 246 252 / 30%);
-    border-top-color: #f0f6fc;
-    border-radius: 50%;
-    animation: edwinos-pdf-spinner 720ms linear infinite;
+[data-md-color-scheme="slate"] .md-typeset .pdf-viewer-shell [data-pdf-open] {
+    --edwinos-pdf-tint: rgba(25, 29, 37, 0.26);
+    --edwinos-pdf-hover-tint: rgba(25, 29, 37, 0.34);
+    --edwinos-pdf-border: rgba(240, 246, 252, 0.2);
+    --edwinos-pdf-highlight: rgba(240, 246, 252, 0.24);
+    --edwinos-pdf-shadow: 0 3px 14px rgba(1, 4, 9, 0.32);
+    color: #dce2ea;
+    text-shadow: 0 1px 2px rgba(1, 4, 9, 0.65);
 }
 
-@keyframes edwinos-pdf-spinner {
-    to {
-        transform: rotate(1turn);
+.md-typeset .pdf-viewer-shell [data-pdf-open].edwinos-pdf-refraction {
+    backdrop-filter: var(--edwinos-pdf-filter) saturate(1.12);
+}
+
+.md-typeset .pdf-viewer-shell [data-pdf-open] > .edwinos-pdf-glass__highlight {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    display: block;
+    box-sizing: border-box;
+    border: 1px solid var(--edwinos-pdf-border);
+    border-radius: inherit;
+    box-shadow:
+        inset 0 1px 0 var(--edwinos-pdf-highlight),
+        inset 0 -1px 0 rgba(31, 35, 40, 0.07);
+    pointer-events: none;
+}
+
+.md-typeset .pdf-viewer-shell [data-pdf-open]:is(:hover, :focus):not(:disabled) {
+    background: var(--edwinos-pdf-hover-tint);
+}
+
+.md-typeset .pdf-viewer-shell [data-pdf-open]:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .md-typeset .pdf-viewer-shell [data-pdf-open] {
+        --edwinos-pdf-tint: rgba(246, 248, 250, 0.94);
+        --edwinos-pdf-hover-tint: rgba(246, 248, 250, 0.98);
+    }
+
+    [data-md-color-scheme="slate"] .md-typeset .pdf-viewer-shell [data-pdf-open] {
+        --edwinos-pdf-tint: rgba(25, 29, 37, 0.94);
+        --edwinos-pdf-hover-tint: rgba(25, 29, 37, 0.98);
     }
 }
 
+.md-typeset .pdf-viewer-shell .pdf-viewer-status {
+    flex: 1 1 12rem;
+    margin: 0;
+    color: var(--md-default-fg-color--light);
+    font: 400 0.7rem/1.5 var(--edwinos-font-reading-sans);
+}
+
 /* A PDF reader is the page's primary content, so reclaim the desktop TOC
-   column for the document canvas. This remains compatible with front matter
-   that also hides the TOC and needs no route-specific filename selector. */
+   column for both readable previews and the document canvas. */
 html:has(body .pdf-viewer-shell) body .md-sidebar--secondary {
     display: none !important;
 }
@@ -7669,22 +8050,13 @@ html:has(body .pdf-viewer-shell) body .md-content__inner {
 .md-typeset .pdf-viewer-frame {
     display: block;
     width: 100%;
-    height: min(82vh, 900px);
-    min-height: 560px;
+    height: 720px;
     border: 0;
     background: #fff;
-    opacity: 0;
-    transition: opacity 180ms ease;
 }
 
-.md-typeset .pdf-viewer-shell.is-pdf-ready .pdf-viewer-loading {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.md-typeset .pdf-viewer-shell.is-pdf-ready .pdf-viewer-frame {
-    opacity: 1;
+.md-typeset .pdf-viewer-shell [hidden] {
+    display: none !important;
 }
 
 .md-typeset .pdf-viewer-actions {
@@ -7696,26 +8068,20 @@ html:has(body .pdf-viewer-shell) body .md-content__inner {
     font-size: 0.8rem;
 }
 
-@media screen and (max-width: 44.984375em) {
-    .md-typeset .pdf-viewer-frame {
-        height: 68vh;
-        min-height: 440px;
-    }
-
-    .md-typeset .pdf-viewer-loading-status {
-        inset-block-start: 0.6rem;
-        font-size: 0.66rem;
-    }
+.md-typeset .pdf-viewer-shell noscript {
+    display: block;
+    padding: 0.65rem 0.85rem;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .md-typeset .pdf-viewer-loading,
-    .md-typeset .pdf-viewer-frame {
-        transition: none;
+@media screen and (max-width: 44.984375em) {
+    .md-typeset .pdf-viewer-preview-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.65rem;
+        padding: 0 0.65rem 0.65rem;
     }
 
-    .md-typeset .pdf-viewer-spinner {
-        animation-duration: 1.5s;
+    .md-typeset .pdf-viewer-frame {
+        height: 720px;
     }
 }
 
@@ -8433,19 +8799,6 @@ body.is-home-profile-page:has(.archive-grid) .archive-card__image {
     height: 100% !important;
     object-fit: cover !important;
     object-position: center;
-}
-
-/* Material's instant-navigation progress bar defaults to y=0 underneath the
-   EdwinOS header. Move it to the visible header edge on the Archive route. */
-body.is-home-profile-page:has(.archive-grid) .md-progress {
-    top: calc(
-        var(--edwinos-mobile-header-height, var(--compact-header-height, 3.5rem))
-        - 0.15rem
-    ) !important;
-    z-index: 10005 !important;
-    height: 0.15rem !important;
-    background: #58a6ff !important;
-    box-shadow: 0 0 0.45rem rgba(88, 166, 255, 0.72);
 }
 
 /* Archive links can take a moment on a cold Pages cache. Give the click an

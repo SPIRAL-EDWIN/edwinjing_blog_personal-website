@@ -43,7 +43,10 @@ repository and deployment metadata wait until after load/paint/idle. Core UI
 enhancements run once per content/header pair across the initial lifecycle;
 instant navigation still initializes replaced content. Homepage prose remains
 visible during its short entrance motion. The avatar is eager/high priority;
-below-the-fold images and visitor statistics are native lazy/low priority.
+the homepage logo is eager at normal priority, while Workshop responsive
+thumbnails remain lazy at normal priority. Tiny inline blur previews reserve
+their existing geometry until decoded images are ready. Other below-the-fold
+images and visitor statistics retain their existing lazy/low priority.
 Closed search refreshes draw once; opening/closing and result transitions retain
 frame tracking. Font readiness refreshes the static geometry without an idle
 animation loop. Queries typed before Material loads are opened and submitted
@@ -222,7 +225,7 @@ listeners or an idle frame loop; the compositor samples the live page on scroll.
 
 | Concern | Owner | Contract |
 | --- | --- | --- |
-| Math rendering and TOC math markup | `mathjax.js` | Announces layout completion; does not position hashes. |
+| Math rendering and TOC math markup | `mathjax.js`, formula-only preload in `overrides/main.html` | Tracks current-article loading, bounded retries and manual recovery; excludes overlapping nested TOC targets, announces layout completion and does not position hashes. |
 | Fragment navigation and block highlighting | `block-links.js` | Sole owner of hash positioning, including post-MathJax realignment. |
 | Route classes, header/search adaptation, source facts, profile shell, drawer, callouts, list continuity | `ui-perf.js` | Enhancements must be idempotent across Material instant navigation. |
 | Obsidian block anchors | `hooks/archive.py` | Generated at build time; runtime must not rewrite `.md-content__inner.innerHTML`. |
@@ -235,8 +238,9 @@ listeners or an idle frame loop; the compositor samples the live page on scroll.
 | Search index prebuilding | `hooks/search_scope.py`, `tools/build_search_index.cjs` | Prebuild only after corpus scoping, with the same vendored Lunr and tokenizer as the worker. Node 24 is configured in the existing deployment workflow; Python-only local builds retain the worker fallback. `EDWINOS_NODE` can select a local Node binary. |
 | ENotes and experience-article image loading and intrinsic dimensions | `hooks/note_assets.py` | Build-time native lazy loading; preserve original image URLs, explicit attributes, and lightbox behavior. |
 | Internal page prefetch | Material `navigation.instant.prefetch` | Hover/focus-triggered HTML prefetch; no duplicate runtime Archive prefetch or automatic batch downloads. |
-| Archive opening feedback | `ui-perf.js`, Archive CSS owner | Clear only after content replacement or explicit cancellation; 10 seconds reveals recovery controls, never pretends a pending navigation is complete. |
+| Cross-document opening feedback | `ui-perf.js`, Header CSS owner; Archive overlay in Archive owner | One pending coordinator retains the mounted source across rapid clicks. Ordinary feedback appears after 2 seconds; 10 seconds reveals recovery. Its independent liquid-glass filter reuses Back to Top's map generator and updates only for layout/font changes. Dispose timers and optics after content replacement or cancellation. Tabs/sidebar have no waiting outline; the shared progress bar is visible at the header edge. |
 | Archive cover thumbnails | `hooks/archive_assets.py` | Build-time Pillow output under `assets/archive-thumbnails`; same-origin raster covers only, originals and third-party URLs preserved. |
+| Homepage loading previews and PDF page previews | `tools/generate_loading_previews.py`, authored Markdown, `ui-perf.js` | Preserve originals; image decoding reveals sharp thumbnails. First two PDF page previews remain readable without downloading the PDF; only reader intent assigns its iframe URL. Iframe load does not establish PDF page readiness. The open button reuses navigation's layout-only glass owner and initializes optics on viewport entry. |
 
 ## UI data sources
 

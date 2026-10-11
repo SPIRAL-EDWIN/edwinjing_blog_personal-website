@@ -36,8 +36,9 @@
   var articleMathRoot = null;
   var articleMathObserver = null;
   var articleMathCleanText = new WeakMap();
+  var activeMathPage = null;
 
-  window.MathJax = {
+  var mathJaxSettings = {
     tex: {
       macros: {
         prescript: ["{}^{#1}_{#2}\\!#3", 3],
@@ -68,6 +69,12 @@
       typeset: false
     }
   };
+
+  resetMathJaxConfig();
+
+function resetMathJaxConfig() {
+  window.MathJax = JSON.parse(JSON.stringify(mathJaxSettings));
+}
 
 /**
  * 把目录中所有含 inline math 分隔符的文本节点包成 .arithmatex 容器，
@@ -134,85 +141,191 @@ function mathJaxIsReady() {
   );
 }
 
+// Share one request (including startup and a single automatic retry) between
+// articles and visible search rows. A slow pending request is never duplicated.
 function loadMathJax() {
-  if (mathJaxIsReady()) return Promise.resolve();
   if (mathJaxLoadPromise) return mathJaxLoadPromise;
+  if (mathJaxIsReady()) {
+    return Promise.resolve(window.MathJax.startup && window.MathJax.startup.promise);
+  }
 
-  mathJaxLoadPromise = new Promise(function (resolve, reject) {
-    var script = document.getElementById("mathjax-runtime");
-
-    function handleLoad() {
-      if (mathJaxIsReady()) {
-        resolve();
-      } else {
-        reject(new Error("MathJax loaded without its typesetting API"));
+  function attempt() {
+    return new Promise(function (resolve, reject) {
+      var script = document.getElementById("mathjax-runtime");
+      var shouldAppend = !script;
+      function discard(error) {
+        if (script && script.parentNode) script.parentNode.removeChild(script);
+        // Failed startup can leave API methods installed on an unusable runtime.
+        // A fresh settings object lets the next script initialize normally.
+        resetMathJaxConfig();
+        reject(error);
       }
-    }
-
-    function handleError() {
-      if (script && script.parentNode) script.parentNode.removeChild(script);
-      reject(new Error("MathJax failed to load"));
-    }
-
-    var shouldAppend = !script;
-    if (shouldAppend) {
-      script = document.createElement("script");
-      script.src = MATHJAX_SRC;
-      script.async = true;
-      script.id = "mathjax-runtime";
-    }
-
-    script.addEventListener("load", handleLoad, { once: true });
-    script.addEventListener("error", handleError, { once: true });
-    if (shouldAppend) document.head.appendChild(script);
+      function handleLoad() {
+        var startup = window.MathJax && window.MathJax.startup;
+        Promise.resolve(startup && startup.promise).then(function () {
+          if (mathJaxIsReady()) resolve();
+          else discard(new Error("MathJax loaded without its typesetting API"));
+        }, discard);
+      }
+      function handleError() { discard(new Error("MathJax failed to load")); }
+      if (shouldAppend) {
+        script = document.createElement("script");
+        script.src = MATHJAX_SRC;
+        script.async = true;
+        script.id = "mathjax-runtime";
+      }
+      script.addEventListener("load", handleLoad, { once: true });
+      script.addEventListener("error", handleError, { once: true });
+      if (shouldAppend) document.head.appendChild(script);
+    });
+  }
+  mathJaxLoadPromise = attempt().catch(function () {
+    if (activeMathPage) setMathStatus(activeMathPage, "retrying", "公式加载遇到问题，正在重试…");
+    return new Promise(function (resolve) { window.setTimeout(resolve, 800); }).then(attempt);
   }).catch(function (error) {
     mathJaxLoadPromise = null;
     throw error;
   });
-
   return mathJaxLoadPromise;
 }
 
-function typesetCurrentDocument() {
+function currentMathPage(page) {
+  return page.sequence === navigationSequence && page.root.isConnected &&
+    document.querySelector(".md-content__inner") === page.root;
+}
+
+function setMathStatus(page, state, message) {
+  if (!currentMathPage(page)) return;
+  page.status.dataset.state = state;
+  page.message.textContent = message;
+  page.status.hidden = state === "ready";
+  page.retry.hidden = state !== "error";
+}
+
+function mathPageFeedback(root, sequence) {
+  var status = root.querySelector(".edwinos-math-status");
+  if (!status) {
+    status = document.createElement("div");
+    status.className = "edwinos-math-status";
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+    status.hidden = true;
+    var message = document.createElement("span");
+    var retry = document.createElement("button");
+    retry.type = "button";
+    retry.className = "edwinos-math-retry";
+    retry.textContent = "重试公式";
+    retry.hidden = true;
+    status.appendChild(message);
+    status.appendChild(retry);
+    // Keep titles and metadata fixed; place feedback just before article math.
+    var anchor = root.querySelector(".arithmatex");
+    while (anchor && anchor.parentNode !== root) anchor = anchor.parentNode;
+    root.insertBefore(status, anchor || root.firstChild);
+  }
+  var page = {root: root, sequence: sequence, status: status,
+    message: status.childNodes[0], retry: status.childNodes[1], snapshots: []};
+  page.status.hidden = true;
+  page.status.dataset.state = "loading";
+  page.retry.hidden = true;
+  // Rebind the same button on retries, never accumulate page handlers.
+  page.retry.onclick = function () {
+    if (currentMathPage(page)) typesetCurrentDocument(true);
+  };
+  root.querySelectorAll(".arithmatex").forEach(function (formula) {
+    if (!formula.querySelector("mjx-container")) {
+      page.snapshots.push({formula: formula, children: Array.from(formula.childNodes).map(function (child) { return child.cloneNode(true); })});
+      if (formula.tagName === "DIV" || formula.classList.contains("arithmatex--display")) {
+        formula.dataset.edwinosMathState = "pending";
+        formula.setAttribute("aria-busy", "true");
+      }
+    }
+  });
+  page.timer = window.setTimeout(function () {
+    if (page.status.dataset.state === "loading") setMathStatus(page, "loading", "正在加载并排版公式…");
+  }, 400);
+  page.slowTimer = window.setTimeout(function () {
+    if (!currentMathPage(page)) return;
+    // Keep the in-flight request, but give long-wait readers their source back.
+    page.snapshots.forEach(function (item) {
+      item.formula.dataset.edwinosMathState = "slow";
+    });
+    setMathStatus(page, "loading", "公式加载较慢，暂时显示原始公式；排版会自动继续。");
+  }, 10000);
+  return page;
+}
+
+function settleMathPage(page, error) {
+  window.clearTimeout(page.timer);
+  window.clearTimeout(page.slowTimer);
+  if (!currentMathPage(page)) return;
+  if (error) {
+    console.warn("EdwinOS math could not complete typesetting:", error);
+    page.status.dataset.failureCode = error.name || "MathJaxError";
+  } else delete page.status.dataset.failureCode;
+  page.snapshots.forEach(function (item) {
+    var formula = item.formula;
+    if (error) {
+      // A rejected typeset may have already altered some nodes. Restore source
+      // nodes, including authored marks, so manual retry starts with valid TeX.
+      if (mathJaxIsReady()) window.MathJax.typesetClear([formula]);
+      formula.replaceChildren.apply(formula, item.children);
+    }
+    formula.dataset.edwinosMathState = error ? "error" : "ready";
+    formula.removeAttribute("aria-busy");
+  });
+  setMathStatus(page, error ? "error" : "ready",
+    error ? "公式暂时无法显示，原始公式已保留。" : "公式已完成排版");
+  announceHashLayoutSettled(page.sequence);
+}
+
+function typesetCurrentDocument(force) {
+  var root = document.querySelector(".md-content__inner");
+  // Material can publish the same article more than once during setup. Its
+  // in-flight or completed lifecycle stays intact; only explicit retry restarts.
+  if (force !== true && activeMathPage && activeMathPage.root === root &&
+      currentMathPage(activeMathPage)) return;
   var sequence = ++navigationSequence;
+  if (activeMathPage) {
+    window.clearTimeout(activeMathPage.timer);
+    window.clearTimeout(activeMathPage.slowTimer);
+  }
+  activeMathPage = null;
   protectArticleMath();
   wrapTocMath();
-
-  // Preserve lazy loading: a page without math doesn't fetch MathJax. Once it
-  // has loaded, still clear its previous document state on every navigation.
-  if (!mathJaxIsReady() && !pageNeedsMath()) return;
-
-  var ready = mathJaxIsReady() ? Promise.resolve() : loadMathJax();
-
-  ready.then(function () {
-    typesetQueue = typesetQueue
-      .catch(function () {
-        // Keep a rejected typeset from blocking later navigations.
-      })
-      .then(function () {
-        // A faster navigation superseded this page while MathJax was loading or
-        // typesetting. Only ever touch the current Material document.
-        if (sequence !== navigationSequence) return;
-
-        protectArticleMath();
-        wrapTocMath();
-        window.MathJax.typesetClear();
-        window.MathJax.texReset();
-        return window.MathJax.typesetPromise().then(function () {
-          if (sequence !== navigationSequence) return;
-          classifyWideInlineMath();
-          announceHashLayoutSettled(sequence);
-        });
-      });
-
-    // Always attach a rejection handler: asset-load and rapid-navigation
-    // failures must not surface as uncaught promise rejections.
-    typesetQueue.catch(function () {
-      // A later document$ emission can safely retry the lifecycle.
+  var needsMath = pageNeedsMath();
+  if (!mathJaxIsReady() && !needsMath) return;
+  var page = root && needsMath ? mathPageFeedback(root, sequence) : null;
+  activeMathPage = page;
+  // Capture targets now. A pending old typeset can only modify its detached
+  // article/TOC, and cannot discover a newly navigated document mid-flight.
+  var targets = root ? [root] : [];
+  document.querySelectorAll('[data-md-component="toc"], .md-nav--secondary').forEach(function (toc) { targets.push(toc); });
+  // Material's secondary NAV contains a UL[data-md-component=toc]. Passing
+  // both makes MathJax discover each formula twice and replace an already
+  // detached source node. Each subtree must have exactly one top-level owner.
+  targets = targets.filter(function (target, index, all) {
+    return all.indexOf(target) === index && !all.some(function (other) {
+      return other !== target && other.contains(target);
     });
-  }).catch(function () {
-    // Keep raw TeX readable if the local optional runtime cannot be loaded.
   });
+
+  loadMathJax().then(function () {
+    typesetQueue = typesetQueue.catch(function () {}).then(function () {
+      if (sequence !== navigationSequence) return;
+      protectArticleMath();
+      wrapTocMath();
+      window.MathJax.typesetClear();
+      window.MathJax.texReset();
+      return window.MathJax.typesetPromise(targets).then(function () {
+        if (sequence !== navigationSequence) return;
+        classifyWideInlineMath();
+        if (page) settleMathPage(page);
+        else announceHashLayoutSettled(sequence);
+      });
+    });
+    typesetQueue.catch(function (error) { if (page) settleMathPage(page, error); });
+  }).catch(function (error) { if (page) settleMathPage(page, error); });
 }
 
 // Material's ?h= search highlighting splits TeX into text and mark nodes.

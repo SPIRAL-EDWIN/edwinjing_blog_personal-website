@@ -43,7 +43,7 @@ class RuntimeUiContractTests(unittest.TestCase):
         self.assertNotIn("setTimeout(clearArchiveNavigationFeedback", source)
         self.assertIn("setTimeout(showArchiveNavigationHelp, 10000)", source)
         self.assertIn('document.querySelector(".md-content__inner") === activeArchiveNavigation.content', source)
-        self.assertIn('window.addEventListener("popstate", clearArchiveNavigationFeedback)', source)
+        self.assertIn('window.addEventListener("popstate", pageNavigationForHistory)', source)
         self.assertIn("window.location.assign(pending.destination.href)", source)
         self.assertIn("cancelArchiveNavigation()", source)
         run_all = source.split("function runAll() {", 1)[1].split("\n  }", 1)[0]

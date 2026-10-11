@@ -53,6 +53,34 @@ Current stylesheet policy:
   before the header paints; runtime route classification owns later navigation.
 - `docs/index.md` and related markdown files own content and semantic structure.
   Avoid moving content into CSS or JS.
+- Homepage logo and Workshop images use responsive local thumbnails and tiny
+  inline blur previews; `tools/generate_loading_previews.py` regenerates them
+  without replacing originals. `ui-perf.js` reveals full images after decoding.
+  Preserve the original display aspect ratios and the no-JavaScript fallback.
+  PDF previews show the first two pages before an explicit reader click sets
+  the iframe URL. An iframe load event is not proof that Edge has painted a
+  PDF page; retain the previews and direct-open/download alternatives.
+  The PDF open button shares navigation's layout-only glass implementation,
+  initializes optics only when visible, and disposes them on hide/navigation.
+  Back-to-top wording is authored by `overrides/partials/top.html`; preserve
+  Material's icon, hidden state, component identity and native click behavior.
+- Cross-document navigation feedback has one coordinator in `ui-perf.js`.
+  Clear it only when the mounted content changes or navigation is cancelled;
+  URL changes alone do not prove arrival. Preserve the actual source document
+  across rapid clicks. The shared progress bar belongs to the Header CSS owner,
+  while Archive's existing overlay stays in its Archive owner.
+  Ordinary page feedback appears only after 2 seconds and offers recovery after
+  10 seconds. Its liquid glass reuses Back to Top's displacement-map generator
+  with an independent filter; dispose timers and optics on completion/cancel.
+  Do not add waiting outlines to tabs or sidebar links.
+  Keep ordinary fast clicks free of geometry reads and body-style writes;
+  measure header placement only when the delayed capsule is actually shown.
+- `mathjax.js` owns article formula loading, bounded failure retries and manual
+  recovery. Formula-page preloads may be emitted by `overrides/main.html`;
+  do not warm MathJax on every homepage visit. Keep stale navigation callbacks
+  from updating the current article and preserve the search typesetting queue.
+  Typesetting targets must not overlap: nested TOC containers have one outer
+  owner, so MathJax never replaces the same formula twice.
 - `hooks/note_assets.py` owns individual ENotes and experience-article image
   lazy loading and intrinsic dimensions at build time. Preserve original images
   and explicit author attributes.
