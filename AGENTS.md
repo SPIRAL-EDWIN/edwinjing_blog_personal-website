@@ -35,7 +35,7 @@ Current stylesheet policy:
 - `docs/javascripts/ui-perf.js` is the runtime adaptation layer. It owns body
   route classes, search interaction adjustments, profile shell injection on
   home subpages, Beijing time updates, friend-count updates, GitHub source facts,
-  visitor-map loading, and markdown/list continuity fixes.
+  visitor-map loading, back-to-top glass, and markdown/list continuity fixes.
   Search input and results share one glass shell: empty activation stays a
   capsule, then a query extends it downward. Closing hides/empties the input
   while one same-origin query memory survives navigation and tabs. Refreshing
@@ -65,6 +65,15 @@ Current stylesheet policy:
 - `hooks/archive.py` excludes generated article date/author metadata from
   search using `data-search-exclude`; preserve its visible page content and
   genuine body matches rather than filtering author names as query terms.
+  `ui-perf.js` also removes only Material's generated highlight marks from
+  excluded article subtrees, including delayed marks; preserve this index and
+  article-highlighting scope agreement.
+  Article search accents use a translucent orange fill across the full text
+  height while inheriting the source text style; first visible appearance holds for 2 seconds then fades over 1.5
+  seconds. Keep authored marks intact and snippet accents persistent.
+  Search excerpts retain code provenance from the worker through width fitting
+  and math preparation. Preserve code nodes and literal shell variables;
+  math delimiters must not pair inside or across code ranges.
 - `hooks/search_scope.py` owns search corpus scope and invokes
   `tools/build_search_index.cjs` after scoping. Search retrieval and safe result
   snippets belong to the standalone Lunr worker/core in
@@ -77,6 +86,13 @@ Current stylesheet policy:
   and `overrides/partials/search.html` supplies the initial glass shell.
   Keep heavy JSON parsing and index loading in the worker, preserve early input
   and failure retry, and do not intercept global network requests.
+  Back to Top has one CSS owner. Its glass reuses the search displacement-map
+  generator with an independent filter and geometry; keep Material's button
+  placement, visibility, accessibility and click behavior. Its backdrop filter
+  belongs on the button itself, since Material's opacity transition blocks a
+  child surface from sampling the page. Keep its lighter optical tuning separate
+  from search. Rebuild the map only
+  for layout/font changes, never on every scroll frame.
 
 When adding new UI rules:
 

@@ -93,7 +93,7 @@
       try {
         var config = JSON.parse(node.textContent);
         var scope = new URL(config.base || ".", document.baseURI);
-        var worker = new URL("assets/javascripts/workers/search-exact-worker.js?v=20261010a", scope);
+        var worker = new URL("assets/javascripts/workers/search-exact-worker.js?v=20261011a", scope);
         config.search = worker.href;
         node.textContent = JSON.stringify(config);
       } catch (error) {

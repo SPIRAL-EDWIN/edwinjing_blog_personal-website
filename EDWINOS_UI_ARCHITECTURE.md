@@ -174,7 +174,10 @@ with the existing fragment owner and element scroll margins.
 `mathjax.js` owns lazy, targeted search-formula typesetting on the existing
 queue. The snippet fitter preserves complete TeX units, retains raw text before
 typesetting, and refits from that source on resize. Search typesetting must not
-reset the article's MathItems or equation counters.
+reset the article's MathItems or equation counters. The worker retains code
+ranges from the original corpus HTML, and both width fitting and math preparation
+preserve safe code nodes and their keyword marks. Delimiters in code are literal;
+formulas may not pair across code boundaries. Code remains searchable.
 Article formulas remove only Material's search-highlight marks and undo its
 text entity escaping before typesetting, including delayed index updates.
 MathJax uses full CHTML style text (`adaptiveCSS: false`): Material's instant
@@ -193,6 +196,27 @@ choosing the landing. Reveal only closed native details ancestors concealing
 that first match; geometry alone does not establish collapsed-content visibility.
 Generated article dates/author metadata is marked `data-search-exclude` by
 `hooks/archive.py`, preserving it visually while excluding it from the index.
+Material's article highlighter does not honor that attribute. `ui-perf.js`
+unwraps only its generated `mark[data-md-highlight]` nodes inside excluded
+subtrees, immediately and after delayed highlighting. Its scoped observer is
+replaced on content navigation; genuine body matches and authored marks remain.
+Generated article search marks inherit typography and use a translucent orange
+fill across the full text height, distinct from authored yellow marks
+and green lower-edge emphasis.
+`ui-perf.js` starts each accent only when it is visible, holds it for 2 seconds,
+then fades only the accent over 1.5 seconds. Closed details, background tabs and
+an open search window delay activation. Observers and timers are disposed on
+content replacement. Search snippets use the same orange accent persistently.
+
+Back to Top owns its glass styling in one CSS section. Material retains the
+button's placement, visibility and return-to-top behavior. The button itself
+samples the continuous backdrop behind its unfiltered label and arrow: a child
+surface would be blocked by Material's opacity transition creating a backdrop
+root. Its low-opacity tint and 4px blur preserve scrolling background detail.
+Chromium adds edge-only refraction using the shared rounded-rectangle map
+generator with a separate padded SVG filter; Safari retains native blur and
+perimeter highlights. Its map follows layout/font changes without scroll
+listeners or an idle frame loop; the compositor samples the live page on scroll.
 
 ## Runtime ownership
 

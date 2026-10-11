@@ -44,6 +44,28 @@ function ranges(text) { return JSON.parse(JSON.stringify(api.getRanges(text))); 
 assert.deepEqual(ranges(String.raw`left $x^2$ \(y+1\) $$z$$ \[w\] right`).map(r => r.body), ['x^2', 'y+1', 'z', 'w']);
 assert.deepEqual(ranges(String.raw`escaped \$x\$, incomplete \(x+1, and currency $ 25`), []);
 assert.equal(ranges(String.raw`$x+\$y$`)[0].body, String.raw`x+\$y`);
+const codeDelimited = String.raw`before $x <literal> +y$ after \(z_2\)`;
+const codeStart = codeDelimited.indexOf('<literal>');
+assert.deepEqual(JSON.parse(JSON.stringify(api.getRanges(codeDelimited, [{start:codeStart,end:codeStart+9}]))).map(range=>range.body), ['z_2'], 'dollars never pair across a code region');
+
+const bashOnly = new Node('p');
+const bashCode = bashOnly.appendChild(new Node('code'));
+bashCode.textContent = String.raw`WANDB_OFFLINE_DIR="$RUN_DIR/wandb/<WANDB_OFFLINE_RUN_DIR>"; wandb sync "$WANDB_OFFLINE_DIR"`;
+assert.equal(api.prepare(bashOnly), false, 'code-only dollars do not trigger math work');
+assert.equal(bashOnly.childNodes[0], bashCode, 'unprocessed code retains its node');
+
+const mixedCode = new Node('p');
+mixedCode.appendChild(new Node('#text', String.raw`Formula $x_2$ and `));
+const literalCode = mixedCode.appendChild(new Node('code'));
+literalCode.appendChild(new Node('#text', '"$'));
+const codeMark = literalCode.appendChild(new Node('mark'));codeMark.textContent='REPO_ROOT';
+literalCode.appendChild(new Node('#text', String.raw`" \(literal\) $$literal$$ <script>`));
+mixedCode.appendChild(new Node('#text', String.raw` plus \(y_3\).`));
+assert.equal(api.prepare(mixedCode), true, 'real math and literal code can coexist');
+const retainedCode = mixedCode.childNodes.find(node=>node.tagName==='CODE');
+assert.equal(retainedCode.textContent, literalCode.textContent, 'all code delimiters and literal markup remain unchanged');
+assert.equal(retainedCode.childNodes.find(node=>node.tagName==='MARK').textContent, 'REPO_ROOT', 'code keyword highlighting survives');
+assert.equal(mixedCode.childNodes.filter(node=>node.className==='arithmatex').length, 2, 'only the two actual formulas are rendered');
 
 const paragraph = new Node('p');
 paragraph.appendChild(new Node('#text', 'Before $'));

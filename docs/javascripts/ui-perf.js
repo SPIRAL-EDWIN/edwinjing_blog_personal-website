@@ -16,6 +16,7 @@
   var pendingPrimarySidebarScroll = null;
   var lastDocumentPageKey = navigationPageKey(window.location.href);
   var headerSearchRuntime = null;
+  var topGlassRuntime = null;
   var searchResultSummarySubscription = null;
   var searchSnippetSources = new WeakMap();
   var sectionNavigationDepthTimer = null;
@@ -26,6 +27,9 @@
   var friendCountValue = null;
   var enhancedContent = null;
   var enhancedHeader = null;
+  var searchHighlightScopeRoot = null;
+  var searchHighlightScopeObserver = null;
+  var articleSearchHighlightMotion = null;
   var firstScreenReady = false;
   var deferredWork = [];
 
@@ -432,14 +436,15 @@
         var excerpts = Array.from(paragraph.querySelectorAll('[data-edwinos-search-segment]'));
         if (!excerpts.length) excerpts = [paragraph];
         source = { width: '', segments: excerpts.map(function (excerpt) {
-          var text = '', marks = [];
-          function collect(node, marked) {
+          var text = '', marks = [], codes = [];
+          function collect(node, marked, coded) {
             if (node.nodeType === 3) {
               var start = text.length;
               text += node.textContent;
               if (marked) marks.push({ start: start, end: text.length });
+              if (coded) codes.push({ start: start, end: text.length });
             } else if (node.nodeType === 1) {
-              node.childNodes.forEach(function (child) { collect(child, marked || node.tagName === 'MARK'); });
+              node.childNodes.forEach(function (child) { collect(child, marked || node.tagName === 'MARK', coded || node.tagName === 'CODE' || node.tagName === 'PRE'); });
             }
           }
           excerpt.childNodes.forEach(function (node) { collect(node, false); });
@@ -448,19 +453,28 @@
             ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text), function (part) { return part.segment; })
             : Array.from(text);
           graphemes.forEach(function (grapheme) { offset += grapheme.length; boundaries.push(offset); });
-          return { text: text, marks: marks, boundaries: boundaries,
+          codes = codes.reduce(function (ranges, code) {
+            var previous = ranges[ranges.length - 1];
+            if (previous && code.start <= previous.end) previous.end = code.end;
+            else ranges.push(code);
+            return ranges;
+          }, []);
+          return { text: text, marks: marks, codes: codes, boundaries: boundaries,
             leading: excerpt.dataset.startTruncated === 'true', trailing: excerpt.dataset.endTruncated === 'true' };
         }) };
         searchSnippetSources.set(paragraph, source);
       }
       var width = Math.round(box.width), style = window.getComputedStyle(paragraph);
       var font = style.font || style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
-      var signature = width + ':' + font + ':' + style.lineHeight;
+      var codeElement = paragraph.querySelector && paragraph.querySelector('code');
+      var codeStyle = codeElement && window.getComputedStyle(codeElement);
+      var codeFont = codeStyle ? codeStyle.font || codeStyle.fontWeight + ' ' + codeStyle.fontSize + ' ' + codeStyle.fontFamily : font;
+      var signature = width + ':' + font + ':' + codeFont + ':' + style.lineHeight;
       if (signature === source.width) return;
       source.width = signature;
       var math = window.EdwinOSSearchMath;
       if (math) math.clear(paragraph);
-      var ranges = source.segments.map(function (segment) { return math ? math.getRanges(segment.text) : []; });
+      var ranges = source.segments.map(function (segment) { return math ? math.getRanges(segment.text, segment.codes) : []; });
       function bounds(segment, index, context) {
         var first = segment.marks.length ? segment.marks[0].start : 0;
         var last = segment.marks.length ? segment.marks[0].end : 0;
@@ -483,44 +497,75 @@
       function select(count, context) {
         return source.segments.slice(0, count).map(function (segment, index) { return bounds(segment, index, context); });
       }
-      function plain(selected) {
-        return selected.map(function (range, index) {
-          var segment = source.segments[index];
-          return (!index && (range.start || segment.leading) ? '...' : '') + segment.text.slice(range.start, range.end);
-        }).join(' ... ') + (selected.length < source.segments.length || source.segments[selected.length - 1].trailing ||
-          selected[selected.length - 1].end < source.segments[selected.length - 1].text.length ? '...' : '');
+      function measure(selected) {
+        var total = 0;
+        function add(text, coded) {
+          searchMeasureContext.font = coded ? codeFont : font;
+          total += searchMeasureContext.measureText(text).width;
+        }
+        selected.forEach(function (range, index) {
+          var segment = source.segments[index], cursor = range.start;
+          if (index) add(' ... ', false);
+          else if (range.start || segment.leading) add('...', false);
+          segment.codes.forEach(function (code) {
+            var left = Math.max(range.start, code.start), right = Math.min(range.end, code.end);
+            if (left >= right) return;
+            add(segment.text.slice(cursor, left), false);
+            add(segment.text.slice(left, right), true);
+            cursor = right;
+          });
+          add(segment.text.slice(cursor, range.end), false);
+        });
+        var lastIndex = selected.length - 1;
+        if (selected.length < source.segments.length || source.segments[lastIndex].trailing || selected[lastIndex].end < source.segments[lastIndex].text.length) add('...', false);
+        return total;
       }
       // Reserve short context for the first occurrence, then later excerpts,
       // before spending the remaining two-line budget on richer context.
       var count = 1, budget = width * 2 * 0.92;
       if (searchMeasureContext) {
         searchMeasureContext.font = font;
-        while (count < source.segments.length && searchMeasureContext.measureText(plain(select(count + 1, 8))).width <= budget) count++;
+        while (count < source.segments.length && measure(select(count + 1, 8)) <= budget) count++;
       }
       var low = 8, high = source.segments.reduce(function (largest, segment) { return Math.max(largest, segment.text.length); }, 0);
       if (searchMeasureContext) {
         while (low < high) {
           var middle = Math.ceil((low + high) / 2);
-          if (searchMeasureContext.measureText(plain(select(count, middle))).width <= budget) low = middle;
+          if (measure(select(count, middle)) <= budget) low = middle;
           else high = middle - 1;
         }
       } else low = 40;
       var selected = select(count, low), nodes = [];
       selected.forEach(function (range, index) {
-        var segment = source.segments[index], cursor = range.start;
+        var segment = source.segments[index];
         if (index) nodes.push(document.createTextNode(' ... '));
         else if (range.start || segment.leading) nodes.push(document.createTextNode('...'));
         var excerpt = document.createElement('span');
         excerpt.dataset.edwinosSearchSegment = String(index);
-        segment.marks.forEach(function (mark) {
-          if (mark.start < range.start || mark.end > range.end) return;
-          excerpt.appendChild(document.createTextNode(segment.text.slice(cursor, mark.start)));
-          var highlight = document.createElement('mark');
-          highlight.textContent = segment.text.slice(mark.start, mark.end);
-          excerpt.appendChild(highlight);
-          cursor = mark.end;
+        function appendText(parent, start, end) {
+          var cursor = start;
+          segment.marks.forEach(function (mark) {
+            var left = Math.max(start, mark.start), right = Math.min(end, mark.end);
+            if (left >= right) return;
+            parent.appendChild(document.createTextNode(segment.text.slice(cursor, left)));
+            var highlight = document.createElement('mark');
+            highlight.textContent = segment.text.slice(left, right);
+            parent.appendChild(highlight);
+            cursor = right;
+          });
+          parent.appendChild(document.createTextNode(segment.text.slice(cursor, end)));
+        }
+        var cursor = range.start;
+        segment.codes.forEach(function (code) {
+          var left = Math.max(range.start, code.start), right = Math.min(range.end, code.end);
+          if (left >= right) return;
+          appendText(excerpt, cursor, left);
+          var element = document.createElement('code');
+          appendText(element, left, right);
+          excerpt.appendChild(element);
+          cursor = right;
         });
-        excerpt.appendChild(document.createTextNode(segment.text.slice(cursor, range.end)));
+        appendText(excerpt, cursor, range.end);
         nodes.push(excerpt);
       });
       var lastIndex = selected.length - 1;
@@ -531,6 +576,42 @@
     });
     search.dataset.edwinosSearchFitMs = String(Math.round((window.performance.now() - started) * 100) / 100);
     document.dispatchEvent(new CustomEvent('edwinos:search-snippets-updated', { detail: { root: search } }));
+  }
+
+  /* Pure geometry shared by glass components. Only the perimeter bends;
+     neutral center pixels retain the continuous background blur. Technique
+     attribution: assets/licenses/liquid-glass-MIT.txt. */
+  function fillRoundedGlassDisplacementMap(pixels, width, height, padding, radius) {
+    var sampleWidth = width + padding * 2;
+    var sampleHeight = height + padding * 2;
+    var rim = Math.min(7, radius * 0.4);
+    for (var y = 0; y < pixels.height; y += 1) {
+      for (var x = 0; x < pixels.width; x += 1) {
+        var px = (x + 0.5) * sampleWidth / pixels.width - padding;
+        var py = (y + 0.5) * sampleHeight / pixels.height - padding;
+        var axisX = Math.max(radius, Math.min(width - radius, px));
+        var axisY = Math.max(radius, Math.min(height - radius, py));
+        var vx = px - axisX;
+        var vy = py - axisY;
+        var length = Math.hypot(vx, vy);
+        var depth = radius - length;
+        var dx = 0;
+        var dy = 0;
+        if (depth < rim && length > 0) {
+          // Outward source ordering stays monotonic at every amplitude.
+          var t = Math.max(0, Math.min(1, depth / rim));
+          var profile = 1 - 3 * t * t + 2 * t * t * t;
+          dx = vx / length * profile;
+          dy = vy / length * profile;
+        }
+        var index = (y * pixels.width + x) * 4;
+        pixels.data[index] = Math.round(127.5 + dx * 127.5);
+        pixels.data[index + 1] = Math.round(127.5 + dy * 127.5);
+        pixels.data[index + 2] = 128;
+        pixels.data[index + 3] = 255;
+      }
+    }
+    return pixels;
   }
 
   function setupHeaderSearchTransition() {
@@ -713,34 +794,7 @@
       canvas.width = columns;
       canvas.height = rows;
       var pixels = context.createImageData(columns, rows);
-      var rim = Math.min(7, radius * 0.4);
-      for (var y = 0; y < rows; y += 1) {
-        for (var x = 0; x < columns; x += 1) {
-          var px = (x + 0.5) * sampleWidth / columns - padding;
-          var py = (y + 0.5) * sampleHeight / rows - padding;
-          var axisX = Math.max(radius, Math.min(width - radius, px));
-          var axisY = Math.max(radius, Math.min(height - radius, py));
-          var vx = px - axisX;
-          var vy = py - axisY;
-          var length = Math.hypot(vx, vy);
-          var depth = radius - length;
-          var dx = 0;
-          var dy = 0;
-          if (depth < rim && length > 0) {
-            // Outward source ordering is monotonic at any amplitude:
-            // g(d)=d-A·P(d/rim), g'=1+6A/rim·t(1-t) >= 1.
-            var t = Math.max(0, Math.min(1, depth / rim));
-            var profile = 1 - 3 * t * t + 2 * t * t * t;
-            dx = vx / length * profile;
-            dy = vy / length * profile;
-          }
-          var index = (y * columns + x) * 4;
-          pixels.data[index] = Math.round(127.5 + dx * 127.5);
-          pixels.data[index + 1] = Math.round(127.5 + dy * 127.5);
-          pixels.data[index + 2] = 128;
-          pixels.data[index + 3] = 255;
-        }
-      }
+      fillRoundedGlassDisplacementMap(pixels, width, height, padding, radius);
       context.putImageData(pixels, 0, 0);
       var url = canvas.toDataURL("image/png");
       cache.set(key, url);
@@ -1077,6 +1131,143 @@
       }
       if (headerSearchRuntime) headerSearchRuntime.updateResults();
     });
+  }
+
+  function setupTopGlass() {
+    var button = document.querySelector('[data-md-component="top"]');
+    if (topGlassRuntime && topGlassRuntime.button === button) return;
+    if (topGlassRuntime) topGlassRuntime.destroy();
+    topGlassRuntime = null;
+    if (!button) return;
+
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var filterId = 'edwinos-top-refraction';
+    var padding = 16;
+    var disposed = false;
+    var frame = 0;
+    var mapKey = '';
+    var builds = 0;
+    var definitions = null;
+    var resizeObserver = null;
+    var chromium = /\b(?:Chrome|Chromium|Edg|EdgA|OPR)\//.test(window.navigator.userAgent);
+    var refraction = chromium && window.CSS && typeof window.CSS.supports === 'function' &&
+      window.CSS.supports('backdrop-filter', 'url(#' + filterId + ')') &&
+      typeof window.SVGFEImageElement !== 'undefined' && typeof window.SVGFEDisplacementMapElement !== 'undefined';
+    var canvas = refraction ? document.createElement('canvas') : null;
+    var context = canvas ? canvas.getContext('2d') : null;
+    refraction = Boolean(context);
+
+    function addLayer(kind) {
+      var layer = button.querySelector('.edwinos-top-glass__' + kind);
+      if (!layer) {
+        layer = document.createElement('span');
+        layer.className = 'edwinos-top-glass__' + kind;
+        layer.setAttribute('aria-hidden', 'true');
+        button.appendChild(layer);
+      }
+      return layer;
+    }
+    // Keep the backdrop on the button itself: an opacity transition on this
+    // parent would otherwise isolate a child's backdrop from the page.
+    button.querySelectorAll('.edwinos-top-glass__surface').forEach(function (layer) { layer.remove(); });
+    var highlight = addLayer('highlight');
+    button.classList.add('edwinos-top-glass');
+    button.classList.toggle('edwinos-top-refraction', refraction);
+    button.dataset.edwinosTopMode = refraction ? 'refraction' : 'native-blur';
+
+    var filter;
+    var mapImage;
+    if (refraction) {
+      definitions = document.createElementNS(svgNS, 'svg');
+      definitions.setAttribute('width', '0');
+      definitions.setAttribute('height', '0');
+      definitions.setAttribute('aria-hidden', 'true');
+      definitions.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;overflow:hidden';
+      var defs = document.createElementNS(svgNS, 'defs');
+      filter = document.createElementNS(svgNS, 'filter');
+      filter.setAttribute('id', filterId);
+      filter.setAttribute('filterUnits', 'userSpaceOnUse');
+      filter.setAttribute('color-interpolation-filters', 'sRGB');
+      filter.setAttribute('x', String(-padding));
+      filter.setAttribute('y', String(-padding));
+      mapImage = document.createElementNS(svgNS, 'feImage');
+      mapImage.setAttribute('result', 'edwinos-top-map');
+      mapImage.setAttribute('preserveAspectRatio', 'none');
+      mapImage.setAttribute('x', String(-padding));
+      mapImage.setAttribute('y', String(-padding));
+      var blur = document.createElementNS(svgNS, 'feGaussianBlur');
+      blur.setAttribute('in', 'SourceGraphic');
+      blur.setAttribute('stdDeviation', '4');
+      blur.setAttribute('result', 'edwinos-top-blur');
+      var displacement = document.createElementNS(svgNS, 'feDisplacementMap');
+      displacement.setAttribute('in', 'edwinos-top-blur');
+      displacement.setAttribute('in2', 'edwinos-top-map');
+      displacement.setAttribute('xChannelSelector', 'R');
+      displacement.setAttribute('yChannelSelector', 'G');
+      displacement.setAttribute('scale', '22');
+      filter.appendChild(mapImage);
+      filter.appendChild(blur);
+      filter.appendChild(displacement);
+      defs.appendChild(filter);
+      definitions.appendChild(defs);
+      document.body.appendChild(definitions);
+    }
+
+    function update() {
+      frame = 0;
+      if (disposed || !button.isConnected || !refraction) return;
+      var box = button.getBoundingClientRect();
+      if (!(box.width > 0 && box.height > 0)) return;
+      var radius = Math.min(box.width / 2, box.height / 2,
+        parseFloat(window.getComputedStyle(button).borderTopLeftRadius) || 24);
+      var key = Math.round(box.width) + ':' + Math.round(box.height) + ':' + Math.round(radius);
+      if (key === mapKey) return;
+      var sampleWidth = box.width + padding * 2;
+      var sampleHeight = box.height + padding * 2;
+      canvas.width = Math.min(768, Math.max(24, Math.ceil(sampleWidth * 1.5)));
+      canvas.height = Math.min(512, Math.max(24, Math.ceil(sampleHeight * 1.5)));
+      var pixels = context.createImageData(canvas.width, canvas.height);
+      fillRoundedGlassDisplacementMap(pixels, box.width, box.height, padding, radius);
+      context.putImageData(pixels, 0, 0);
+      var url = canvas.toDataURL('image/png');
+      filter.setAttribute('width', sampleWidth);
+      filter.setAttribute('height', sampleHeight);
+      mapImage.setAttribute('width', sampleWidth);
+      mapImage.setAttribute('height', sampleHeight);
+      mapImage.setAttribute('href', url);
+      mapImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', url);
+      button.style.setProperty('--edwinos-top-radius', radius + 'px');
+      mapKey = key;
+      builds += 1;
+      button.dataset.edwinosTopMapBuilds = String(builds);
+    }
+    function schedule() {
+      if (!disposed && refraction && !frame) frame = window.requestAnimationFrame(update);
+    }
+    if (refraction) {
+      window.addEventListener('resize', schedule, { passive: true });
+      if (typeof window.ResizeObserver === 'function') {
+        resizeObserver = new window.ResizeObserver(schedule);
+        resizeObserver.observe(button);
+      }
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+      schedule();
+    }
+    topGlassRuntime = {
+      button: button,
+      destroy: function () {
+        disposed = true;
+        window.cancelAnimationFrame(frame);
+        window.removeEventListener('resize', schedule);
+        if (resizeObserver) resizeObserver.disconnect();
+        if (definitions) definitions.remove();
+        highlight.remove();
+        button.classList.remove('edwinos-top-glass', 'edwinos-top-refraction');
+        delete button.dataset.edwinosTopMode;
+        delete button.dataset.edwinosTopMapBuilds;
+        button.style.removeProperty('--edwinos-top-radius');
+      }
+    };
   }
 
   function setupSearchActivation() {
@@ -2511,8 +2702,162 @@
     });
   }
 
+  // Material's article highlighter ignores the index's data-search-exclude.
+  // Unwrap only its generated marks in excluded subtrees, retaining author
+  // markup and real body matches. Observe these small subtrees because the
+  // highlighting manifest may arrive after document$ and fragment settling.
+  function clearExcludedSearchHighlights(root) {
+    root.querySelectorAll('mark[data-md-highlight]').forEach(function (mark) {
+      mark.replaceWith.apply(mark, Array.from(mark.childNodes));
+    });
+  }
+
+  function setupArticleSearchHighlightScope() {
+    var content = document.querySelector('.md-content__inner');
+    if (content === searchHighlightScopeRoot) return;
+    if (searchHighlightScopeObserver) searchHighlightScopeObserver.disconnect();
+    searchHighlightScopeObserver = null;
+    searchHighlightScopeRoot = content;
+    if (!content) return;
+
+    var excluded = Array.from(content.querySelectorAll('[data-search-exclude]'));
+    excluded.forEach(clearExcludedSearchHighlights);
+    if (!excluded.length || typeof window.MutationObserver !== 'function') return;
+    searchHighlightScopeObserver = new window.MutationObserver(function () {
+      if (!content.isConnected || content !== searchHighlightScopeRoot) return;
+      excluded.forEach(clearExcludedSearchHighlights);
+    });
+    excluded.forEach(function (root) {
+      searchHighlightScopeObserver.observe(root, { childList: true, subtree: true });
+    });
+  }
+
+  // Start each article accent on its first visible appearance, not at page
+  // load: lower sections and closed details must retain their reading cue.
+  function setupArticleSearchHighlightMotion() {
+    var root = document.querySelector('.md-content__inner');
+    if (articleSearchHighlightMotion && articleSearchHighlightMotion.root === root) return;
+    if (articleSearchHighlightMotion) articleSearchHighlightMotion.dispose();
+    articleSearchHighlightMotion = null;
+    if (!root) return;
+
+    var pending = new Set();
+    var intersecting = new Set();
+    var timers = new Set();
+    var frame = 0;
+    var observer = null;
+    var intersection = null;
+    var state = articleSearchHighlightMotion = { root: root, dispose: dispose };
+
+    function active() {
+      return articleSearchHighlightMotion === state && root.isConnected;
+    }
+    function visible(mark) {
+      if (!active() || document.hidden || !mark.isConnected) return false;
+      var toggle = document.querySelector('#__search');
+      if (toggle && toggle.checked) return false;
+      var details = mark.closest('details:not([open])');
+      while (details && root.contains(details)) {
+        var summary = Array.prototype.find.call(details.children, function (child) {
+          return child.tagName === 'SUMMARY';
+        });
+        if (!summary || !summary.contains(mark)) return false;
+        details = details.parentElement && details.parentElement.closest('details:not([open])');
+      }
+      if (window.getComputedStyle(mark).visibility !== 'visible') return false;
+      var header = document.querySelector('.md-header');
+      var top = header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+      var bottom = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      return Array.prototype.some.call(mark.getClientRects(), function (rect) {
+        return rect.width > 0 && rect.height > 0 && rect.bottom > top && rect.top < bottom &&
+          rect.right > 0 && rect.left < window.innerWidth;
+      });
+    }
+    function later(callback, delay) {
+      var timer = window.setTimeout(function () {
+        timers.delete(timer);
+        if (active()) callback();
+      }, delay);
+      timers.add(timer);
+    }
+    function reveal(mark) {
+      if (!pending.has(mark) || !visible(mark)) return;
+      pending.delete(mark);
+      intersecting.delete(mark);
+      if (intersection) intersection.unobserve(mark);
+      mark.dataset.edwinosSearchHighlight = 'visible';
+      later(function () {
+        if (!mark.isConnected) return;
+        mark.dataset.edwinosSearchHighlight = 'fading';
+        later(function () {
+          if (mark.isConnected) mark.dataset.edwinosSearchHighlight = 'done';
+        }, 1500);
+      }, 2000);
+    }
+    function refresh() {
+      frame = 0;
+      (intersection ? intersecting : pending).forEach(reveal);
+    }
+    function schedule() {
+      if (!frame && active()) frame = window.requestAnimationFrame(refresh);
+    }
+    function visit(node, callback) {
+      if (node.nodeType !== 1) return;
+      if (node.matches('mark[data-md-highlight]')) callback(node);
+      node.querySelectorAll('mark[data-md-highlight]').forEach(callback);
+    }
+    function register(mark) {
+      if (!root.contains(mark) || mark.closest('[data-search-exclude]') ||
+          mark.dataset.edwinosSearchHighlight || pending.has(mark)) return;
+      pending.add(mark);
+      if (intersection) intersection.observe(mark);
+      else schedule();
+    }
+    function remove(mark) {
+      pending.delete(mark);
+      intersecting.delete(mark);
+      if (intersection) intersection.unobserve(mark);
+    }
+    function dispose() {
+      if (observer) observer.disconnect();
+      if (intersection) intersection.disconnect();
+      timers.forEach(window.clearTimeout);
+      if (frame) window.cancelAnimationFrame(frame);
+      ['scroll', 'resize'].forEach(function (event) { window.removeEventListener(event, schedule, true); });
+      ['visibilitychange', 'change', 'toggle'].forEach(function (event) { document.removeEventListener(event, schedule, true); });
+      pending.clear();
+      intersecting.clear();
+    }
+    if (typeof window.IntersectionObserver === 'function') {
+      intersection = new window.IntersectionObserver(function (entries) {
+        if (!active()) return;
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) intersecting.add(entry.target);
+          else intersecting.delete(entry.target);
+        });
+        schedule();
+      });
+    }
+    if (typeof window.MutationObserver === 'function') {
+      observer = new window.MutationObserver(function (mutations) {
+        if (!active()) return;
+        mutations.forEach(function (mutation) {
+          mutation.removedNodes.forEach(function (node) { visit(node, remove); });
+          mutation.addedNodes.forEach(function (node) { visit(node, register); });
+        });
+      });
+      observer.observe(root, { childList: true, subtree: true });
+    }
+    root.querySelectorAll('mark[data-md-highlight]').forEach(register);
+    ['scroll', 'resize'].forEach(function (event) { window.addEventListener(event, schedule, { capture: true, passive: true }); });
+    ['visibilitychange', 'change', 'toggle'].forEach(function (event) { document.addEventListener(event, schedule, true); });
+  }
+
   function runAll() {
     finishArchiveNavigationFeedback();
+    setupArticleSearchHighlightScope();
+    setupArticleSearchHighlightMotion();
+    setupTopGlass();
     var content = document.querySelector(".md-content__inner");
     var header = document.querySelector(".md-header");
     if (content === enhancedContent && header === enhancedHeader) return;

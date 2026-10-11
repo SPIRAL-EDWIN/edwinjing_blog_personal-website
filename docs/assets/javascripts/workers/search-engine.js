@@ -36,6 +36,40 @@
       .replace(/<\/?(?:p|li|div|h[1-6]|pre|blockquote|tr|td|br)\b[^>]*>/gi, " ").replace(/<[^>]*>/g, ""));
     return retainSegments ? text.normalize("NFC") : text.replace(/\u200b/g, "").normalize("NFC");
   }
+  function display(value) {
+    // Material preserves code/pre in its corpus. Keep their text provenance
+    // while dropping every author-supplied tag and attribute from result HTML.
+    var html = String(value || "").replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "");
+    var text = "", codes = [], codeDepth = 0, preDepth = 0;
+    (html.match(/<[^>]*>|[^<]+|</g) || []).forEach(function (part) {
+      var tag = /^<(\/)?([a-z][\w-]*)\b[^>]*>$/i.exec(part);
+      if (tag) {
+        var name = tag[2].toLowerCase(), closing = Boolean(tag[1]);
+        if (name === "code") codeDepth = Math.max(0, codeDepth + (closing ? -1 : 1));
+        if (name === "pre") preDepth = Math.max(0, preDepth + (closing ? -1 : 1));
+        if (/^(?:p|li|div|h[1-6]|pre|blockquote|tr|td|br)$/.test(name)) text += " ";
+        return;
+      }
+      var start = text.length;
+      text += decode(part).replace(/\u200b/g, "");
+      if ((codeDepth || preDepth) && text.length > start) codes.push({ start: start, end: text.length });
+    });
+    codes = codes.map(function (range) {
+      return { start: text.slice(0, range.start).normalize("NFC").length, end: text.slice(0, range.end).normalize("NFC").length };
+    }).reduce(function (ranges, range) {
+      var previous = ranges[ranges.length - 1];
+      if (previous && range.start <= previous.end) previous.end = Math.max(previous.end, range.end);
+      else ranges.push(range);
+      return ranges;
+    }, []);
+    return { text: text.normalize("NFC"), codes: codes };
+  }
+  function slicedCodes(codes, start, end) {
+    return codes.filter(function (range) { return range.start < end && range.end > start; }).map(function (range) {
+      return { start: Math.max(start, range.start) - start, end: Math.min(end, range.end) - start };
+    });
+  }
   function normalizedPositions(text) {
     var value = normalize(text);
     if (value.length === text.length) return { value: value, start: function (i) { return i; }, end: function (i) { return i; } };
@@ -57,11 +91,17 @@
     return rawDocs.map(function (raw, id) {
       var html = String(raw.text || "").replace(/<\/(?:p|li|div|h[1-6]|pre|blockquote|tr|td)>/gi, "$&\n")
         .replace(/<br\s*\/?\s*>/gi, "\n");
-      var blocks = html.split(/\n+/).map(function (block) { return plain(block).trim(); }).filter(Boolean);
+      var content = display(html), offset = 0, blocks = [], blockCodes = [];
+      content.text.split(/\n/).forEach(function (part) {
+        var trimmed = part.trim(), start = offset + part.length - part.trimStart().length;
+        if (trimmed) { blocks.push(trimmed); blockCodes.push(slicedCodes(content.codes, start, start + trimmed.length)); }
+        offset += part.length + 1;
+      });
+      var title = display(raw.title);
       var tags = Array.isArray(raw.tags) ? raw.tags.map(function (tag) { return plain(tag); }) : [];
       return {
         id: String(id), location: raw.location, page: String(raw.location).split("#")[0],
-        title: plain(raw.title), blocks: blocks, tags: tags,
+        title: title.text, titleCodes: title.codes, blocks: blocks, blockCodes: blockCodes, tags: tags,
         literal: normalize([plain(raw.title)].concat(blocks, tags).join("\n")),
         indexTitle: plain(raw.title, true), indexText: plain(raw.text, true), indexTags: tags.join(" ")
       };
@@ -283,7 +323,17 @@
     });
     return parts;
   }
-  function mathRanges(text) {
+  function mathRanges(text, codes) {
+    if (codes && codes.length) {
+      var ranges = [], cursor = 0;
+      codes.concat([{ start: text.length, end: text.length }]).forEach(function (code) {
+        mathRanges(text.slice(cursor, code.start)).forEach(function (range) {
+          ranges.push({ start: range.start + cursor, end: range.end + cursor });
+        });
+        cursor = code.end;
+      });
+      return ranges;
+    }
     var ranges = [], cursor = 0;
     function escaped(index) {
       var count = 0;
@@ -306,7 +356,7 @@
     }
     return ranges;
   }
-  function snippetBounds(text, spans, budget) {
+  function snippetBounds(text, spans, budget, codes) {
     if (!text.length) return { start: 0, end: 0 };
     // A heading-only hit still needs a bounded excerpt from its section body.
     // Empty spans reserve no highlighted text, then use the context budget.
@@ -344,16 +394,16 @@
     while (end > last && /\s/u.test(text[end - 1])) end--;
     // TeX is an atomic excerpt unit. Keep complete matching formulas; omit a
     // nonmatching formula sliced by a context edge instead of showing half TeX.
-    mathRanges(text).forEach(function (formula) {
+    mathRanges(text, codes).forEach(function (formula) {
       if (start > formula.start && start < formula.end) start = formula.end <= first ? formula.end : formula.start;
       if (end > formula.start && end < formula.end) end = formula.start >= last ? formula.start : formula.end;
     });
     return { start: start, end: end };
   }
-  function highlighted(text, spans, teaser) {
+  function highlighted(text, spans, teaser, codes) {
     var start = 0, end = text.length;
     if (teaser) {
-      var bounds = snippetBounds(text, spans);
+      var bounds = snippetBounds(text, spans, undefined, codes);
       start = bounds.start; end = bounds.end;
     }
     var ranges = spans.filter(function (span) { return span.end > start && span.start < end; }).slice().sort(function (a, b) { return a.start - b.start; }).reduce(function (merged, span) {
@@ -362,19 +412,34 @@
       else merged.push({ start: span.start, end: span.end });
       return merged;
     }, []);
+    function render(left, right) {
+      var output = "", cursor = left;
+      ranges.forEach(function (span) {
+        var markStart = Math.max(left, span.start), markEnd = Math.min(right, span.end);
+        if (markStart >= markEnd) return;
+        output += escape(text.slice(cursor, markStart)) + "<mark>" + escape(text.slice(markStart, markEnd)) + "</mark>";
+        cursor = markEnd;
+      });
+      return output + escape(text.slice(cursor, right));
+    }
     var output = start ? "..." : "", cursor = start;
-    ranges.forEach(function (span) {
-      if (span.start < cursor) return;
-      output += escape(text.slice(cursor, span.start)) + "<mark>" + escape(text.slice(span.start, span.end)) + "</mark>";
-      cursor = span.end;
+    (codes || []).forEach(function (code) {
+      var left = Math.max(start, code.start), right = Math.min(end, code.end);
+      if (left >= right) return;
+      output += render(cursor, left) + "<code>" + render(left, right) + "</code>";
+      cursor = right;
     });
-    return output + escape(text.slice(cursor, end)) + (end < text.length ? "..." : "");
+    return output + render(cursor, end) + (end < text.length ? "..." : "");
   }
   function excerptFor(hit) {
     // Rank the result as before, but describe its first body occurrence. The
     // section text is already scoped by Material; neither neighbouring titles
     // nor another section's paragraphs can enter these excerpts.
-    var text = hit.doc.blocks.join(" "), anchors = [];
+    var text = hit.doc.blocks.join(" "), anchors = [], codes = [], offset = 0;
+    hit.doc.blocks.forEach(function (block, index) {
+      hit.doc.blockCodes[index].forEach(function (code) { codes.push({ start: code.start + offset, end: code.end + offset }); });
+      offset += block.length + 1;
+    });
     if (!text) text = hit.match.text;
     var lists = occurrences(text, hit.queryTerms, hit.matchMode);
     // Material highlights accepted words individually, including a quoted
@@ -386,15 +451,15 @@
     }); });
     anchors = Array.from(unique.values()).sort(function (a, b) { return a.start - b.start || b.end - a.end; });
     if (!anchors.length) {
-      var bodyBounds = snippetBounds(text, []);
-      return [{ text: text.slice(bodyBounds.start, bodyBounds.end), spans: [],
+      var bodyBounds = snippetBounds(text, [], undefined, codes);
+      return [{ text: text.slice(bodyBounds.start, bodyBounds.end), spans: [], codes: slicedCodes(codes, bodyBounds.start, bodyBounds.end),
         before: bodyBounds.start > 0, after: bodyBounds.end < text.length }];
     }
-    var firstBounds = snippetBounds(text, [anchors[0]]);
+    var firstBounds = snippetBounds(text, [anchors[0]], undefined, codes);
     var hasDistant = anchors.some(function (anchor) { return anchor.start >= firstBounds.end; });
     var contextBudget = hasDistant ? 160 : 480, windows = [], cursor = 0, count = 0;
     while (cursor < anchors.length && count++ < 3) {
-      var bounds = snippetBounds(text, [anchors[cursor]], contextBudget);
+      var bounds = snippetBounds(text, [anchors[cursor]], contextBudget, codes);
       var previousWindow = windows[windows.length - 1];
       if (previousWindow && bounds.start <= previousWindow.end) previousWindow.end = Math.max(previousWindow.end, bounds.end);
       else windows.push(bounds);
@@ -407,7 +472,7 @@
           spans.push(Object.assign({}, span, { start: span.start - bounds.start, end: span.end - bounds.start }));
         });
       });
-      return { text: text.slice(bounds.start, bounds.end), spans: spans, before: bounds.start > 0, after: bounds.end < text.length };
+      return { text: text.slice(bounds.start, bounds.end), spans: spans, codes: slicedCodes(codes, bounds.start, bounds.end), before: bounds.start > 0, after: bounds.end < text.length };
     });
   }
   function createEngine(rawDocs, lunr, serialized) {
@@ -481,10 +546,10 @@
       var text = excerpts.map(function (excerpt, index) {
         return (index ? " ... " : excerpt.before ? "..." : "") +
           '<span data-edwinos-search-segment="' + index + '" data-start-truncated="' + excerpt.before +
-          '" data-end-truncated="' + excerpt.after + '">' + highlighted(excerpt.text, excerpt.spans, false) + "</span>";
+          '" data-end-truncated="' + excerpt.after + '">' + highlighted(excerpt.text, excerpt.spans, false, excerpt.codes) + "</span>";
       }).join("") + (excerpts[excerpts.length - 1].after ? "..." : "");
       return {
-        location: doc.location, title: highlighted(doc.title, titleSpans, false),
+        location: doc.location, title: highlighted(doc.title, titleSpans, false, doc.titleCodes),
         text: "<p>" + text + "</p>",
         score: Math.max(1, (6 - hit.tier) * 100000 - hit.match.errors * 1000 - hit.match.gap * 100 - Math.min(999, hit.match.end - hit.match.start)) + Math.min(1, hit.nativeScore),
         terms: terms, tags: doc.tags.map(escape)

@@ -1882,6 +1882,51 @@ body[data-md-color-scheme="slate"]
     -webkit-box-decoration-break: clone;
 }
 
+/* Search Keyword Marks: translucent orange covers each inline fragment.
+   Animate its color, never the author's text opacity;
+   authored mark fills and lower emphasis remain visible underneath. */
+@property --edwinos-search-match-fill {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+}
+
+:root {
+    --edwinos-search-match-tint: rgba(255, 128, 24, 0.26);
+    --edwinos-search-match-glow: rgba(255, 143, 32, 0.3);
+}
+
+[data-md-color-scheme="slate"] {
+    --edwinos-search-match-tint: rgba(255, 165, 66, 0.3);
+    --edwinos-search-match-glow: rgba(255, 151, 40, 0.38);
+}
+
+.md-content__inner.md-typeset mark[data-md-highlight] {
+    --edwinos-search-match-fill: var(--edwinos-search-match-tint);
+    background: var(--edwinos-search-match-fill) !important;
+    color: inherit !important;
+    padding: 0 !important;
+    border-radius: 0;
+    font-style: inherit;
+    font-weight: inherit;
+    box-shadow: inset 0 2px 4px -2px var(--edwinos-search-match-glow);
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    transition: --edwinos-search-match-fill 1500ms linear, box-shadow 1500ms linear;
+}
+
+.md-content__inner.md-typeset mark[data-md-highlight][data-edwinos-search-highlight="fading"],
+.md-content__inner.md-typeset mark[data-md-highlight][data-edwinos-search-highlight="done"] {
+    --edwinos-search-match-fill: transparent;
+    box-shadow: inset 0 2px 4px -2px transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .md-content__inner.md-typeset mark[data-md-highlight] {
+        transition: none;
+    }
+}
+
 /* ==========================================================================
    Markdown Lists
    ========================================================================== */
@@ -3507,11 +3552,14 @@ body[data-md-color-scheme="slate"] .md-tabs,
 }
 
 .md-header .md-search-result .md-typeset mark {
-    padding: 0 2px;
-    border-radius: 3px;
-    background: rgba(245, 194, 65, 0.24) !important;
-    color: var(--edwinos-search-result-color) !important;
-    font-weight: 600;
+    --edwinos-search-match-fill: var(--edwinos-search-match-tint);
+    padding: 0;
+    border-radius: 0;
+    background: var(--edwinos-search-match-fill) !important;
+    color: inherit !important;
+    font-style: inherit;
+    font-weight: inherit;
+    box-shadow: inset 0 2px 4px -2px var(--edwinos-search-match-glow);
     text-decoration: none !important;
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
@@ -3523,6 +3571,16 @@ body[data-md-color-scheme="slate"] .md-tabs,
     vertical-align: middle;
     overflow-x: auto;
     overflow-y: hidden;
+}
+
+.md-header .md-search-result .md-typeset code {
+    color: inherit;
+    font-size: 0.92em;
+    padding: 0 0.2em;
+    border-radius: 4px;
+    background: rgba(120, 128, 140, 0.12);
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .md-header .md-search-result__more,
@@ -8633,6 +8691,87 @@ body[data-md-color-scheme="slate"]
 
     .md-typeset .intro-card-grid > ul > li:last-child:nth-child(odd) {
         grid-column: auto;
+    }
+}
+
+/* ==========================================================================
+   Back to Top
+   ========================================================================== */
+
+/* Sample the page on the control itself: Material's opacity transition would
+   make a parent backdrop root and prevent a child surface seeing the page.
+   Backdrop filtering leaves the label and arrow unfiltered. */
+.md-top.edwinos-top-glass {
+    --edwinos-top-tint: rgba(246, 248, 250, 0.2);
+    --edwinos-top-hover-tint: rgba(246, 248, 250, 0.28);
+    --edwinos-top-border: rgba(60, 60, 67, 0.2);
+    --edwinos-top-highlight: rgba(255, 255, 255, 0.65);
+    --edwinos-top-shadow: 0 3px 14px rgba(31, 35, 40, 0.13);
+    overflow: visible;
+    background: var(--edwinos-top-tint);
+    -webkit-backdrop-filter: blur(4px) saturate(1.12);
+    backdrop-filter: blur(4px) saturate(1.12);
+    box-shadow: var(--edwinos-top-shadow);
+    color: #303641;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+[data-md-color-scheme="slate"] .md-top.edwinos-top-glass {
+    --edwinos-top-tint: rgba(25, 29, 37, 0.26);
+    --edwinos-top-hover-tint: rgba(25, 29, 37, 0.34);
+    --edwinos-top-border: rgba(240, 246, 252, 0.2);
+    --edwinos-top-highlight: rgba(240, 246, 252, 0.24);
+    --edwinos-top-shadow: 0 3px 14px rgba(1, 4, 9, 0.32);
+    color: #dce2ea;
+    text-shadow: 0 1px 2px rgba(1, 4, 9, 0.65);
+}
+
+.md-top.edwinos-top-glass > .edwinos-top-glass__highlight {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    display: block;
+    box-sizing: border-box;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.md-top.edwinos-top-refraction {
+    backdrop-filter: url(#edwinos-top-refraction) saturate(1.12);
+}
+
+.md-top.edwinos-top-glass > .edwinos-top-glass__highlight {
+    border: 1px solid var(--edwinos-top-border);
+    box-shadow:
+        inset 0 1px 0 var(--edwinos-top-highlight),
+        inset 0 -1px 0 rgba(31, 35, 40, 0.07);
+}
+
+.md-top.edwinos-top-glass:hover,
+.md-top.edwinos-top-glass:focus {
+    background: var(--edwinos-top-hover-tint);
+    color: #303641;
+}
+
+[data-md-color-scheme="slate"] .md-top.edwinos-top-glass:hover,
+[data-md-color-scheme="slate"] .md-top.edwinos-top-glass:focus {
+    color: #dce2ea;
+}
+
+.md-top.edwinos-top-glass:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .md-top.edwinos-top-glass {
+        --edwinos-top-tint: rgba(246, 248, 250, 0.94);
+        --edwinos-top-hover-tint: rgba(246, 248, 250, 0.98);
+    }
+
+    [data-md-color-scheme="slate"] .md-top.edwinos-top-glass {
+        --edwinos-top-tint: rgba(25, 29, 37, 0.94);
+        --edwinos-top-hover-tint: rgba(25, 29, 37, 0.98);
     }
 }
 

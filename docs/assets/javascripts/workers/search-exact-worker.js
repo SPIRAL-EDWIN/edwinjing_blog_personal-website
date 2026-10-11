@@ -1,7 +1,7 @@
 /* EdwinOS owns retrieval; Material owns the UI and message protocol. */
 (function () {
   "use strict";
-  var revision = new URL(self.location.href).searchParams.get("v") || "20261010a";
+  var revision = new URL(self.location.href).searchParams.get("v") || "20261011a";
   var setup;
   var engine;
   var requested = false;

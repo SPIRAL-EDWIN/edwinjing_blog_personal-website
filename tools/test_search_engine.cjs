@@ -267,7 +267,23 @@ check('snippet segments retain escaped author code and complete matching formula
   const segments = snippetSegments(item);
   assert.match(segments[0].html, /&lt;script&gt;<mark>target<\/mark>&lt;\/script&gt;/);
   assert.match(segments[1].html, /\$\$x \+ <mark>target<\/mark> \+ y\$\$/);
-  assert.doesNotMatch(snippetHtml(item), /<(?!\/?(?:p|mark)>)/);
+  assert.doesNotMatch(snippetHtml(item), /<(?!\/?(?:p|mark|code)>)/);
+  assert.match(segments[0].html, /<code>First &lt;script&gt;<mark>target<\/mark>&lt;\/script&gt; code context\.<\/code>/);
+});
+check('Bash and inline code retain literal dollars and safe code provenance in snippets and titles', () => {
+  const bash = String.raw`WANDB_OFFLINE_DIR="$RUN_DIR/wandb/&lt;WANDB_OFFLINE_RUN_DIR&gt;"
+wandb sync "$WANDB_OFFLINE_DIR"`;
+  const target = make(fixture('bash-provenance', 'Use <code>run ID</code>', '<p>Check run ID.</p><pre><code>' + bash + '</code></pre><p>Formula \\(x_2\\) and <code>"$REPO_ROOT"</code>.</p>'));
+  const item = sections(target.search('run ID'))[0];
+  assert.match(item.title, /<code><mark>run ID<\/mark><\/code>/);
+  assert.match(item.text, /<code>WANDB_OFFLINE_DIR=&quot;\$RUN_DIR\/wandb\/&lt;WANDB_OFFLINE_RUN_DIR&gt;&quot;<\/code>/);
+  assert.match(item.text, /<code>wandb sync &quot;\$WANDB_OFFLINE_DIR&quot;<\/code>/);
+  assert.match(item.text, /Formula \\\(x_2\\\) and <code>&quot;\$REPO_ROOT&quot;<\/code>/);
+  assert.doesNotMatch(item.text, /<(?!\/?(?:p|mark|code)>|span data-edwinos-search-segment="\d+" data-start-truncated="(?:true|false)" data-end-truncated="(?:true|false)">|\/span>)/);
+  const variable = sections(target.search('WANDB_OFFLINE_DIR'))[0];
+  assert.match(variable.text, /<code><mark>WANDB_OFFLINE_DIR<\/mark>=&quot;\$RUN_DIR/);
+  const clipped = make(fixture('clipped-code', 'Code target', '<pre><code>' + 'context '.repeat(90) + 'target "$REPO_ROOT" ' + 'context '.repeat(90) + '</code></pre>'));
+  assert.match(sections(clipped.search('target'))[0].text, /<code>[\s\S]*<mark>target<\/mark>[\s\S]*<\/code>/);
 });
 check('Material result groups carry one parent and object-valued highlight terms', () => {
   for (const group of engine.search('reinforcement learning').items) {

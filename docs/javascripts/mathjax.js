@@ -343,7 +343,17 @@ function announceHashLayoutSettled(sequence) {
 
 // Search excerpts are escaped text, rather than Markdown arithmatex nodes.
 // Recognize only complete delimiters; malformed or truncated TeX stays readable.
-function searchMathRanges(text) {
+function searchMathRanges(text, codes) {
+  if (codes && codes.length) {
+    var safe = [], cursor = 0;
+    codes.concat([{ start: text.length, end: text.length }]).forEach(function (code) {
+      searchMathRanges(text.slice(cursor, code.start)).forEach(function (range) {
+        safe.push({ start: range.start + cursor, end: range.end + cursor, body: range.body });
+      });
+      cursor = code.end;
+    });
+    return safe;
+  }
   var ranges = [], cursor = 0;
   function escaped(index) {
     var count = 0;
@@ -380,12 +390,13 @@ function clearSearchMath(node) {
 
 function prepareSearchMath(node) {
   if (searchMathStates.has(node)) return false;
-  var text = "", marks = [], provenance = [];
-  function collect(child, marked) {
+  var text = "", marks = [], codes = [], provenance = [];
+  function collect(child, marked, coded) {
     if (child.nodeType === 3) {
       var start = text.length;
       text += child.textContent;
       if (marked) marks.push({ start: start, end: text.length });
+      if (coded) codes.push({ start: start, end: text.length });
     } else if (child.nodeType === 1) {
       // The article name belongs to the heading but is separate metadata. Keep
       // its node, styling and math lifecycle intact when replacing title TeX.
@@ -393,25 +404,44 @@ function prepareSearchMath(node) {
         provenance.push(child);
         return;
       }
-      child.childNodes.forEach(function (part) { collect(part, marked || child.tagName === "MARK"); });
+      child.childNodes.forEach(function (part) { collect(part, marked || child.tagName === "MARK", coded || child.tagName === "CODE" || child.tagName === "PRE"); });
     }
   }
   node.childNodes.forEach(function (child) { collect(child, false); });
-  var formulas = searchMathRanges(text);
+  codes = codes.reduce(function (ranges, code) {
+    var previous = ranges[ranges.length - 1];
+    if (previous && code.start <= previous.end) previous.end = code.end;
+    else ranges.push(code);
+    return ranges;
+  }, []);
+  var formulas = searchMathRanges(text, codes);
   if (!formulas.length) return false;
   var fragment = document.createDocumentFragment(), cursor = 0;
-  function appendText(start, end) {
+  function appendPlain(parent, start, end) {
     var position = start;
     marks.forEach(function (mark) {
       var left = Math.max(start, mark.start), right = Math.min(end, mark.end);
       if (left >= right) return;
-      fragment.appendChild(document.createTextNode(text.slice(position, left)));
+      parent.appendChild(document.createTextNode(text.slice(position, left)));
       var highlight = document.createElement("mark");
       highlight.textContent = text.slice(left, right);
-      fragment.appendChild(highlight);
+      parent.appendChild(highlight);
       position = right;
     });
-    fragment.appendChild(document.createTextNode(text.slice(position, end)));
+    parent.appendChild(document.createTextNode(text.slice(position, end)));
+  }
+  function appendText(start, end) {
+    var position = start;
+    codes.forEach(function (code) {
+      var left = Math.max(start, code.start), right = Math.min(end, code.end);
+      if (left >= right) return;
+      appendPlain(fragment, position, left);
+      var element = document.createElement("code");
+      appendPlain(element, left, right);
+      fragment.appendChild(element);
+      position = right;
+    });
+    appendPlain(fragment, position, end);
   }
   formulas.forEach(function (formula) {
     appendText(cursor, formula.start);
