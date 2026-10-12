@@ -4,7 +4,7 @@ hide:
   - toc
   - navigation
   - title
-description: "Official personal website of Chen Jing (经宸; name also written as Jing Chen; also known as Edwin Jing), an undergraduate student at the ZJU-UIUC Institute, Zhejiang University; research notes on Embodied AI, legged locomotion, whole-body loco-manipulation, and a personal knowledge garden."
+description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Engineering undergraduate at Zhejiang University, working on embodied AI and robot learning."
 ---
 
 <div class="academic-home-layout">

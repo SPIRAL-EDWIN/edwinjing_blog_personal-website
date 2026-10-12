@@ -10,7 +10,7 @@
 site_name: "Chen Jing (经宸) | Zhejiang University"  # 网站标题，将显示在浏览器标签页
 site_url: https://edwinjing-blog.com/  # 生产环境的域名，用于生成 SEO 规范链接 (Canonical URL) [13]
 site_author: "Chen Jing (经宸)"
-site_description: "Official personal website of Chen Jing (经宸; name also written as Jing Chen; also known as Edwin Jing), an undergraduate student at the ZJU-UIUC Institute, Zhejiang University, working on Embodied AI, legged locomotion, whole-body loco-manipulation, and a personal knowledge garden."
+site_description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Engineering undergraduate at Zhejiang University, working on embodied AI and robot learning."
 exclude_docs: |
   research/
 copyright: >-
