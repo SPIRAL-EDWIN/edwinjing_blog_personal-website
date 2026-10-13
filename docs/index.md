@@ -71,12 +71,12 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
       <p>I am eager to bridge the gap between simulation and reality (Sim2Real) to enable robots with more agile and dexterous behaviors.</p>
     </section>
 
-    <section class="academic-section animate-slide-up" style="--anim-delay: 0.2s;">
+    <section class="academic-section" data-overview-reveal="news">
       <h2 class="section-title"><span class="title-dash"></span>Recent News</h2>
       <!-- OVERVIEW_NEWS_AUTO -->
     </section>
 
-    <section class="academic-section animate-slide-up" style="--anim-delay: 0.3s;">
+    <section class="academic-section" data-overview-reveal="education">
       <h2 class="section-title"><span class="title-dash"></span>Education</h2>
       <ul class="overview-education-list">
         <li class="overview-education-item">
@@ -94,12 +94,12 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
       </ul>
     </section>
 
-    <section class="academic-section animate-slide-up" style="--anim-delay: 0.4s;">
+    <section class="academic-section" data-overview-reveal="publications">
       <h2 class="section-title"><span class="title-dash"></span>Publications</h2>
       <!-- OVERVIEW_PUBLICATIONS_AUTO -->
     </section>
 
-    <section class="academic-section animate-slide-up" style="--anim-delay: 0.5s;">
+    <section class="academic-section" data-overview-reveal="workshop">
       <h2 class="section-title"><span class="title-dash"></span>Workshop Contributions &amp; Presentations</h2>
       <div class="overview-workshop">
         <div class="overview-workshop__media overview-publication__media" data-progressive-image style="--progressive-preview: url('data:image/webp;base64,UklGRpgAAABXRUJQVlA4IIwAAAAQBQCdASocABIAPvVmqU6qpaOiMAwBUB6JZgC+SCKzSfBlJE9wxCvjMqNB/NJcvf4AAPzJHADzHR+OoIudaW3wZdTrfhGo61r5sxf+nxOZAINX2ik3MlZnV8yANDZHdRYJwHUtNZW85s4/625CT0Uy47NWERcCnKnLSfufe4aQ+6G7CivKkyPQYQcAAA==');">
@@ -118,7 +118,7 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
       </div>
     </section>
 
-    <section class="academic-section animate-slide-up" style="--anim-delay: 0.6s;">
+    <section class="academic-section" data-overview-reveal="experiences">
       <h2 class="section-title"><span class="title-dash"></span>Selected Experiences</h2>
       <div class="timeline-cv">
         <div class="cv-item">
@@ -136,7 +136,7 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
       </div>
     </section>
 
-    <section class="academic-section animate-slide-up" style="--anim-delay: 0.7s;">
+    <section class="academic-section" data-overview-reveal="honors">
       <h2 class="section-title"><span class="title-dash"></span>Honors &amp; Awards</h2>
       <ul class="award-list">
         <li><span class="award-year">10/2026</span><span class="award-copy"><strong>Outstanding Student</strong> <span class="award-separator">·</span> <span class="award-name">Zhejiang University</span></span></li>

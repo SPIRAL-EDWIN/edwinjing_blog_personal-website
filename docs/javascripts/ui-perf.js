@@ -39,6 +39,9 @@
   var searchHighlightScopeRoot = null;
   var searchHighlightScopeObserver = null;
   var articleSearchHighlightMotion = null;
+  var overviewRevealRuntime = null;
+  // Remains document-local across Material visits; a reload starts a fresh read.
+  var overviewRevealedSections = new Set();
   var firstScreenReady = false;
   var deferredWork = [];
 
@@ -3666,6 +3669,162 @@
     ['visibilitychange', 'change', 'toggle'].forEach(function (event) { document.addEventListener(event, schedule, true); });
   }
 
+  function setupOverviewReveal() {
+    var root = document.body.classList.contains("is-homepage") &&
+      document.querySelector(".academic-home-layout .academic-content");
+    if (overviewRevealRuntime && overviewRevealRuntime.root === root) return;
+    if (overviewRevealRuntime) overviewRevealRuntime.dispose();
+    if (!root) return;
+    var sections = Array.prototype.slice.call(root.querySelectorAll("[data-overview-reveal]"));
+    if (!sections.length) return;
+    var pending = new Set();
+    var intersection = null;
+    var scrollTimer = null;
+    var nativeScrollEnd = "onscrollend" in window;
+    var motion = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+    var disposed = false;
+    var state = { root: root, dispose: dispose };
+    overviewRevealRuntime = state;
+
+    function active() {
+      return !disposed && overviewRevealRuntime === state && root.isConnected;
+    }
+    function reveal(section, animate) {
+      overviewRevealedSections.add(section.getAttribute("data-overview-reveal"));
+      pending.delete(section);
+      if (intersection) intersection.unobserve(section);
+      // Only an actual viewport entry gets a transition; restoration and focus
+      // must expose the final position without fighting the fragment owner.
+      section.classList.toggle("is-overview-reveal-visible", !!animate);
+      section.classList.remove("is-overview-reveal-pending");
+    }
+    function revealThrough(target) {
+      var index = sections.findIndex(function (section) {
+        return section === target || section.contains(target);
+      });
+      if (index < 0) return;
+      sections.slice(0, index + 1).forEach(function (section) {
+        if (pending.has(section)) reveal(section, false);
+      });
+    }
+    function revealHash() {
+      var hash = window.location.hash.slice(1);
+      if (!hash) return;
+      try { hash = decodeURIComponent(hash); } catch (_) { /* Malformed hashes remain literal. */ }
+      var target = document.getElementById(hash);
+      if (target) revealThrough(target);
+    }
+    function exposeRestoredViewport() {
+      var bottom = window.innerHeight || document.documentElement.clientHeight;
+      pending.forEach(function (section) {
+        // Read only marked section boundaries on setup/restoration, never on
+        // scroll frames. Past content stays visible even after a rapid jump.
+        if (section.getBoundingClientRect().top < bottom) reveal(section, false);
+      });
+    }
+    function finishIfComplete() {
+      if (!pending.size) dispose();
+    }
+    function onHash() {
+      if (!active()) return;
+      revealHash();
+      finishIfComplete();
+    }
+    function onFocus(event) {
+      if (!active()) return;
+      revealThrough(event.target);
+      finishIfComplete();
+    }
+    function showRemaining() {
+      pending.forEach(function (section) { reveal(section, false); });
+      finishIfComplete();
+    }
+    function onPageShow(event) {
+      if (!active()) return;
+      if (event.persisted) showRemaining();
+      else {
+        revealHash();
+        exposeRestoredViewport();
+        finishIfComplete();
+      }
+    }
+    function onMotionChange() {
+      if (active() && motion.matches) showRemaining();
+    }
+    function onScrollEnd() {
+      scrollTimer = null;
+      if (!active()) return;
+      // A jump can skip a whole section with IO remaining false -> false.
+      // Reconcile once after scrolling settles, rather than measuring frames.
+      pending.forEach(function (section) {
+        // Leave a currently visible column to IO: scrollend can arrive before
+        // its intersection callback and must not steal the entrance animation.
+        if (section.getBoundingClientRect().bottom <= 0) reveal(section, false);
+      });
+      finishIfComplete();
+    }
+    function onScrollFallback() {
+      if (scrollTimer !== null) window.clearTimeout(scrollTimer);
+      scrollTimer = window.setTimeout(onScrollEnd, 120);
+    }
+    function dispose() {
+      if (disposed) return;
+      disposed = true;
+      if (intersection) intersection.disconnect();
+      intersection = null;
+      if (scrollTimer !== null) window.clearTimeout(scrollTimer);
+      scrollTimer = null;
+      pending.forEach(function (section) { section.classList.remove("is-overview-reveal-pending"); });
+      pending.clear();
+      document.removeEventListener("focusin", onFocus, true);
+      window.removeEventListener("hashchange", onHash);
+      window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener(nativeScrollEnd ? "scrollend" : "scroll", nativeScrollEnd ? onScrollEnd : onScrollFallback);
+      if (motion && motion.removeEventListener) motion.removeEventListener("change", onMotionChange);
+      else if (motion && motion.removeListener) motion.removeListener(onMotionChange);
+      // Release outgoing nodes but retain stable, already-read section keys.
+      sections.length = 0;
+      if (overviewRevealRuntime === state) overviewRevealRuntime = null;
+    }
+
+    sections.forEach(function (section) {
+      section.classList.remove("is-overview-reveal-visible", "is-overview-reveal-pending");
+      if (!overviewRevealedSections.has(section.getAttribute("data-overview-reveal"))) pending.add(section);
+    });
+    if (!window.IntersectionObserver || (motion && motion.matches)) {
+      showRemaining();
+      return;
+    }
+    revealHash();
+    exposeRestoredViewport();
+    if (!pending.size) { dispose(); return; }
+    intersection = new window.IntersectionObserver(function (entries) {
+      if (!active()) return;
+      entries.forEach(function (entry) {
+        if (!pending.has(entry.target)) return;
+        if (entry.isIntersecting) {
+          var index = sections.indexOf(entry.target);
+          sections.slice(0, index).forEach(function (section) {
+            if (pending.has(section)) reveal(section, false);
+          });
+          reveal(entry.target, true);
+        }
+        else if (entry.boundingClientRect.bottom <= 0) reveal(entry.target, false);
+      });
+      finishIfComplete();
+    }, { threshold: 0, rootMargin: "0px 0px -30px 0px" });
+    pending.forEach(function (section) {
+      section.classList.add("is-overview-reveal-pending");
+      intersection.observe(section);
+    });
+    document.addEventListener("focusin", onFocus, true);
+    window.addEventListener("hashchange", onHash);
+    window.addEventListener("pageshow", onPageShow);
+    window.addEventListener(nativeScrollEnd ? "scrollend" : "scroll", nativeScrollEnd ? onScrollEnd : onScrollFallback, { passive: true });
+    if (motion && motion.addEventListener) motion.addEventListener("change", onMotionChange);
+    else if (motion && motion.addListener) motion.addListener(onMotionChange);
+  }
+
   function runAll() {
     finishArchiveNavigationFeedback();
     setupArticleSearchHighlightScope();
@@ -3677,6 +3836,7 @@
     enhancedContent = content;
     enhancedHeader = header;
     updateHomepageClass();
+    setupOverviewReveal();
     ensureHeaderGlass();
     ensureTocGlass();
     setupHeaderSearchTransition();

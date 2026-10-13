@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-10-12
+Last updated: 2026-10-13
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -42,7 +42,15 @@ source partial omits Material's separate API initializer. Friend count,
 repository and deployment metadata wait until after load/paint/idle. Core UI
 enhancements run once per content/header pair across the initial lifecycle;
 instant navigation still initializes replaced content. Homepage prose and its
-profile start at final geometry without nested entrance transforms. Initial
+profile start at final geometry without nested entrance transforms. Only the
+six Overview sections after About Me, marked `data-overview-reveal`, can fade upward
+16px on their first viewport entry (800ms). `setupOverviewReveal` in `ui-perf.js`
+owns a threshold-zero IntersectionObserver and document-local viewed keys;
+completion or content replacement releases it. About Me and
+any initially visible/restored content stay static. Hash/focus landings and
+reduced motion reveal directly; default HTML remains visible without JS.
+Image hints, responsive preloads and native readiness remain unchanged.
+Initial
 HOME route classes are seeded before the header; the Header partial renders
 progressive glass and the Source partial renders the complete facts row.
 Runtime setup reuses those nodes. The avatar is eager/high priority. The logo,

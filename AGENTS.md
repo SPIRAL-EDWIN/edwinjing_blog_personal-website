@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-10-12
+Last updated: 2026-10-13
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -57,6 +57,13 @@ Current stylesheet policy:
   rebased local URLs and `data-search-exclude`; do not recreate runtime wrappers
   or a duplicate profile markup source. Homepage article/section entrance motion
   must not translate the profile or prose during refresh/scroll restoration.
+  Overview's About Me section stays static. All other unseen, offscreen sections
+  marked `data-overview-reveal` receive the one-time scroll reveal owned by
+  `setupOverviewReveal`; keep viewed keys in this document's runtime only.
+  Initial visible/restored sections, hash/focus landings, reduced motion and
+  missing observers reveal directly. Dispose observers and pending listeners
+  on completion or content replacement. This effect does not defer image
+  requests or alter homepage image preloads/readiness.
   The selected navigation glass is one persistent header surface, seeded by
   `partials/header.html` and rebound by `setupTabGlass` after Material replaces
   the tabs. Its lens samples the actual labels above the tabs, below search

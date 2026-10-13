@@ -62,6 +62,7 @@ jobs:
         run: |
           node tools/test_navigation_media.cjs
           node tools/test_navigation_glass.cjs
+          node tools/test_home_reveal.cjs
           node tools/test_math_loading.cjs
           node tools/test_search_engine.cjs
           node tools/test_search_worker.cjs
