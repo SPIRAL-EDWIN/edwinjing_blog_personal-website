@@ -4,7 +4,12 @@
     {% set icon = config.theme.icon.repo or "fontawesome/brands/git-alt" %}
     {% include ".icons/" ~ icon ~ ".svg" %}
   </div>
-  <div class="md-source__repository">
+  <div class="md-source__repository md-source__repository--active">
     {{ config.repo_name }}
+    {% set facts = config.extra.edwinos_github_repo_facts | default({}) %}
+    <ul class="md-source__facts" data-edwinos-source-facts="true">
+      <li class="md-source__fact md-source__fact--stars" data-source-fact="stars">{{ facts.stars | default('—') }}</li>
+      <li class="md-source__fact md-source__fact--forks" data-source-fact="forks">{{ facts.forks | default('—') }}</li>
+    </ul>
   </div>
 </a>

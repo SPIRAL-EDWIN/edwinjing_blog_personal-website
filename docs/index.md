@@ -80,7 +80,7 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
       <h2 class="section-title"><span class="title-dash"></span>Education</h2>
       <ul class="overview-education-list">
         <li class="overview-education-item">
-          <div class="overview-education-logo" data-progressive-image style="--progressive-preview: url('data:image/webp;base64,UklGRowBAABXRUJQVlA4WAoAAAAQAAAAGwAACQAAQUxQSOsAAAANgC0AbCEpyXSHe7Zt3/3/k23b9l132OT0ERGRgIrIGAOAIACAAv8RGR3fNZDqGBQDMJCQARQgizIv+EId+KC5WBKOyE8lQTc1TlX+pMLWXzbFNVFUVlSKB3G1lT9SXTcfHU0vG/mPluGyp/07ytzmPO3rj8oSnc/d5dqfJ8uyB+zvnz/gpkY8mVWNTS+3DxO1s7Xm6/HJtvyT5eKksUbbuzelUld1Epnk3BuQTS6ht1o8Wu3qyJ7f8lUu43Xey2chFoKbNxve0xZ4qowebInI5jT17VhEWAkSRJ+FIjfWCjk2BMIWRQgG0CIAAFZQOCB6AAAAEAQAnQEqHAAKAD8BaqxOqyYkIjAIAWAgCWoAnTKAAv7jFX4XCEKrNAAA/uQkYLnt6MMpi3QQfPSIx69QO7Hx8VzApCwo/VNVeDYnXhgt+64YBB8xdUHLC3pWAsq/YAi/fLdp6RJCZ6MqUys0AgZaV3tI8KaeJ2EWkAA=');"><img class="off-glb" data-progressive-full src="./assets/images/zhejiang-university-logo-180.webp" srcset="./assets/images/zhejiang-university-logo-180.webp 180w, ./assets/images/zhejiang-university-logo-360.webp 360w, ./assets/images/zhejiang-university-logo-540.webp 540w, ./assets/images/zhejiang-university-logo-720.webp 720w" sizes="(max-width: 680px) 32vw, (max-width: 960px) 96px, 180px" alt="Zhejiang University logo" width="720" height="263" loading="eager" fetchpriority="auto" decoding="async"></div>
+          <div class="overview-education-logo" data-progressive-image style="--progressive-preview: url('data:image/webp;base64,UklGRowBAABXRUJQVlA4WAoAAAAQAAAAGwAACQAAQUxQSOsAAAANgC0AbCEpyXSHe7Zt3/3/k23b9l132OT0ERGRgIrIGAOAIACAAv8RGR3fNZDqGBQDMJCQARQgizIv+EId+KC5WBKOyE8lQTc1TlX+pMLWXzbFNVFUVlSKB3G1lT9SXTcfHU0vG/mPluGyp/07ytzmPO3rj8oSnc/d5dqfJ8uyB+zvnz/gpkY8mVWNTS+3DxO1s7Xm6/HJtvyT5eKksUbbuzelUld1Epnk3BuQTS6ht1o8Wu3qyJ7f8lUu43Xey2chFoKbNxve0xZ4qowebInI5jT17VhEWAkSRJ+FIjfWCjk2BMIWRQgG0CIAAFZQOCB6AAAAEAQAnQEqHAAKAD8BaqxOqyYkIjAIAWAgCWoAnTKAAv7jFX4XCEKrNAAA/uQkYLnt6MMpi3QQfPSIx69QO7Hx8VzApCwo/VNVeDYnXhgt+64YBB8xdUHLC3pWAsq/YAi/fLdp6RJCZ6MqUys0AgZaV3tI8KaeJ2EWkAA=');"><img class="off-glb" data-progressive-full src="./assets/images/zhejiang-university-logo-180.webp" srcset="./assets/images/zhejiang-university-logo-180.webp 180w, ./assets/images/zhejiang-university-logo-360.webp 360w, ./assets/images/zhejiang-university-logo-540.webp 540w, ./assets/images/zhejiang-university-logo-720.webp 720w" sizes="(max-width: 680px) 32vw, (max-width: 960px) 96px, 180px" alt="Zhejiang University logo" width="720" height="263" loading="eager" fetchpriority="auto" decoding="sync"></div>
           <div class="overview-education-content">
             <div class="overview-education-school"><a href="https://www.zju.edu.cn/" target="_blank" rel="noopener">Zhejiang University (ZJU)</a></div>
             <div class="overview-education-dept"><a href="https://zjui.intl.zju.edu.cn/" target="_blank" rel="noopener">ZJU-UIUC Institute (ZJUI)</a></div>
@@ -103,7 +103,7 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
       <h2 class="section-title"><span class="title-dash"></span>Workshop Contributions &amp; Presentations</h2>
       <div class="overview-workshop">
         <div class="overview-workshop__media overview-publication__media" data-progressive-image style="--progressive-preview: url('data:image/webp;base64,UklGRpgAAABXRUJQVlA4IIwAAAAQBQCdASocABIAPvVmqU6qpaOiMAwBUB6JZgC+SCKzSfBlJE9wxCvjMqNB/NJcvf4AAPzJHADzHR+OoIudaW3wZdTrfhGo61r5sxf+nxOZAINX2ik3MlZnV8yANDZHdRYJwHUtNZW85s4/625CT0Uy47NWERcCnKnLSfufe4aQ+6G7CivKkyPQYQcAAA==');">
-          <img class="off-glb" data-progressive-full src="assets/images/workshops/iros-2026-moma-poster-175.webp" srcset="assets/images/workshops/iros-2026-moma-poster-175.webp 175w, assets/images/workshops/iros-2026-moma-poster-350.webp 350w, assets/images/workshops/iros-2026-moma-poster-525.webp 525w" sizes="(max-width: 420px) 100px, (max-width: 680px) 120px, 175px" alt="MoMA.v5 at IROS 2026: poster display on the left, workshop opening slide at upper right, and spotlight presentation at lower right" width="1550" height="1000" loading="lazy" fetchpriority="auto" decoding="async">
+          <img class="off-glb" data-progressive-full src="assets/images/workshops/iros-2026-moma-poster-175.webp" srcset="assets/images/workshops/iros-2026-moma-poster-175.webp 175w, assets/images/workshops/iros-2026-moma-poster-350.webp 350w, assets/images/workshops/iros-2026-moma-poster-525.webp 525w" sizes="(max-width: 420px) 100px, (max-width: 680px) 120px, 175px" alt="MoMA.v5 at IROS 2026: poster display on the left, workshop opening slide at upper right, and spotlight presentation at lower right" width="1550" height="1000" loading="eager" fetchpriority="auto" decoding="sync">
         </div>
         <div class="overview-workshop__body">
           <p class="overview-workshop__event"><a href="https://mobile-manipulation.net/events/moma-iros26/" target="_blank" rel="noopener noreferrer">MoMA.v5 Workshop <span aria-hidden="true">·</span> IEEE/RSJ IROS 2026</a></p>
@@ -119,7 +119,7 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
     </section>
 
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.6s;">
-      <h2 class="section-title"><span class="title-dash"></span>Experiences</h2>
+      <h2 class="section-title"><span class="title-dash"></span>Selected Experiences</h2>
       <div class="timeline-cv">
         <div class="cv-item">
           <div class="cv-marker"></div>
@@ -139,6 +139,9 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.7s;">
       <h2 class="section-title"><span class="title-dash"></span>Honors &amp; Awards</h2>
       <ul class="award-list">
+        <li><span class="award-year">10/2026</span><span class="award-copy"><strong>Outstanding Student</strong> <span class="award-separator">·</span> <span class="award-name">Zhejiang University</span></span></li>
+        <li><span class="award-year">10/2026</span><span class="award-copy"><strong>Pacesetter in Academic Excellence</strong> <span class="award-separator">·</span> <span class="award-name">Zhejiang University</span></span></li>
+        <li><span class="award-year">10/2026</span><span class="award-copy"><strong>Pacesetter in International Exchange</strong> <span class="award-separator">·</span> <span class="award-name">Zhejiang University</span></span></li>
         <li><span class="award-year">04/2026</span><span class="award-copy"><strong>Third Prize</strong> <span class="award-separator">·</span> <span class="award-name">31st Zhejiang University Mechanical Design Competition</span></span></li>
         <li><span class="award-year">01/2024</span><span class="award-copy"><strong>Gold Medal &amp; First Prize</strong> <span class="award-separator">·</span> <span class="award-name">World Robot Contest Finals (WRCF)</span></span></li>
         <li><span class="award-year">08/2023</span><span class="award-copy"><strong>Second Prize</strong> <span class="award-separator">·</span> <span class="award-name">National VEX Robotics Elite Competition (Hosted by SJTU)</span></span></li>
@@ -149,7 +152,7 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
       <p class="visitor-meta-footer__signature">
         <span>&copy; Chen Jing</span>
         <span class="visitor-meta-footer__separator" aria-hidden="true">&middot;</span>
-        <time class="visitor-meta-footer__updated" data-visitor-deployment-time datetime="2026-07-04T14:45:06+08:00">Latest updated Jul. 2026</time>
+        <time class="visitor-meta-footer__updated" data-visitor-deployment-time datetime="2026-10">Latest updated Oct. 2026</time>
       </p>
       <div class="visitor-container visitor-badge-panel" data-visitor-badge>
         <a class="visitor-badge-link" href="https://visitorbadge.io/status?path=https%3A%2F%2Fedwinjing-blog.com%2F" target="_blank" rel="noopener noreferrer" aria-label="Open Edwin's visitor statistics in a new tab">

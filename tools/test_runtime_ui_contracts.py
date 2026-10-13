@@ -32,9 +32,11 @@ class RuntimeUiContractTests(unittest.TestCase):
         for path, expected in [
             ("HOME/Archive/", "true"), ("HOME/friends/", "true"),
             ("HOME/Archive/index.html", "true"), ("HOME/friends/index.html", "true"),
-            ("", "false"), ("OsdNotes/CS101/Python/", "false"),
+            ("", "false"), ("index.html", "false"), ("OsdNotes/CS101/Python/", "false"),
         ]:
             output = environment.get_template("main.html").render(page=SimpleNamespace(url=path))
+            homepage = "true" if path in ("", "index.html") else "false"
+            self.assertIn('classList.toggle("is-homepage", %s)' % homepage, output)
             self.assertIn('classList.toggle("is-home-profile-page", %s)' % expected, output)
             self.assertLess(output.index('classList.toggle('), output.index('<header>'))
 
@@ -67,7 +69,7 @@ class RuntimeUiContractTests(unittest.TestCase):
             source,
         )
         self.assertNotIn('pathname.endsWith("/index.html")', source)
-        self.assertEqual(source.count("classifyUiRoute(window.location.pathname"), 2)
+        self.assertEqual(source.count("classifyUiRoute(window.location.pathname"), 1)
 
         root_pattern = re.compile(r"^/index\.html$", re.IGNORECASE)
         profile_pattern = re.compile(

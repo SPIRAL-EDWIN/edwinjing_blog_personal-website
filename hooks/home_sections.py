@@ -1,4 +1,4 @@
-"""Render maintainable Overview news and publication data into the homepage.
+"""Render Overview data and shared HOME profile markup at build time.
 
 The editable source lives in ``data/homepage``.  Keeping the data outside
 ``docs`` prevents YAML files from becoming public site assets while still
@@ -8,18 +8,23 @@ letting MkDocs render complete, crawlable HTML at build time.
 from __future__ import annotations
 
 import html
+import json
 import re
 from datetime import date, datetime
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import yaml
 from mkdocs.exceptions import PluginError
+from mkdocs.utils import get_relative_url
 from PIL import Image, UnidentifiedImageError
 
 
 HOME_PAGE = "index.md"
+HOME_PROFILE_PAGES = frozenset({"HOME/friends.md", "HOME/Archive/index.md"})
+REPOSITORY_FACTS = "assets/data/github-repo.json"
 NEWS_MARKER = "<!-- OVERVIEW_NEWS_AUTO -->"
 PUBLICATIONS_MARKER = "<!-- OVERVIEW_PUBLICATIONS_AUTO -->"
 NEWS_DATA = Path("data/homepage/news.yml")
@@ -291,6 +296,7 @@ def _render_publication_media(
     label: str,
     *,
     dimensions: tuple[int, int] | None = None,
+    initial_image: bool = False,
 ) -> str:
     image = _text(entry.get("image"), f"{label}.image", required=False)
     if image:
@@ -302,11 +308,14 @@ def _render_publication_media(
         dimensions_markup = ""
         if dimensions is not None:
             dimensions_markup = f' width="{dimensions[0]}" height="{dimensions[1]}"'
+        loading_markup = ('loading="eager" fetchpriority="auto" decoding="sync"'
+                          if initial_image else
+                          'loading="lazy" fetchpriority="low" decoding="async"')
         return (
             '<div class="overview-publication__media">'
             f'<img class="off-glb" src="{html.escape(image, quote=True)}" '
             f'alt="{html.escape(image_alt, quote=True)}"{dimensions_markup} '
-            'loading="lazy" fetchpriority="low" decoding="async">'
+            f'{loading_markup}>'
             "</div>"
         )
     placeholder = _text(entry.get("placeholder", "PAPER"), f"{label}.placeholder")
@@ -342,6 +351,7 @@ def render_publications(data: Mapping[str, Any], repo_root: Path | None = None) 
     seen_ids = set()
     rendered_entries = []
     used_marks = set()
+    initial_image_rendered = False
 
     for index, raw_entry in enumerate(raw_entries):
         label = f"publications.entries[{index}]"
@@ -378,7 +388,9 @@ def render_publications(data: Mapping[str, Any], repo_root: Path | None = None) 
             entry,
             label,
             dimensions=image_dimensions,
+            initial_image=bool(image) and not initial_image_rendered,
         )
+        initial_image_rendered = initial_image_rendered or bool(image)
         authors_markup = _render_authors(authors, collapse_after, entry_id)
         venue = _render_venue(entry.get("venue"), f"{label}.venue")
         award = _text(entry.get("award"), f"{label}.award", required=False)
@@ -420,6 +432,216 @@ def _repo_root(config: Any) -> Path:
     if not config_path:
         raise HomeSectionError("MkDocs config_file_path is unavailable")
     return Path(config_path).resolve().parent
+
+
+def on_config(config, **kwargs):
+    """Make the validated same-origin source snapshot available before paint."""
+    extra = config.setdefault("extra", {})
+    extra["edwinos_github_repo_facts"] = {}
+    path = Path(config["docs_dir"]) / REPOSITORY_FACTS
+    if not path.is_file():
+        return config
+    try:
+        facts = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(facts, dict):
+            raise ValueError("snapshot must be an object")
+        for key in ("stars", "forks"):
+            if type(facts.get(key)) is not int or facts[key] < 0:
+                raise ValueError(f"{key} must be a non-negative integer")
+        repository = facts.get("repository")
+        if not isinstance(repository, str) or not re.fullmatch(r"[\w.-]+/[\w.-]+", repository):
+            raise ValueError("repository must use owner/name")
+    except (OSError, ValueError) as exc:
+        raise PluginError(f"Repository facts snapshot error: {exc}") from exc
+
+    source = urlsplit(config.get("repo_url", ""))
+    if source.hostname == "github.com" and source.path.strip("/") == repository:
+        extra["edwinos_github_repo_facts"] = {
+            "repository": repository, "stars": facts["stars"], "forks": facts["forks"]
+        }
+    return config
+
+
+def _profile_url(value: str, page_url: str) -> str:
+    """Rebase homepage-authored local URLs without assuming a site-root deploy."""
+    parsed = urlsplit(value)
+    if parsed.scheme or parsed.netloc or not value:
+        return value
+    target = urlsplit(urljoin("/", value))
+    path = get_relative_url(target.path, page_url)
+    return urlunsplit(("", "", path, target.query, target.fragment))
+
+
+def _profile_srcset(value: str, page_url: str) -> str:
+    # A candidate URL ends at whitespace; commas inside data URLs belong to
+    # the URL. Local URL lists may also omit descriptors and separating spaces.
+    return re.sub(
+        r"(^|,\s*)(\S+)(?=\s|$)",
+        lambda match: match[1] + (
+            match[2] if match[2].startswith("data:") else
+            ",".join(_profile_url(url, page_url) for url in match[2].split(","))
+        ),
+        value,
+    )
+
+
+class _ProfileMarkup(HTMLParser):
+    """Locate profile markup without serializing or changing authored HTML."""
+
+    def __init__(self, markup: str):
+        super().__init__(convert_charrefs=False)
+        self.markup = markup
+        self.offsets = [0] + [match.end() for match in re.finditer("\n", markup)]
+        self.sidebars = []
+        self.start = None
+        self.depth = 0
+        self.has_subpage = False
+        self.feed(markup)
+
+    def _offset(self):
+        line, column = self.getpos()
+        return self.offsets[line - 1] + column
+
+    def handle_starttag(self, tag, attrs):
+        classes = dict(attrs).get("class", "").split()
+        if "academic-home-layout--subpage" in classes:
+            self.has_subpage = True
+        if tag == "aside":
+            if self.start is not None:
+                self.depth += 1
+            elif "academic-sidebar" in classes:
+                self.start = self._offset()
+                self.depth = 1
+
+    def handle_endtag(self, tag):
+        if tag == "aside" and self.start is not None:
+            self.depth -= 1
+            if self.depth == 0:
+                end = self.markup.index(">", self._offset()) + 1
+                self.sidebars.append(self.markup[self.start:end])
+                self.start = None
+
+
+class _ProfileUrls(HTMLParser):
+    def __init__(self, markup: str, page_url: str):
+        super().__init__(convert_charrefs=False)
+        self.markup = markup
+        self.page_url = page_url
+        self.offsets = [0] + [match.end() for match in re.finditer("\n", markup)]
+        self.replacements = []
+        self.feed(markup)
+
+    def handle_starttag(self, tag, attrs):
+        original = self.get_starttag_text()
+
+        def replace(match):
+            value = html.unescape(match[4])
+            rebased = (_profile_srcset(value, self.page_url) if match[1].lower() == "srcset"
+                       else _profile_url(value, self.page_url))
+            return match[1] + match[2] + match[3] + html.escape(rebased, quote=True) + match[3]
+
+        rewritten = re.sub(r'''(?<![\w:-])(href|src|srcset)(\s*=\s*)(["'])(.*?)\3''',
+                           replace, original, flags=re.IGNORECASE | re.DOTALL)
+        if tag == "aside" and "data-search-exclude" not in dict(attrs):
+            rewritten = rewritten[:-1] + ' data-search-exclude="">'
+        if rewritten != original:
+            line, column = self.getpos()
+            start = self.offsets[line - 1] + column
+            self.replacements.append((start, start + len(original), rewritten))
+
+    def rewritten(self):
+        result = self.markup
+        for start, end, replacement in reversed(self.replacements):
+            result = result[:start] + replacement + result[end:]
+        return result
+
+
+def render_profile_sidebar(markdown: str, page_url: str) -> str:
+    """Reuse the single authored profile, including personal links and SVGs."""
+    parsed = _ProfileMarkup(markdown)
+    if len(parsed.sidebars) != 1 or parsed.start is not None:
+        raise HomeSectionError("Overview must contain exactly one academic-sidebar")
+    # The old runtime copy was never part of search content. Keep that scope.
+    return _ProfileUrls(parsed.sidebars[0], page_url).rewritten()
+
+
+class _HomeImagePreloads(HTMLParser):
+    """Read the three initial homepage images from their rendered owners."""
+
+    def __init__(self, markup: str):
+        super().__init__()
+        self.div_classes = []
+        self.images = {}
+        self.feed(markup)
+
+    @staticmethod
+    def _local_url(value: str) -> bool:
+        parsed = urlsplit(value)
+        return bool(parsed.path) and not parsed.scheme and not parsed.netloc
+
+    def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        if tag == "div":
+            self.div_classes.append(set(attributes.get("class", "").split()))
+        if tag != "img":
+            return
+        ancestors = set().union(*self.div_classes) if self.div_classes else set()
+        owner = next((name for name in (
+            "overview-education-logo", "overview-workshop__media",
+            "overview-publication__media",
+        ) if name in ancestors), None)
+        if not owner or owner in self.images:
+            return
+        source = attributes.get("src", "")
+        srcset = attributes.get("srcset", "")
+        # Only local assets belong to this bounded preload set. An external or
+        # data candidate could otherwise change the request selected by DPR.
+        if not self._local_url(source) or (srcset and any(
+            not self._local_url(candidate.strip().split()[0])
+            for candidate in srcset.split(",") if candidate.strip()
+        )):
+            return
+        self.images[owner] = {
+            "src": source,
+            "srcset": srcset,
+            "sizes": attributes.get("sizes", ""),
+        }
+
+    def handle_endtag(self, tag):
+        if tag == "div" and self.div_classes:
+            self.div_classes.pop()
+
+    def descriptors(self):
+        return [self.images[name] for name in (
+            "overview-education-logo", "overview-publication__media",
+            "overview-workshop__media",
+        ) if name in self.images]
+
+
+def on_page_content(html_content, page, config, files, **kwargs):
+    """Prepare homepage images and emit HOME profile subpages before paint."""
+    src_uri = getattr(page.file, "src_uri", getattr(page.file, "src_path", ""))
+    page.edwinos_home_image_preloads = []
+    if src_uri == HOME_PAGE:
+        page.edwinos_home_image_preloads = _HomeImagePreloads(html_content).descriptors()
+        return html_content
+    if src_uri not in HOME_PROFILE_PAGES:
+        return html_content
+    # Idempotence prevents a second shell if another caller passes rendered HTML.
+    if _ProfileMarkup(html_content).has_subpage:
+        return html_content
+    try:
+        home = (Path(config["docs_dir"]) / HOME_PAGE).read_text(encoding="utf-8")
+        sidebar = render_profile_sidebar(home, page.url)
+    except (OSError, HomeSectionError) as exc:
+        raise PluginError(f"HOME profile error: {exc}") from exc
+    return (
+        '<div class="academic-home-layout academic-home-layout--subpage">'
+        + sidebar
+        + '<main class="academic-content academic-content--subpage">'
+        + html_content
+        + "</main></div>"
+    )
 
 
 def on_page_markdown(markdown, page, config, files, **kwargs):

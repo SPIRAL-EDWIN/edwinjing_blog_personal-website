@@ -2,7 +2,7 @@
  * EdwinOS runtime UI adaptations.
  *
  * Owns idempotent DOM enhancements that must be reapplied after MkDocs
- * Material instant navigation (route classes, header/search/profile shells,
+ * Material instant navigation (route classes, header/search, profile metadata,
  * source facts, visitor metadata, callouts, and list continuity). Content
  * conversion and fragment/hash navigation are intentionally owned elsewhere.
  */
@@ -16,6 +16,7 @@
   var pendingPrimarySidebarScroll = null;
   var lastDocumentPageKey = navigationPageKey(window.location.href);
   var headerSearchRuntime = null;
+  var tabGlassRuntime = null;
   var topGlassRuntime = null;
   var searchResultSummarySubscription = null;
   var searchSnippetSources = new WeakMap();
@@ -29,7 +30,6 @@
   var mountedNavigationContent = null;
   var mountedNavigationHref = window.location.href;
   var navigationLabels = Object.create(null);
-  var progressiveImages = new WeakSet();
   var pdfViewers = new WeakMap();
   var activePdfViewers = [];
   var friendCountRequest = null;
@@ -286,7 +286,13 @@
     var prefix = options.prefix;
     var datasetMode = options.datasetMode;
     var datasetBuilds = options.datasetBuilds;
-    var padding = 16;
+    var padding = options.padding === undefined ? 16 : options.padding;
+    var referenceLens = options.profile === 'shuding';
+    var referenceScale = 0;
+    var motionStrength = 0;
+    var mapWidth = 0, mapHeight = 0;
+    var mapTransform;
+    var motionMapFrozen = false;
     var disposed = false;
     var frame = 0;
     var mapKey = '';
@@ -330,15 +336,22 @@
       mapImage.setAttribute('y', String(-padding));
       var blur = document.createElementNS(svgNS, 'feGaussianBlur');
       blur.setAttribute('in', 'SourceGraphic');
-      blur.setAttribute('stdDeviation', '4');
+      blur.setAttribute('stdDeviation', String(options.blur === undefined ? 4 : options.blur));
       blur.setAttribute('result', prefix + '-blur');
       var displacement = document.createElementNS(svgNS, 'feDisplacementMap');
       displacement.setAttribute('in', prefix + '-blur');
-      displacement.setAttribute('in2', prefix + '-map');
+      displacement.setAttribute('in2', referenceLens ? prefix + '-scaled-map' : prefix + '-map');
       displacement.setAttribute('xChannelSelector', 'R');
       displacement.setAttribute('yChannelSelector', 'G');
-      displacement.setAttribute('scale', '22');
+      displacement.setAttribute('scale', String(options.strength === undefined ? 22 : options.strength));
       filter.appendChild(mapImage);
+      if (referenceLens) {
+        mapTransform = document.createElementNS(svgNS, 'feColorMatrix');
+        mapTransform.setAttribute('in', prefix + '-map');
+        mapTransform.setAttribute('type', 'matrix');
+        mapTransform.setAttribute('result', prefix + '-scaled-map');
+        filter.appendChild(mapTransform);
+      }
       filter.appendChild(blur);
       filter.appendChild(displacement);
       defs.appendChild(filter);
@@ -353,22 +366,36 @@
       var radius = Math.min(box.width / 2, box.height / 2,
         parseFloat(window.getComputedStyle(feedback).borderTopLeftRadius) || 24);
       var key = Math.round(box.width) + ':' + Math.round(box.height) + ':' + Math.round(radius);
-      if (key === mapKey) return;
       var sampleWidth = box.width + padding * 2;
       var sampleHeight = box.height + padding * 2;
-      canvas.width = Math.min(768, Math.max(24, Math.ceil(sampleWidth * 1.5)));
-      canvas.height = Math.min(512, Math.max(24, Math.ceil(sampleHeight * 1.5)));
-      var pixels = context.createImageData(canvas.width, canvas.height);
-      fillRoundedGlassDisplacementMap(pixels, box.width, box.height, padding, radius);
-      context.putImageData(pixels, 0, 0);
-      var url = canvas.toDataURL('image/png');
+      // During a nav width morph stretch the already-loaded map, rather than
+      // replacing feImage.href with a newly encoded PNG on every frame. Region
+      // changes are synchronous; raster decoding cannot temporarily remove the
+      // lens or expose an incompletely covered backdrop.
       filter.setAttribute('width', sampleWidth);
       filter.setAttribute('height', sampleHeight);
-      mapImage.setAttribute('width', sampleWidth);
-      mapImage.setAttribute('height', sampleHeight);
+      mapImage.setAttribute('x', referenceLens ? 0 : -padding);
+      mapImage.setAttribute('y', referenceLens ? 0 : -padding);
+      mapImage.setAttribute('width', referenceLens ? box.width : sampleWidth);
+      mapImage.setAttribute('height', referenceLens ? box.height : sampleHeight);
+      if (referenceLens && mapWidth) {
+        var morphScale = setTabGlassMapTransform(mapTransform, box.width / mapWidth, box.height / mapHeight);
+        displacement.setAttribute('scale', referenceScale * motionStrength * morphScale);
+      }
+      feedback.style.setProperty('--' + prefix + '-radius', radius + 'px');
+      if (motionMapFrozen || key === mapKey) return;
+      canvas.width = Math.min(768, Math.max(24, Math.ceil((referenceLens ? box.width : sampleWidth) * 1.5)));
+      canvas.height = Math.min(512, Math.max(24, Math.ceil((referenceLens ? box.height : sampleHeight) * 1.5)));
+      var pixels = context.createImageData(canvas.width, canvas.height);
+      if (referenceLens) {
+        referenceScale = fillTabGlassDisplacementMap(pixels, box.width, box.height);
+        mapWidth = box.width; mapHeight = box.height;
+        setTabGlassMapTransform(mapTransform, 1, 1);
+      } else fillRoundedGlassDisplacementMap(pixels, box.width, box.height, padding, radius, options.rim);
+      context.putImageData(pixels, 0, 0);
+      var url = canvas.toDataURL('image/png');
       mapImage.setAttribute('href', url);
       mapImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', url);
-      feedback.style.setProperty('--' + prefix + '-radius', radius + 'px');
       mapKey = key;
       builds += 1;
       feedback.dataset[datasetBuilds] = String(builds);
@@ -386,8 +413,35 @@
       schedule();
     }
     return {
+      setStrength: function (value) {
+        if (refraction) {
+          motionStrength = value;
+          displacement.setAttribute('scale', String(referenceLens ? referenceScale * value : value));
+          if (motionMapFrozen) {
+            window.cancelAnimationFrame(frame); frame = 0;
+            update();
+          }
+        }
+      },
+      beginMotion: function () {
+        if (disposed || !refraction) return;
+        window.cancelAnimationFrame(frame); frame = 0;
+        // Initial startup can precede the first scheduled optical frame.
+        if (!mapKey) update();
+        motionMapFrozen = true;
+        if (options.datasetFrozen) feedback.dataset[options.datasetFrozen] = '1';
+      },
+      endMotion: function (refresh) {
+        motionStrength = 0;
+        motionMapFrozen = false;
+        if (options.datasetFrozen) feedback.dataset[options.datasetFrozen] = '0';
+        if (refraction) displacement.setAttribute('scale', '0');
+        if (refresh !== false) schedule();
+      },
+      refresh: schedule,
       destroy: function () {
         disposed = true;
+        motionMapFrozen = false;
         window.cancelAnimationFrame(frame);
         window.removeEventListener('resize', schedule);
         if (resizeObserver) resizeObserver.disconnect();
@@ -396,10 +450,416 @@
         feedback.classList.remove(prefix + '-glass', prefix + '-refraction');
         delete feedback.dataset[datasetMode];
         delete feedback.dataset[datasetBuilds];
+        if (options.datasetFrozen) delete feedback.dataset[options.datasetFrozen];
         feedback.style.removeProperty('--' + prefix + '-radius');
         if (options.filterVariable) feedback.style.removeProperty(options.filterVariable);
       }
     };
+  }
+
+  /* Safari cannot apply SVG displacement to a live CSS backdrop. This narrow
+     alternative draws only the three existing navigation labels into one SVG
+     source, split into complementary outside/inside clips. Original anchors
+     retain layout, interaction and accessibility; their glyph fill is hidden
+     only after the optical source is ready. No article/page pixels are copied. */
+  function setupTabLabelGlass(header, surface) {
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var track = header.querySelector('.edwinos-tab-glass-track');
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    if (!track || !context || typeof window.SVGFEDisplacementMapElement === 'undefined') return null;
+    var padding = 16;
+    var referenceScale = 0;
+    var motionStrength = 0;
+    var mapWidth = 0, mapHeight = 0;
+    var disposed = false;
+    var frozen = false;
+    var resumeStableMap = false;
+    var frame = 0;
+    var mapKey = '';
+    var builds = 0;
+    var sourceReady = false;
+    var geometry = null;
+    var totalWidth = 0;
+    var totalHeight = 0;
+    var fontBaselines = new Map();
+    function node(name, attributes, parent) {
+      var element = document.createElementNS(svgNS, name);
+      Object.keys(attributes || {}).forEach(function (key) { element.setAttribute(key, String(attributes[key])); });
+      if (parent) parent.appendChild(element);
+      return element;
+    }
+    var svg = node('svg', { 'class': 'edwinos-tab-label-optics', 'aria-hidden': 'true', focusable: 'false' }, track);
+    var defs = node('defs', {}, svg);
+    var source = node('g', { id: 'edwinos-tab-label-source' }, defs);
+    var filter = node('filter', { id: 'edwinos-tab-label-refraction', filterUnits: 'userSpaceOnUse',
+      primitiveUnits: 'userSpaceOnUse', 'color-interpolation-filters': 'sRGB' }, defs);
+    var mapImage = node('feImage', { result: 'map', preserveAspectRatio: 'none' }, filter);
+    var mapTransform = node('feColorMatrix', { in: 'map', type: 'matrix', result: 'scaled-map' }, filter);
+    var displacement = node('feDisplacementMap', { in: 'SourceGraphic', in2: 'scaled-map', scale: 0,
+      xChannelSelector: 'R', yChannelSelector: 'G' }, filter);
+    var outsideClip = node('clipPath', { id: 'edwinos-tab-label-outside', clipPathUnits: 'userSpaceOnUse' }, defs);
+    var outsidePath = node('path', { 'clip-rule': 'evenodd', 'fill-rule': 'evenodd' }, outsideClip);
+    var insideClip = node('clipPath', { id: 'edwinos-tab-label-inside', clipPathUnits: 'userSpaceOnUse' }, defs);
+    var insideRect = node('rect', {}, insideClip);
+    node('use', { href: '#edwinos-tab-label-source', 'clip-path': 'url(#edwinos-tab-label-outside)' }, svg);
+    var insideGroup = node('g', { 'clip-path': 'url(#edwinos-tab-label-inside)' }, svg);
+    var lensGroup = node('g', { 'class': 'edwinos-tab-label-lens' }, insideGroup);
+    var insideUse = node('use', { href: '#edwinos-tab-label-source' }, lensGroup);
+
+    function deactivate() {
+      delete header.dataset.edwinosTabLabelReady;
+      sourceReady = false;
+      svg.hidden = true;
+      svg.style.display = 'none';
+    }
+    function baselineOffset(style, text) {
+      var key = [style.fontFamily, style.fontSize, style.fontWeight, style.fontStyle, style.lineHeight].join('|');
+      if (fontBaselines.has(key)) return fontBaselines.get(key);
+      // Measure the actual HTML baseline relative to its font text range.
+      // This preserves flex-centered Inter labels without SVG baseline guesses.
+      var probe = document.createElement('span');
+      probe.style.cssText = 'position:fixed;left:-10000px;top:0;visibility:hidden;white-space:pre;pointer-events:none';
+      ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'fontStretch', 'lineHeight'].forEach(function (name) {
+        probe.style[name] = style[name];
+      });
+      var sample = document.createElement('span');
+      sample.textContent = text;
+      var baseline = document.createElement('span');
+      baseline.style.cssText = 'display:inline-block;width:0;height:0;padding:0;vertical-align:baseline';
+      probe.appendChild(sample); probe.appendChild(baseline); document.body.appendChild(probe);
+      var range = document.createRange(); range.selectNodeContents(sample);
+      var offset = baseline.getBoundingClientRect().top - range.getBoundingClientRect().top;
+      probe.remove();
+      fontBaselines.set(key, offset);
+      return offset;
+    }
+    function rebuildSource() {
+      if (disposed || surface.hidden || !surface.isConnected) { deactivate(); return false; }
+      var links = Array.prototype.slice.call(header.querySelectorAll('.md-tabs__link'));
+      var bounds = track.getBoundingClientRect();
+      if (links.length !== 3 || !(bounds.width > 0 && bounds.height > 0)) { deactivate(); return false; }
+      var labels = links.map(function (link) {
+        var style = window.getComputedStyle(link);
+        var range = document.createRange(); range.selectNodeContents(link);
+        var box = range.getBoundingClientRect();
+        var text = link.textContent.trim();
+        return { text: text, x: box.left - bounds.left,
+          y: box.top - bounds.top + baselineOffset(style, text), style: style };
+      });
+      var next = document.createDocumentFragment();
+      labels.forEach(function (label) {
+        var text = node('text', { x: label.x, y: label.y, fill: label.style.color,
+          opacity: label.style.opacity, 'xml:space': 'preserve' }, next);
+        ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'fontStretch', 'letterSpacing',
+          'fontKerning', 'fontFeatureSettings', 'fontVariantLigatures', 'textTransform'].forEach(function (name) {
+          text.style[name] = label.style[name];
+        });
+        text.textContent = label.text;
+      });
+      source.replaceChildren(next);
+      totalWidth = bounds.width; totalHeight = bounds.height;
+      svg.setAttribute('width', totalWidth); svg.setAttribute('height', totalHeight);
+      svg.setAttribute('viewBox', '0 0 ' + totalWidth + ' ' + totalHeight);
+      sourceReady = true;
+      svg.hidden = false; svg.style.display = '';
+      header.dataset.edwinosTabLabelReady = '1';
+      surface.dataset.edwinosTabMode = 'label-refraction';
+      return true;
+    }
+    function radiusFor(box) { return Math.min(box.width / 2, box.height / 2); }
+    function roundedPath(box, radius) {
+      var x = box.x, y = box.y, w = box.width, h = box.height, r = radius;
+      return 'M' + (x + r) + ' ' + y + ' H' + (x + w - r) + ' A' + r + ' ' + r + ' 0 0 1 ' + (x + w) + ' ' + (y + r) +
+        ' V' + (y + h - r) + ' A' + r + ' ' + r + ' 0 0 1 ' + (x + w - r) + ' ' + (y + h) +
+        ' H' + (x + r) + ' A' + r + ' ' + r + ' 0 0 1 ' + x + ' ' + (y + h - r) +
+        ' V' + (y + r) + ' A' + r + ' ' + r + ' 0 0 1 ' + (x + r) + ' ' + y + ' Z';
+    }
+    function render(box) {
+      geometry = box;
+      if (disposed || surface.hidden || !sourceReady) { if (surface.hidden) deactivate(); return; }
+      var radius = radiusFor(box);
+      ['x', 'y', 'width', 'height'].forEach(function (name) { insideRect.setAttribute(name, box[name]); });
+      insideRect.setAttribute('rx', radius); insideRect.setAttribute('ry', radius);
+      // Each pixel belongs to exactly one clip. The outside source is never
+      // painted beneath the filtered source inside the capsule.
+      outsidePath.setAttribute('d', 'M0 0 H' + totalWidth + ' V' + totalHeight + ' H0 Z ' + roundedPath(box, radius));
+      // Keep raster-map and displacement subregions in lens-local coordinates
+      // instead of translating their origins each frame. The outer transform
+      // moves the lens; counter-translating its source preserves actual label
+      // positions without moving the feImage itself.
+      lensGroup.setAttribute('transform', 'translate(' + box.x + ' ' + box.y + ')');
+      insideUse.setAttribute('transform', 'translate(' + (-box.x) + ' ' + (-box.y) + ')');
+      [filter, mapTransform, displacement].forEach(function (element) {
+        element.setAttribute('x', -padding); element.setAttribute('y', -padding);
+        element.setAttribute('width', box.width + padding * 2); element.setAttribute('height', box.height + padding * 2);
+      });
+      mapImage.setAttribute('x', 0); mapImage.setAttribute('y', 0);
+      mapImage.setAttribute('width', box.width); mapImage.setAttribute('height', box.height);
+      if (mapWidth) {
+        var morphScale = setTabGlassMapTransform(mapTransform, box.width / mapWidth, box.height / mapHeight);
+        displacement.setAttribute('scale', referenceScale * motionStrength * morphScale);
+      }
+    }
+    function readPosition() {
+      return { x: parseFloat(surface.style.left) || 0, y: parseFloat(surface.style.top) || 0,
+        width: parseFloat(surface.style.width) || 0, height: parseFloat(surface.style.height) || 0 };
+    }
+    function rebuildMap() {
+      if (!geometry || frozen || !sourceReady) return;
+      var box = geometry, radius = radiusFor(box);
+      if (!(box.width > 0 && box.height > 0)) return;
+      var key = Math.round(box.width) + ':' + Math.round(box.height) + ':' + Math.round(radius);
+      if (key === mapKey) return;
+      canvas.width = Math.min(768, Math.max(24, Math.ceil(box.width * 1.5)));
+      canvas.height = Math.min(512, Math.max(24, Math.ceil(box.height * 1.5)));
+      var pixels = context.createImageData(canvas.width, canvas.height);
+      referenceScale = fillTabGlassDisplacementMap(pixels, box.width, box.height);
+      mapWidth = box.width; mapHeight = box.height;
+      setTabGlassMapTransform(mapTransform, 1, 1);
+      context.putImageData(pixels, 0, 0);
+      var url = canvas.toDataURL('image/png');
+      mapImage.setAttribute('href', url);
+      mapImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', url);
+      mapKey = key; builds += 1;
+      surface.dataset.edwinosTabMapBuilds = String(builds);
+    }
+    function update() {
+      frame = 0;
+      if (disposed || frozen) return;
+      if (rebuildSource()) { render(readPosition()); rebuildMap(); }
+    }
+    function schedule() { if (!disposed && !frozen && !frame) frame = window.requestAnimationFrame(update); }
+    function setStrength(value) {
+      if (surface.hidden) { deactivate(); return; }
+      motionStrength = value;
+      var morphScale = geometry && mapWidth ? setTabGlassMapTransform(mapTransform, geometry.width / mapWidth, geometry.height / mapHeight) : 1;
+      displacement.setAttribute('scale', referenceScale * value * morphScale);
+      if (value > 0 && mapKey) lensGroup.setAttribute('filter', 'url(#edwinos-tab-label-refraction)');
+      else lensGroup.removeAttribute('filter');
+      // At rest bypassing the filter preserves exact original text even while
+      // the next zero-strength endpoint map is being decoded.
+    }
+    function onLabelTransition(event) {
+      // Palette changes can begin a short native link-color transition. Copy
+      // its final color too, without polling styles or starting an idle loop.
+      if ((event.propertyName === 'color' || event.propertyName === 'opacity') && event.target &&
+          event.target.matches('.md-tabs__link')) schedule();
+    }
+    function onLabelState(event) {
+      if (event.target && typeof event.target.closest === 'function' && event.target.closest('.md-tabs__link')) schedule();
+    }
+    var labelEvents = ['pointerover', 'pointerout', 'focusin', 'focusout'];
+    labelEvents.forEach(function (name) { header.addEventListener(name, onLabelState); });
+    header.addEventListener('transitionend', onLabelTransition);
+    var paletteObserver = typeof window.MutationObserver === 'function' ? new MutationObserver(schedule) : null;
+    if (paletteObserver) paletteObserver.observe(document.body, { attributes: true, attributeFilter: ['data-md-color-scheme'] });
+    schedule();
+    return {
+      paint: render,
+      setStrength: setStrength,
+      beginMotion: function () {
+        if (disposed) return;
+        window.cancelAnimationFrame(frame); frame = 0;
+        if (rebuildSource()) {
+          render(readPosition());
+          // Catch initial/layout changes at zero strength. Rapidly interrupted
+          // motion keeps the same decoded map until its eventual endpoint.
+          if (!resumeStableMap || !mapKey) rebuildMap();
+        }
+        resumeStableMap = false;
+        frozen = Boolean(mapKey); surface.dataset.edwinosTabMapFrozen = frozen ? '1' : '0';
+      },
+      endMotion: function (refresh) {
+        resumeStableMap = frozen && refresh === false;
+        frozen = false; surface.dataset.edwinosTabMapFrozen = '0'; setStrength(0);
+        if (refresh !== false) schedule();
+      },
+      refresh: function () { resumeStableMap = false; fontBaselines.clear(); schedule(); },
+      destroy: function () {
+        disposed = true; frozen = false;
+        window.cancelAnimationFrame(frame);
+        if (paletteObserver) paletteObserver.disconnect();
+        header.removeEventListener('transitionend', onLabelTransition);
+        labelEvents.forEach(function (name) { header.removeEventListener(name, onLabelState); });
+        deactivate(); svg.remove();
+        delete surface.dataset.edwinosTabMode; delete surface.dataset.edwinosTabMapBuilds;
+        delete surface.dataset.edwinosTabMapFrozen;
+      }
+    };
+  }
+
+  /* A header sibling owns the selected glass; Material may replace the tabs
+     but never our surface. The template's first-paint geometry is also the
+     only positioning/reveal routine used here. Search width stays with its
+     existing owner. Animation work stops completely at its endpoint. */
+  function setupTabGlass() {
+    var header = document.querySelector('.md-header');
+    var surface = header && header.querySelector('.edwinos-tab-glass');
+    if (!surface || typeof window.__edwinosTabGlassGeometry !== 'function') return;
+    if (tabGlassRuntime && tabGlassRuntime.header === header) {
+      tabGlassRuntime.arrive();
+      return;
+    }
+    if (tabGlassRuntime) tabGlassRuntime.destroy();
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    // Unlike the search/top controls, this surface samples navigation text.
+    // Use the reference's continuous UV shader, not a fixed-width rim or
+    // normalized direction. Motion reveals crossing glyphs; rest bypasses
+    // displacement to keep all navigation labels exactly sharp.
+    var restingStrength = 0;
+    var chromium = /\b(?:Chrome|Chromium|Edg|EdgA|OPR)\//.test(window.navigator.userAgent);
+    var optics = !chromium && /\bSafari\//.test(window.navigator.userAgent) ? setupTabLabelGlass(header, surface) : null;
+    if (!optics) optics = setupLayoutControlGlass(surface, {
+      prefix: 'edwinos-tab', filterId: 'edwinos-tab-refraction', blur: 0, strength: restingStrength,
+      padding: 16, profile: 'shuding',
+      datasetMode: 'edwinosTabMode', datasetBuilds: 'edwinosTabMapBuilds', datasetFrozen: 'edwinosTabMapFrozen'
+    });
+    var frame = 0;
+    var layoutFrame = 0;
+    var current = null;
+    var active = surface.dataset.edwinosTabSelected || '';
+    var disposed = false;
+    var observedList = null;
+    var observedRail = null;
+    var resize = typeof window.ResizeObserver === 'function' ? new ResizeObserver(scheduleLayout) : null;
+    var hiddenDestination = null;
+    var pendingLayout = false;
+
+    function readPosition() {
+      return { x: parseFloat(surface.style.left) || 0, y: parseFloat(surface.style.top) || 0,
+        width: parseFloat(surface.style.width) || 0, height: parseFloat(surface.style.height) || 0 };
+    }
+    function paint(box) {
+      ['x', 'y', 'width', 'height'].forEach(function (key) {
+        surface.style[key === 'x' ? 'left' : key === 'y' ? 'top' : key] = box[key] + 'px';
+      });
+      current = box;
+      if (optics.paint) optics.paint(box);
+    }
+    function place(destination, animate, reveal) {
+      if (disposed) return;
+      // The mobile drawer changes the rail's left edge between Overview and
+      // articles. Retain the rendered SCREEN position across that replacement,
+      // then convert it to the new rail; otherwise the capsule jumps sideways
+      // before its requested movement begins.
+      var rendered = animate && !surface.hidden ? surface.getBoundingClientRect() : null;
+      var box = window.__edwinosTabGlassGeometry(header, destination, reveal);
+      if (!box) return;
+      window.cancelAnimationFrame(frame);
+      frame = 0;
+      optics.endMotion(false);
+      var wasHidden = surface.hidden;
+      surface.hidden = !box.selected;
+      surface.dataset.edwinosTabMoving = '0';
+      if (!box.selected) { active = ''; optics.setStrength(restingStrength); return; }
+      var from = current || readPosition();
+      if (rendered) {
+        var trackBounds = header.querySelector('.edwinos-tab-glass-track').getBoundingClientRect();
+        from = { x: rendered.left - trackBounds.left, y: rendered.top - trackBounds.top,
+          width: rendered.width, height: rendered.height };
+      }
+      var changed = active !== box.key;
+      active = box.key;
+      surface.dataset.edwinosTabSelected = active;
+      if (!animate || reduced.matches || wasHidden || !changed || !from.width) {
+        paint(box); optics.setStrength(restingStrength); optics.refresh(); return;
+      }
+      // Track origin may have changed with the mobile drawer. Commit the
+      // compensated screen position before optics read it, not one RAF later.
+      paint(from);
+      var started = window.performance.now();
+      surface.dataset.edwinosTabMoving = '1';
+      optics.beginMotion();
+      function tick(now) {
+        if (disposed) return;
+        var progress = Math.min(1, (now - started) / 350);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        var next = {};
+        ['x', 'y', 'width', 'height'].forEach(function (key) { next[key] = from[key] + (box[key] - from[key]) * eased; });
+        paint(next);
+        optics.setStrength(Math.sin(Math.PI * progress));
+        if (progress < 1) frame = window.requestAnimationFrame(tick);
+        else {
+          frame = 0; paint(box); surface.dataset.edwinosTabMoving = '0'; optics.endMotion(false); optics.setStrength(restingStrength);
+          if (pendingLayout) { pendingLayout = false; place(hiddenDestination, false, true); }
+          else optics.refresh();
+        }
+      }
+      frame = window.requestAnimationFrame(tick);
+    }
+    function bind() {
+      var list = header.querySelector('.md-tabs__list');
+      var rail = header.querySelector('.md-tabs .md-grid');
+      if (list !== observedList) {
+        if (resize && observedList) resize.unobserve(observedList);
+        observedList = list;
+        if (resize && list) resize.observe(list);
+      }
+      if (rail !== observedRail) {
+        if (observedRail) observedRail.removeEventListener('scroll', onRailScroll);
+        if (resize && observedRail) resize.unobserve(observedRail);
+        observedRail = rail;
+        if (rail) {
+          rail.addEventListener('scroll', onRailScroll, { passive: true });
+          if (resize) resize.observe(rail);
+        }
+      }
+    }
+    function onRailScroll() {
+      // Reader scrolling follows the rail without forcing it back. Automatic
+      // arrival/resize positioning reveals the selected link separately.
+      if (!frame) place(hiddenDestination, false, false);
+    }
+    function scheduleLayout() {
+      if (disposed || layoutFrame) return;
+      layoutFrame = window.requestAnimationFrame(function () {
+        layoutFrame = 0;
+        if (frame) pendingLayout = true;
+        else place(hiddenDestination, false, true);
+      });
+    }
+    function onMotionPreference() {
+      if (reduced.matches) { pendingLayout = false; place(hiddenDestination, false, true); }
+    }
+    tabGlassRuntime = {
+      header: header,
+      arrive: function () {
+        hiddenDestination = null;
+        bind();
+        place(null, true, true);
+      },
+      prepareSearchDestination: function (destination) {
+        // Destination is captured while the search window still covers the
+        // tabs. Same-section closing has no geometry/animation side effects.
+        var box = window.__edwinosTabGlassGeometry(header, destination, false);
+        if (box && box.selected && box.key === active) return;
+        hiddenDestination = destination;
+        place(destination, false, true);
+      },
+      destroy: function () {
+        disposed = true;
+        window.cancelAnimationFrame(frame);
+        window.cancelAnimationFrame(layoutFrame);
+        if (resize) resize.disconnect();
+        if (observedRail) observedRail.removeEventListener('scroll', onRailScroll);
+        window.removeEventListener('resize', scheduleLayout);
+        if (reduced.removeEventListener) reduced.removeEventListener('change', onMotionPreference);
+        else if (reduced.removeListener) reduced.removeListener(onMotionPreference);
+        if (document.fonts) document.fonts.removeEventListener('loadingdone', scheduleLayout);
+        optics.destroy();
+      }
+    };
+    header.dataset.edwinosTabGlassReady = '1';
+    bind();
+    place(null, false, true);
+    window.addEventListener('resize', scheduleLayout, { passive: true });
+    if (reduced.addEventListener) reduced.addEventListener('change', onMotionPreference);
+    else if (reduced.addListener) reduced.addListener(onMotionPreference);
+    if (document.fonts) {
+      document.fonts.addEventListener('loadingdone', scheduleLayout);
+      document.fonts.ready.then(scheduleLayout);
+    }
   }
 
   function setupNavigationFeedbackGlass(feedback) {
@@ -566,34 +1026,9 @@
   }
 
   function setupProgressiveImages() {
-    document.querySelectorAll("[data-progressive-image]").forEach(function (shell) {
-      var image = shell.querySelector("img[data-progressive-full]");
-      if (!image || progressiveImages.has(image)) return;
-      progressiveImages.add(image);
-      shell.classList.add("is-loading");
-      function failed() {
-        if (!shell.isConnected) return;
-        shell.classList.remove("is-loading", "is-ready");
-        shell.classList.add("is-error");
-      }
-      function loaded() {
-        if (!image.complete || !image.naturalWidth) return;
-        var decoded;
-        try { decoded = image.decode ? image.decode() : Promise.resolve(); }
-        catch (error) { failed(); return; }
-        Promise.resolve(decoded).then(function () {
-          if (!shell.isConnected || !image.complete || !image.naturalWidth) return;
-          shell.classList.remove("is-loading", "is-error");
-          shell.classList.add("is-ready");
-        }).catch(failed);
-      }
-      image.addEventListener("load", loaded);
-      image.addEventListener("error", failed);
-      if (image.complete) {
-        if (image.naturalWidth) loaded();
-        else failed();
-      }
-    });
+    // The head bridge already retired previews for initial image loads. Reuse
+    // its single owner when Material mounts cached images on instant navigation.
+    if (window.edwinosImagePreviews) window.edwinosImagePreviews.refresh();
   }
 
   function setupPdfViewers() {
@@ -972,10 +1407,11 @@
   /* Pure geometry shared by glass components. Only the perimeter bends;
      neutral center pixels retain the continuous background blur. Technique
      attribution: assets/licenses/liquid-glass-MIT.txt. */
-  function fillRoundedGlassDisplacementMap(pixels, width, height, padding, radius) {
+  function fillRoundedGlassDisplacementMap(pixels, width, height, padding, radius, rimWidth) {
     var sampleWidth = width + padding * 2;
     var sampleHeight = height + padding * 2;
-    var rim = Math.min(7, radius * 0.4);
+    var rim = rimWidth === undefined ? Math.min(7, radius * 0.4) :
+      Math.min(rimWidth, radius * 0.6);
     for (var y = 0; y < pixels.height; y += 1) {
       for (var x = 0; x < pixels.width; x += 1) {
         var px = (x + 0.5) * sampleWidth / pixels.width - padding;
@@ -989,7 +1425,6 @@
         var dx = 0;
         var dy = 0;
         if (depth < rim && length > 0) {
-          // Outward source ordering stays monotonic at every amplitude.
           var t = Math.max(0, Math.min(1, depth / rim));
           var profile = 1 - 3 * t * t + 2 * t * t * t;
           dx = vx / length * profile;
@@ -1003,6 +1438,53 @@
       }
     }
     return pixels;
+  }
+
+  /* Navigation reproduces Shu Ding's fragment and RG encoding. Its SDF and
+     two smoothsteps generate one continuous UV field, without a rim cutoff.
+     The returned scale is derived from physical offsets at the actual size;
+     motion supplies only a 0..1 envelope. Attribution: liquid-glass-MIT.txt. */
+  function fillTabGlassDisplacementMap(pixels, width, height) {
+    function smoothStep(a, b, value) {
+      var t = Math.max(0, Math.min(1, (value - a) / (b - a)));
+      return t * t * (3 - 2 * t);
+    }
+    var offsets = new Float32Array(pixels.width * pixels.height * 2);
+    var maxScale = 0, cursor = 0;
+    for (var y = 0; y < pixels.height; y += 1) {
+      for (var x = 0; x < pixels.width; x += 1) {
+        var ix = x / pixels.width - 0.5;
+        var iy = y / pixels.height - 0.5;
+        var qx = Math.abs(ix) - 0.3 + 0.6;
+        var qy = Math.abs(iy) - 0.2 + 0.6;
+        var distance = Math.min(Math.max(qx, qy), 0) + Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) - 0.6;
+        var scaled = smoothStep(0, 1, smoothStep(0.8, 0, distance - 0.15));
+        var dx = ix * (scaled - 1) * width;
+        var dy = iy * (scaled - 1) * height;
+        offsets[cursor++] = dx; offsets[cursor++] = dy;
+        maxScale = Math.max(maxScale, Math.abs(dx), Math.abs(dy));
+      }
+    }
+    maxScale *= 0.5;
+    cursor = 0;
+    for (var at = 0; at < pixels.data.length; at += 4) {
+      pixels.data[at] = maxScale ? (offsets[cursor++] / maxScale + 0.5) * 255 : 128;
+      pixels.data[at + 1] = maxScale ? (offsets[cursor++] / maxScale + 0.5) * 255 : 128;
+      pixels.data[at + 2] = 0; pixels.data[at + 3] = 255;
+    }
+    return maxScale;
+  }
+
+  function setTabGlassMapTransform(matrix, scaleX, scaleY) {
+    // Stretching UVs alone is insufficient: physical X/Y offsets must follow
+    // width/height independently, without a new PNG decode during movement.
+    // Keep RG values within range even when the capsule grows. The common
+    // factor moves to feDisplacementMap.scale, preventing matrix clipping.
+    var common = Math.max(scaleX, scaleY);
+    scaleX /= common; scaleY /= common;
+    matrix.setAttribute('values', scaleX + ' 0 0 0 ' + (0.5 * (1 - scaleX)) +
+      ' 0 ' + scaleY + ' 0 0 ' + (0.5 * (1 - scaleY)) + ' 0 0 1 0 0 0 0 0 1 0');
+    return common;
   }
 
   function setupHeaderSearchTransition() {
@@ -1034,6 +1516,8 @@
     var listeners = [];
     var timers = new Set();
     var observers = [];
+    var tabsResizeObserver = null;
+    var observedTabs = null;
     var frame = 0;
     var focusFrame = 0;
     var activationFrame = 0;
@@ -1134,6 +1618,21 @@
     }
 
     function measureEndpoints() {
+      var tabs = header.querySelector('.md-tabs__list');
+      if (tabsResizeObserver && tabs !== observedTabs) {
+        if (observedTabs) tabsResizeObserver.unobserve(observedTabs);
+        observedTabs = tabs;
+        if (tabs) tabsResizeObserver.observe(tabs);
+      }
+      if (tabs && (!document.fonts || document.fonts.status !== 'loading')) {
+        // The root owns the dependent search/source coordinate calculations.
+        var tabsWidth = tabs.getBoundingClientRect().width;
+        var rootStyle = document.documentElement.style;
+        var value = tabsWidth + 'px';
+        if (tabsWidth > 0 && rootStyle.getPropertyValue('--edwinos-header-tabs-width') !== value) {
+          rootStyle.setProperty('--edwinos-header-tabs-width', value);
+        }
+      }
       var box = header.getBoundingClientRect();
       var palette = header.querySelector(".md-header__option");
       var control = palette ? palette.querySelector('.md-header__button:not([hidden])') : null;
@@ -1357,6 +1856,7 @@
 
     if (typeof window.ResizeObserver === "function") {
       var resize = new ResizeObserver(refresh);
+      tabsResizeObserver = resize;
       resize.observe(header);
       var result = search.querySelector('.md-search-result');
       if (result) resize.observe(result);
@@ -1397,6 +1897,7 @@
     }
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(function () { if (!disposed) refresh(); });
+      listen(document.fonts, 'loadingdone', refresh);
     }
 
     headerSearchRuntime = {
@@ -1909,6 +2410,7 @@
         event.preventDefault();
         event.stopImmediatePropagation();
       }
+      if (tabGlassRuntime) tabGlassRuntime.prepareSearchDestination(destination.href);
       // Run before block-links' document capture handler consumes same-page
       // fragments. A fragment with unchanged highlight terms keeps that owner.
       searchToggle.checked = false;
@@ -2244,53 +2746,6 @@
     }
   }
 
-  function profileSidebarHtml() {
-    return [
-      '<div class="profile-card">',
-      '  <div class="profile-avatar">',
-      '    <img src="' + siteHref("assets/images/avatar-edwin-notionists.svg") + '" alt="Chen Jing (经宸)" loading="eager" fetchpriority="high" decoding="async">',
-      '  </div>',
-      '  <div class="profile-details">',
-      '  <div class="profile-name-wrap">',
-      '    <h1 class="profile-name">Chen Jing <span class="profile-cn-name">(经宸)</span></h1>',
-      '    <p class="profile-pronouns">Edwin &middot; he/him</p>',
-      '    <p class="profile-role">Undergraduate Student</p>',
-      '  </div>',
-      '  <div class="profile-actions">',
-      '    <a href="' + siteHref("HOME/Archive/") + '" class="btn-github-action">Archive of Updates</a>',
-      '  </div>',
-      '  <div class="profile-followers">',
-      '    <a href="' + siteHref("HOME/friends/") + '" class="follower-link">',
-      '      <svg class="meta-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2 5.5a3.5 3.5 0 1 1 5.898 2.549 5.508 5.508 0 0 1 3.034 4.084.75.75 0 1 1-1.482.235 4 4 0 0 0-7.9 0 .75.75 0 0 1-1.482-.236A5.507 5.507 0 0 1 3.102 8.05 3.493 3.493 0 0 1 2 5.5ZM11 4a3.001 3.001 0 0 1 2.22 5.018 5.01 5.01 0 0 1 2.56 3.012.749.749 0 0 1-.885.954.752.752 0 0 1-.549-.514 3.507 3.507 0 0 0-2.522-2.372.75.75 0 0 1-.574-.73v-.352a.75.75 0 0 1 .416-.68 1.5 1.5 0 0 0-.14-2.828.75.75 0 0 1-.714-.807l.006-.051A1.5 1.5 0 0 0 11 4Z"></path></svg>',
-      '      <span class="follower-text"><span class="follower-count" id="friend-count">2</span> followers <span class="follower-separator">&middot;</span> followings</span>',
-      '    </a>',
-      '  </div>',
-      '  <ul class="profile-meta">',
-      '    <li>',
-      '      <svg class="meta-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M1.75 16A1.75 1.75 0 0 1 0 14.25V1.75C0 .784.784 0 1.75 0h8.5C11.216 0 12 .784 12 1.75v12.5c0 .085-.006.168-.018.25h2.268a.25.25 0 0 0 .25-.25V8.285a.25.25 0 0 0-.111-.208l-1.055-.703a.749.749 0 1 1 .832-1.248l1.055.703c.487.325.779.871.779 1.456v5.965A1.75 1.75 0 0 1 14.25 16ZM5.75 14.5h1.5v-2.75A.75.75 0 0 1 8 11h1.5a.75.75 0 0 1 .75.75v2.75h1.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25Zm-.75-11a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 5 3.5Zm0 3a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 5 6.5Zm3-3a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 8 3.5Zm0 3a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 8 6.5Z"></path></svg>',
-      '      <a href="https://www.zju.edu.cn/" target="_blank" rel="noopener" class="meta-link">Zhejiang University</a>',
-      '    </li>',
-      '    <li>',
-      '      <svg class="meta-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm7-3.25v2.992l2.028.812a.75.75 0 0 1-.557 1.392l-2.5-1A.751.751 0 0 1 7 8.25v-3.5a.75.75 0 0 1 1.5 0Z"></path></svg>',
-      '      <span class="meta-text" id="beijing-time">Loading...</span>',
-      '    </li>',
-      '    <li>',
-      '      <svg class="meta-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 14H1.75A1.75 1.75 0 0 1 0 12.25v-8.5C0 2.784.784 2 1.75 2ZM1.5 12.251c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V5.809L8.38 9.397a.75.75 0 0 1-.76 0L1.5 5.809v6.442Zm13-8.181v-.32a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25v.32L8 7.88Z"></path></svg>',
-      '      <a href="mailto:edwinjing2026@outlook.com" class="meta-link">edwinjing2026@outlook.com</a>',
-      '    </li>',
-      '  </ul>',
-      '  <div class="profile-social-left" aria-label="Profile links">',
-      '    <a href="https://github.com/SPIRAL-EDWIN" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub"><svg class="social-icon" aria-hidden="true" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.59 7.59 0 0 1 8 3.86c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg></a>',
-      '    <a href="https://www.linkedin.com/in/chen-jing-31a16a421/" target="_blank" rel="noopener" title="LinkedIn" aria-label="LinkedIn"><svg class="social-icon" aria-hidden="true" viewBox="0 0 448 512"><path d="M100.3 448H7.4V148.9h92.9V448ZM53.8 108.1C24.1 108.1 0 83.5 0 53.8A53.8 53.8 0 0 1 107.6 53.8c0 29.7-24.1 54.3-53.8 54.3ZM447.9 448h-92.7V302.4c0-34.7-.7-79.2-48.3-79.2-48.3 0-55.7 37.7-55.7 76.7V448h-92.8V148.9h89.1v40.8h1.3c12.4-23.5 42.7-48.3 87.9-48.3 94 0 111.3 61.9 111.3 142.3V448Z"></path></svg></a>',
-      '    <a href="https://scholar.google.com/citations?user=vgoqJdAAAAAJ&amp;hl=zh-CN" target="_blank" rel="noopener" title="Google Scholar" aria-label="Google Scholar"><span class="social-icon social-icon--scholar" aria-hidden="true"></span></a>',
-      '    <a href="https://www.youtube.com/@EdwinJing" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube"><svg class="social-icon" aria-hidden="true" viewBox="0 0 576 512"><path d="M549.7 124.1c-6.2-23.7-24.8-42.3-48.3-48.6C458.9 64 288.1 64 288.1 64S117.3 64 74.7 75.5c-23.5 6.3-42 24.9-48.3 48.6C15 167 15 256.4 15 256.4s0 89.4 11.4 132.3c6.3 23.6 24.8 41.5 48.3 47.8C117.3 448 288.1 448 288.1 448s170.8 0 213.4-11.5c23.5-6.3 42-24.2 48.3-47.8 11.4-42.9 11.4-132.3 11.4-132.3s0-89.4-11.4-132.3zM232.2 337.6V175.2l142.7 81.2z"></path></svg></a>',
-      '    <a href="https://x.com/EdwinJing661" target="_blank" rel="noopener" title="Twitter/X" aria-label="Twitter/X"><svg class="social-icon" aria-hidden="true" viewBox="0 0 448 512"><path d="M357.2 48h70.6L273.6 224.2 455 464H313L201.7 318.6 74.5 464H3.8l164.9-188.5L-5.2 48h145.6l100.5 132.9zm-24.8 373.8h39.1L119.1 88h-42z"></path></svg></a>',
-      '  </div>',
-      '  </div>',
-      '</div>'
-    ].join("");
-  }
-
   function updateBeijingTime() {
     var timeElements = document.querySelectorAll("#beijing-time");
     if (!timeElements.length) return;
@@ -2529,39 +2984,6 @@
     });
   }
 
-  function ensureHomeProfileLayout() {
-    var route = classifyUiRoute(window.location.pathname, "");
-    if (!route.isHomeProfilePage) return;
-
-    var contentInner = document.querySelector(".md-content__inner");
-    if (!contentInner) return;
-
-    if (contentInner.querySelector(".academic-home-layout--subpage")) {
-      updateBeijingTime();
-      return;
-    }
-
-    var layout = document.createElement("div");
-    layout.className = "academic-home-layout academic-home-layout--subpage";
-
-    var sidebar = document.createElement("aside");
-    sidebar.className = "academic-sidebar";
-    sidebar.innerHTML = profileSidebarHtml();
-
-    var main = document.createElement("main");
-    main.className = "academic-content academic-content--subpage";
-
-    while (contentInner.firstChild) {
-      main.appendChild(contentInner.firstChild);
-    }
-
-    layout.appendChild(sidebar);
-    layout.appendChild(main);
-    contentInner.appendChild(layout);
-
-    updateBeijingTime();
-  }
-
   function markProfileDrawerEntries() {
     var primaryNav = document.querySelector(".md-sidebar--primary .md-nav--primary");
     if (!primaryNav) return;
@@ -2620,7 +3042,7 @@
     if (/^\/经验分享(?:\/|$)/.test(pathname)) {
       return {
         key: "experiences",
-        label: "More Experiences",
+        label: "More",
         rootPath: "/经验分享/"
       };
     }
@@ -3258,12 +3680,12 @@
     ensureHeaderGlass();
     ensureTocGlass();
     setupHeaderSearchTransition();
+    setupTabGlass();
     normalizePaletteButtons();
     normalizeSourceFacts();
     if (!latestSourceFacts) restoreStoredSourceFacts();
     applySourceFacts();
     watchSourceFacts();
-    ensureHomeProfileLayout();
     updateBeijingTime();
     setupSearchActivation();
     setupSearchResultSummary();

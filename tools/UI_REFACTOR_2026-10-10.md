@@ -50,7 +50,7 @@ same-origin frames, not a Chromium user-agent substitution. These frames test
 responsive CSS, not an actual iPhone's safe area, keyboard or browser chrome.
 
 - `safari-raw94.json`: 94 scenarios completed, no state errors. All 78 ordinary
-  scenarios passed across Overview, Friends, Archive, ENotes, More Experiences
+  scenarios passed across Overview, Friends, Archive, ENotes, More
   and PHIL 206, including theme, breakpoint, search and drawer checks. Five of
   the 16 fragment scenarios retained differences: a 1px natural scroll offset
   on each, plus one avatar hover transform. Heading dimensions, spacing and
@@ -195,7 +195,7 @@ local Microsoft Edge (Chromium).
   (`fresh-final.json`). Only orphan comments were removed afterward.
 - Final Archive hover: four cases at 1440/390, both themes; no measured
   differences (`archive-hover.json`).
-- ENotes, More Experiences and the long PHIL 206 article: 72 cases at
+- ENotes, More and the long PHIL 206 article: 72 cases at
   1440/1219/844/390, including rest/search/query/close/drawer at 1440/390;
   zero computed-style or geometry differences. Five empty mobile-search
   screenshots differ by 11–14 glass-edge pixels (`article-final.json`), with

@@ -7,7 +7,7 @@ const assert = require('node:assert/strict');
 const source = fs.readFileSync('docs/javascripts/ui-perf.js', 'utf8');
 const memorySource = source.slice(source.indexOf('  function createSearchQueryMemory()'), source.indexOf('  function setupSearchResultSummary()'));
 const activation = source.slice(source.indexOf('  function setupSearchActivation()'), source.indexOf('  function normalizePaletteButtons()'));
-let queue = new Map(), next = 0, emitted = [], resultLayouts = 0, destinations = [], duringClose = null;
+let queue = new Map(), next = 0, emitted = [], resultLayouts = 0, destinations = [], preparedTabs = [], duringClose = null;
 const handlers = new Map();
 function listen(target, type, fn) {
   let map = handlers.get(target); if (!map) handlers.set(target, map = new Map());
@@ -28,7 +28,7 @@ const runtime = {search,header:{},listen,timer(fn){queue.set(++next,fn);return n
 const window = {location:{href:'http://127.0.0.1:8000/note/?h=settled#target',origin:'http://127.0.0.1:8000',assign(href){destinations.push(href);}},history:{replaceState(){}},performance:{now:()=>0},setTimeout(fn){queue.set(++next,fn);return next;},clearTimeout(id){queue.delete(id);},requestAnimationFrame(fn){queue.set(++next,fn);return next;},cancelAnimationFrame(id){queue.delete(id);}};
 const document = {querySelector(s){return s==='.md-search' ? search : s.includes('data-md-toggle') ? toggle : null;}};
 const memory = {query:'',read(){return this.query;},save(query){this.query=query;},onReset(fn){this.reset=fn;}};
-vm.runInNewContext(activation+';setupSearchActivation();', {window,document,URL,URLSearchParams,headerSearchRuntime:runtime,searchQueryMemory:memory,beginHeaderSearchTransition(){},KeyboardEvent:function(type,p){Object.assign(this,{type},p);},Event:function(type,p){Object.assign(this,{type},p);}});
+vm.runInNewContext(activation+';setupSearchActivation();', {window,document,URL,URLSearchParams,headerSearchRuntime:runtime,tabGlassRuntime:{prepareSearchDestination(href){assert.equal(toggle.checked,true);preparedTabs.push(href);}},searchQueryMemory:memory,beginHeaderSearchTransition(){},KeyboardEvent:function(type,p){Object.assign(this,{type},p);},Event:function(type,p){Object.assign(this,{type},p);}});
 // The static input is usable before the Material/UI scripts finish downloading.
 flush();
 assert.equal(toggle.checked,true);
@@ -67,6 +67,7 @@ const cross=send(window,'click',{target:clickedResult});
 duringClose=null;
 assert.equal(cross.prevented,true); assert.equal(cross.stopped,true);
 assert.deepEqual(destinations,[destination]); assert.equal(toggle.checked,false);
+assert.equal(preparedTabs.at(-1),destination);
 // A new highlight term on the current note needs document reinitialization.
 openQuery(); send(window,'click',{target:result('/note/?h=other#target')});
 assert.equal(destinations.at(-1),'http://127.0.0.1:8000/note/?h=other#target');
@@ -81,9 +82,10 @@ assert.equal(destinations.at(-1),new URL(nested).href);
 // Modifier/middle clicks, explicit new tabs, downloads, prevented clicks and
 // unrelated links retain native behavior without closing the original search.
 for (const props of [{ctrlKey:true},{metaKey:true},{shiftKey:true},{altKey:true},{button:1},{defaultPrevented:true}]) {
-  openQuery(); const count=destinations.length;
+  openQuery(); const count=destinations.length, preparations=preparedTabs.length;
   const event=send(window,'click',{target:result(destination),...props});
   assert.equal(event.prevented,undefined); assert.equal(toggle.checked,true); assert.equal(destinations.length,count);
+  assert.equal(preparedTabs.length,preparations);
 }
 for (const target of [result(destination,{target:'_blank'}),result(destination,{download:true}),result('https://example.com/note/'),result('javascript:void(0)'),{closest:()=>null}]) {
   openQuery(); const count=destinations.length; send(window,'click',{target});
@@ -108,7 +110,7 @@ function memoryHarness({type='navigate',href='http://127.0.0.1:8000/note/',block
   window.localStorage = {getItem(key){if(blocked)throw Error('blocked');return stored.get(key)||null;},setItem(key,value){if(blocked)throw Error('blocked');let oldValue=stored.get(key)||null;stored.set(key,value);if(oldValue!==value)for(const tab of tabs)tab.send(tab.window,'storage',{key,newValue:value});}};
   const runtime = {search,header:{},listen,timer:window.setTimeout,updateResults(){},allowOpen(){},cancelFocus(){},deferActivation(fn){fn();},focusInput(fn){if(fn)fn();}};
   const document = {querySelector(s){return s==='.md-search' ? search : s.includes('data-md-toggle') ? toggle : null;}};
-  const context = {window,document,URL,URLSearchParams,Date,Math,SEARCH_QUERY_STORAGE_KEY:memoryKey,headerSearchRuntime:runtime,beginHeaderSearchTransition(){},KeyboardEvent:function(type,p){Object.assign(this,{type},p);},Event:function(type,p){Object.assign(this,{type},p);}};
+  const context = {window,document,URL,URLSearchParams,Date,Math,SEARCH_QUERY_STORAGE_KEY:memoryKey,headerSearchRuntime:runtime,tabGlassRuntime:null,beginHeaderSearchTransition(){},KeyboardEvent:function(type,p){Object.assign(this,{type},p);},Event:function(type,p){Object.assign(this,{type},p);}};
   vm.runInNewContext(memorySource+';var searchQueryMemory=createSearchQueryMemory();'+activation+';setupSearchActivation();',context);
   const tab={window,input,toggle,output,emissions,send,memory:context.searchQueryMemory,
     flush(){let jobs=[...tasks.values()];tasks.clear();jobs.forEach(fn=>fn());},

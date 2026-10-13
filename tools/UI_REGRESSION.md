@@ -50,7 +50,7 @@ reporting an empty success.
 | `BROWSER_EXECUTABLE` | Optional path to a local Chromium-compatible executable. |
 | `BROWSER_ARGS` | Optional JSON array of nonempty browser launch arguments; defaults to `[]`. Recorded verbatim in the report. |
 
-The default matrix covers Overview, Friends, Archive, ENotes, More Experiences,
+The default matrix covers Overview, Friends, Archive, ENotes, More,
 and a long article in both themes. Interaction states run at 1440/768/375 px;
 other widths check `rest`. For Profile, add its exact responsive boundaries and
 restrict routes to pages with the Profile shell. For prose/list changes, include

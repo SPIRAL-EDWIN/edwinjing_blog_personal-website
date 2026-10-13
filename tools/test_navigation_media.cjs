@@ -5,6 +5,8 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
+const previewSource = fs.readFileSync(require('node:path').join(__dirname, '../overrides/partials/image-previews.html'), 'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
+const documentEvents = new Map();
 const source = fs.readFileSync(require('node:path').join(__dirname, '../docs/javascripts/ui-perf.js'), 'utf8');
 const owner = source.slice(source.indexOf('  function navigationDocumentKey('), source.indexOf('  function classifyUiRoute('));
 const keyOwner = source.slice(source.indexOf('  function navigationPageKey('), source.indexOf('  function primarySidebarIsDesktop('));
@@ -37,14 +39,17 @@ class Element {
   querySelectorAll(selector) {return this.children.flatMap(child => [...(child.matches(selector) ? [child] : []), ...child.querySelectorAll(selector)]);}
   querySelector(selector) {return this.querySelectorAll(selector)[0] || null;}
   addEventListener(type, listener) {(this.listeners[type] ||= []).push(listener);}
-  fire(type) {for (const listener of this.listeners[type] || []) listener({target: this});}
+  fire(type) {
+    for (const listener of this.listeners[type] || []) listener({target: this});
+    for (const listener of documentEvents.get(type) || []) listener({target: this});
+  }
   getBoundingClientRect() {return {bottom: 72};}
 }
 let layoutReads = 0; let headerBottom = 72;
 const body = new Element('body');
 const header = body.appendChild(new Element('header')); header.className = 'md-header';
 header.getBoundingClientRect = () => { layoutReads++; return {bottom: headerBottom}; };
-const document = {body, createElement: tag => new Element(tag), querySelector: selector => body.querySelector(selector), querySelectorAll: selector => body.querySelectorAll(selector), getElementById: id => body.querySelectorAll('[id]').find(node => node.id === id), addEventListener() {}};
+const document = {body, createElement: tag => new Element(tag), querySelector: selector => body.querySelector(selector), querySelectorAll: selector => body.querySelectorAll(selector), getElementById: id => body.querySelectorAll('[id]').find(node => node.id === id), addEventListener(type, handler) {if (!documentEvents.has(type)) documentEvents.set(type, []); documentEvents.get(type).push(handler);}};
 const timers = new Map(); let nextTimer = 0; let now = 0;
 const location = {href: 'https://test.local/A/', origin: 'https://test.local', replace: href => location.replaced = href, assign: href => location.assigned = href};
 const window = {location, navigator: {userAgent: 'Safari'}, setTimeout: (callback, delay) => {timers.set(++nextTimer, {callback, deadline: now + delay}); return nextTimer;}, clearTimeout: timer => timers.delete(timer), addEventListener() {}, removeEventListener() {}, cancelAnimationFrame() {}};
@@ -56,7 +61,8 @@ window.IntersectionObserver = class {
   enter() { this.callback([{isIntersecting: true}]); }
 };
 const context = vm.createContext({document, window, URL, Promise, WeakSet, WeakMap});
-vm.runInContext(`var navigationFeedbackDelayTimer = null, navigationGlassRuntime = null, archiveNavigationFallbackTimer = null, activeArchiveNavigation = null, archiveNavigationFeedbackReady = false, mountedNavigationContent = null, mountedNavigationHref = window.location.href, navigationLabels = Object.create(null), progressiveImages = new WeakSet(), pdfViewers = new WeakMap(), activePdfViewers = [];\n${keyOwner}\n${owner}`, context);
+vm.runInContext(previewSource, context);
+vm.runInContext(`var navigationFeedbackDelayTimer = null, navigationGlassRuntime = null, archiveNavigationFallbackTimer = null, activeArchiveNavigation = null, archiveNavigationFeedbackReady = false, mountedNavigationContent = null, mountedNavigationHref = window.location.href, navigationLabels = Object.create(null), pdfViewers = new WeakMap(), activePdfViewers = [];\n${keyOwner}\n${owner}`, context);
 function content(name) {const root = new Element(); root.className = 'md-content__inner'; const title = root.appendChild(new Element('h1')); title.textContent = name; return root;}
 function link(root, href, text = href) {const anchor = root.appendChild(new Element('a', {href})); anchor.textContent = text; return anchor;}
 function click(anchor, extra = {}) {context.beginArchiveNavigationFeedback({target: anchor, button: 0, defaultPrevented: false, ...extra});}
@@ -114,8 +120,9 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   assert.equal(body.style.getPropertyValue('--edwinos-navigation-top'), '', 'post-Archive fast click uses CSS viewport geometry');
   context.clearArchiveNavigationFeedback();
   const shell = next.appendChild(new Element('div', {'data-progressive-image': ''})); const image = shell.appendChild(new Element('img', {'data-progressive-full': ''}));
-  image.complete = true; image.naturalWidth = 100; image.decode = () => Promise.resolve();
-  context.setupProgressiveImages(); await settle(); assert(shell.classList.contains('is-ready'), 'cached image waits for decoding');
+  image.complete = true; image.naturalWidth = 100; let decodes = 0; image.decode = () => {decodes++; return Promise.resolve();};
+  image.fire('load'); await settle(); assert(shell.classList.contains('is-ready'), 'head capture retires the preview before UI startup');
+  context.setupProgressiveImages(); await settle(); assert.equal(decodes, 1, 'instant/startup refresh reuses the same prepared image owner');
   image.fire('error'); assert(shell.classList.contains('is-error')); image.fire('load'); await settle(); assert(shell.classList.contains('is-ready'), 'subsequent success recovers error');
   const lateShell = next.appendChild(new Element('div', {'data-progressive-image': ''})); const late = lateShell.appendChild(new Element('img', {'data-progressive-full': ''}));
   late.complete = true; late.naturalWidth = 100; let decode; late.decode = () => new Promise(resolve => decode = resolve);

@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-10-11
+Last updated: 2026-10-12
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -41,11 +41,19 @@ Repository statistics use only EdwinOS's local snapshot/cache/API path: the
 source partial omits Material's separate API initializer. Friend count,
 repository and deployment metadata wait until after load/paint/idle. Core UI
 enhancements run once per content/header pair across the initial lifecycle;
-instant navigation still initializes replaced content. Homepage prose remains
-visible during its short entrance motion. The avatar is eager/high priority;
-the homepage logo is eager at normal priority, while Workshop responsive
-thumbnails remain lazy at normal priority. Tiny inline blur previews reserve
-their existing geometry until decoded images are ready. Other below-the-fold
+instant navigation still initializes replaced content. Homepage prose and its
+profile start at final geometry without nested entrance transforms. Initial
+HOME route classes are seeded before the header; the Header partial renders
+progressive glass and the Source partial renders the complete facts row.
+Runtime setup reuses those nodes. The avatar is eager/high priority. The logo,
+first real publication and first Workshop thumbnail use eager/sync hints at
+normal priority. `home_sections.py` derives matching homepage-only image
+preloads from rendered media, including the same srcset/sizes candidates.
+Tiny inline blur previews reserve geometry under native images. The inline
+head owner in `partials/image-previews.html` retires them after decoding,
+before Material or `ui-perf.js` needs to load. There is no image opacity gate
+or repeated fade on refresh. `ui-perf.js` reuses this owner on instant navigation.
+Other below-the-fold
 images and visitor statistics retain their existing lazy/low priority.
 Closed search refreshes draw once; opening/closing and result transitions retain
 frame tracking. Font readiness refreshes the static geometry without an idle
@@ -133,6 +141,31 @@ share numeric left/right/top/height coordinates. The expanded height has its
 own token and must not change the shared Header control size or horizontal
 targets. Active tab backgrounds are inset 1px horizontally without moving
 their buttons or text. Search stays above covered controls until closing ends.
+Selected navigation uses one persistent header capsule, outside the tabs that
+Material replaces. The header partial seeds its actual selected geometry before
+paint; `setupTabGlass` reuses that helper for arrival, mobile auto-reveal and
+layout changes. Its track is above the actual labels and below search controls,
+allowing the moving perimeter to sample and refract glyphs. Navigation optics
+are separate from search: transparent, unblurred center and the original
+Shu Ding UV/SDF fragment with two smoothsteps and its RG encoder. There is no
+fixed-width rim, normalized direction vector or arbitrary pixel strength.
+Actual geometry derives the optical scale; a bounded 0..1 motion envelope
+returns displacement to zero at rest. Ordinary search opening and closing
+leave the capsule stationary; cross-section results prepare the target under
+the covering search shell before closing. HOME profile subpages remain neutral.
+Reduced-motion changes and in-flight layout changes settle correctly; idle
+states do not run animation frames. The decoded UV map stays fixed during
+width changes, spans only the actual lens, and uses a per-axis color matrix
+plus a common displacement scale to preserve physical offsets without RG
+clipping. Source coverage padding is separate from UV geometry. A new map is
+built only at the zero-strength endpoint to avoid decode gaps during movement.
+Safari uses a navigation-only SVG optical source of the three real labels,
+split by complementary inside/outside clips. Original anchors retain layout,
+accessibility and input; their glyph fill is hidden only when the source is
+ready. Font baselines are measured from HTML, palette/hover/focus changes refresh
+the source, and the inside filter is bypassed at rest. This adapter refracts
+label glyphs, not the scrolling article backdrop. Cross-document
+View Transitions remain a separate local experiment, not a production feature.
 The Search runtime in `ui-perf.js` owns the padded rounded-rectangle displacement map,
 palette coverage measurement, bounded cache and animation/resize updates.
 Chromium uses edge refraction; Safari and unsupported browsers retain continuous
@@ -227,7 +260,8 @@ listeners or an idle frame loop; the compositor samples the live page on scroll.
 | --- | --- | --- |
 | Math rendering and TOC math markup | `mathjax.js`, formula-only preload in `overrides/main.html` | Tracks current-article loading, bounded retries and manual recovery; excludes overlapping nested TOC targets, announces layout completion and does not position hashes. |
 | Fragment navigation and block highlighting | `block-links.js` | Sole owner of hash positioning, including post-MathJax realignment. |
-| Route classes, header/search adaptation, source facts, profile shell, drawer, callouts, list continuity | `ui-perf.js` | Enhancements must be idempotent across Material instant navigation. |
+| Route classes, header/search adaptation, source facts, drawer, callouts, list continuity | `ui-perf.js` | Enhancements must be idempotent across Material instant navigation. |
+| Initial Header glass/source facts and HOME profile shell | Header/Source partials, `hooks/home_sections.py` | Complete initial geometry; copied profile uses homepage markup, local relative URLs and search exclusion. Runtime reuses nodes and updates facts. |
 | Obsidian block anchors | `hooks/archive.py` | Generated at build time; runtime must not rewrite `.md-content__inner.innerHTML`. |
 | Archive markup and article metadata | `hooks/archive.py` | CSS and runtime may consume generated classes but must not duplicate generation. |
 | Homepage news/publications markup | `hooks/home_sections.py` | Content comes from `data/homepage/*.yml`. |
@@ -240,14 +274,15 @@ listeners or an idle frame loop; the compositor samples the live page on scroll.
 | Internal page prefetch | Material `navigation.instant.prefetch` | Hover/focus-triggered HTML prefetch; no duplicate runtime Archive prefetch or automatic batch downloads. |
 | Cross-document opening feedback | `ui-perf.js`, Header CSS owner; Archive overlay in Archive owner | One pending coordinator retains the mounted source across rapid clicks. Ordinary feedback appears after 2 seconds; 10 seconds reveals recovery. Its independent liquid-glass filter reuses Back to Top's map generator and updates only for layout/font changes. Dispose timers and optics after content replacement or cancellation. Tabs/sidebar have no waiting outline; the shared progress bar is visible at the header edge. |
 | Archive cover thumbnails | `hooks/archive_assets.py` | Build-time Pillow output under `assets/archive-thumbnails`; same-origin raster covers only, originals and third-party URLs preserved. |
-| Homepage loading previews and PDF page previews | `tools/generate_loading_previews.py`, authored Markdown, `ui-perf.js` | Preserve originals; image decoding reveals sharp thumbnails. First two PDF page previews remain readable without downloading the PDF; only reader intent assigns its iframe URL. Iframe load does not establish PDF page readiness. The open button reuses navigation's layout-only glass owner and initializes optics on viewport entry. |
+| Homepage loading previews and PDF page previews | `tools/generate_loading_previews.py`, authored Markdown, `partials/image-previews.html`, `ui-perf.js` | Preserve originals; native thumbnails stay visible and the head's single decode owner retires preview underlays. First two PDF page previews remain readable without downloading the PDF; only reader intent assigns its iframe URL. Iframe load does not establish PDF page readiness. The open button reuses navigation's layout-only glass owner and initializes optics on viewport entry. |
 
 ## UI data sources
 
 - Profile markup on the homepage: `docs/index.md`.
-- HOME subpage profile shell: currently mirrored in `ui-perf.js`; this is a
-  known migration target and must be kept in sync until it is moved to build
-  time.
+- HOME subpage profile shell: `hooks/home_sections.py` copies the authored
+  homepage aside at build time, rebases local URLs, and excludes the copied
+  profile from search. Runtime updates its clock and friend count without
+  wrapping or moving mounted content.
 - Homepage news and publications: `data/homepage/news.yml` and
   `data/homepage/publications.yml`.
 - Repository stars/forks fallback: `docs/assets/data/github-repo.json`, updated
@@ -293,16 +328,15 @@ work must also exercise open/query/close states and instant navigation.
 These are documented risks, not permission to change behavior in an unrelated
 cleanup:
 
-- Profile data/markup is duplicated between the homepage, runtime shell, and
-  homepage JSON-LD.
-- HOME subpages are wrapped into their profile layout at runtime.
+- Profile data remains duplicated between the homepage and homepage JSON-LD;
+  the HOME subpage shell reuses the homepage source at build time.
 - Search uses a template config adapter and one standalone Lunr worker/core.
   The worker does not import or layer filters over Material's bundled worker;
   UI timing hooks preserve its standard input/message contract. The vendored
   Lunr 2.3.9 MIT license is kept beside the library.
 - Route classification is centralized in `ui-perf.js`; keep its root,
   article-index, Archive, and Friends cases covered by runtime contract tests.
-  `overrides/main.html` seeds the initial Archive/Friends body class before the
+  `overrides/main.html` seeds initial Overview/Archive/Friends body classes before the
   header paints; runtime classification remains authoritative after instant
   navigation. Their neutral tab rule clears the active capsule variable used
   by `::before`, as well as the link background.

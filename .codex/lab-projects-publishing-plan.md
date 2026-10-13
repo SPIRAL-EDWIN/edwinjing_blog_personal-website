@@ -45,7 +45,7 @@ Website scope:
 
 Target root: `docs/OsdNotes/Embodied AI/`
 
-### More Experiences / Phi Lab — 11 pages
+### More / Phi Lab — 11 pages
 
 Phi Lab root:
 
@@ -229,7 +229,7 @@ Historical expectation: 16 published pages and 27 referenced unique images. Reco
 ## 8. Site integration
 
 - Add the 5 ENotes pages to `ENotes > Embodied AI` in `mkdocs.yml`.
-- Add `Phi Lab` under `More Experiences`, after `TECH` and before `年终总结`.
+- Add `Phi Lab` under `More`, after `TECH` and before `年终总结`.
 - Under Phi Lab, list the two root pages, then `Diffusion Policy` and `WBC` subgroups.
 - Remove `Coming soon` from the Phi Lab card in `docs/经验分享/index.md` and add a working entry link. Choose the final landing article only after the staged pages are reviewed; do not hardcode an arbitrary first page in advance.
 - Add Phi Lab Archive categorization in `hooks/archive.py` before the generic Experiences branch so the 11 pages display `Phi Lab` without changing their bodies.

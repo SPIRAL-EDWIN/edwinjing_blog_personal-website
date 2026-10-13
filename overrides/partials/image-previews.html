@@ -1,0 +1,60 @@
+{# Listen before body images can finish; no extra request or layout measurement. #}
+<script>
+(function () {
+  "use strict";
+  var prepared = new WeakSet();
+
+  function shellFor(image) {
+    return image && image.hasAttribute && image.hasAttribute("data-progressive-full")
+      ? image.closest("[data-progressive-image]") : null;
+  }
+
+  function failed(image) {
+    var shell = shellFor(image);
+    if (!shell || !shell.isConnected) return;
+    shell.classList.remove("is-loading", "is-ready");
+    shell.classList.add("is-error");
+  }
+
+  function loaded(image) {
+    var shell = shellFor(image);
+    if (!shell || !image.complete || !image.naturalWidth) return;
+    var source = image.currentSrc || image.src;
+    var decoded;
+    try { decoded = image.decode ? image.decode() : Promise.resolve(); }
+    catch (error) { failed(image); return; }
+    Promise.resolve(decoded).then(function () {
+      if (!shell.isConnected || !image.complete || !image.naturalWidth ||
+          source !== (image.currentSrc || image.src)) return;
+      shell.classList.remove("is-loading", "is-error");
+      shell.classList.add("is-ready");
+    }).catch(function () {
+      if (source === (image.currentSrc || image.src)) failed(image);
+    });
+  }
+
+  function prepare(image) {
+    var shell = shellFor(image);
+    if (!shell || prepared.has(image)) return;
+    prepared.add(image);
+    shell.classList.add("is-loading");
+    if (image.complete) {
+      if (image.naturalWidth) loaded(image);
+      else failed(image);
+    }
+  }
+
+  function refresh() {
+    document.querySelectorAll("img[data-progressive-full]").forEach(prepare);
+  }
+
+  document.addEventListener("load", function (event) {
+    if (!shellFor(event.target)) return;
+    if (prepared.has(event.target)) loaded(event.target);
+    else prepare(event.target);
+  }, true);
+  document.addEventListener("error", function (event) { failed(event.target); }, true);
+  document.addEventListener("DOMContentLoaded", refresh, { once: true });
+  window.edwinosImagePreviews = { refresh: refresh };
+})();
+</script>

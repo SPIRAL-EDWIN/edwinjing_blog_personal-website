@@ -16,4 +16,4 @@ hide:
 })();
 </script>
 
-该笔记已移至 [More Experiences / Phi Lab / WBC](../../%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/Phi%20Lab/WBC/Gprogress%E7%9A%84%E6%84%8F%E4%B9%89.md)。
+该笔记已移至 [More / Phi Lab / WBC](../../%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/Phi%20Lab/WBC/Gprogress%E7%9A%84%E6%84%8F%E4%B9%89.md)。

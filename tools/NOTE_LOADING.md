@@ -124,7 +124,7 @@ also eventually completes. A controlled 20-second HTML delay preserves the old
 article, displays the independent glass capsule after the delay boundary, exposes
 recovery and clears all feedback/filter nodes on arrival. Timing harness checks
 1999/2000 ms and 9999/10000 ms, rapid target changes and obsolete callbacks.
-Normal rapid Overview/ENotes/More Experiences switches leave no capsule or blue
+Normal rapid Overview/ENotes/More switches leave no capsule or blue
 waiting outline. PDF request logs confirm that only preview images load before
 the explicit button click. Overview and Friends retain a 70px header and 260px
 profile at 1280px.

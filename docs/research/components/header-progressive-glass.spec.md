@@ -66,7 +66,7 @@ the boundary. There must be no color or blur discontinuity at exactly 70px.
 - Page top and scrolled body text crossing y=0–122px.
 - Search idle, focus/open, populated results, and closed again.
 - Desktop 1280px, tablet 768px, mobile 390px.
-- Overview, one HOME subpage, ENotes, and More Experiences.
+- Overview, one HOME subpage, ENotes, and More.
 
 ## Acceptance Criteria
 

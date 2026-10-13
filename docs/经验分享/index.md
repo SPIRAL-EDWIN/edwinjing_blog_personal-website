@@ -1,5 +1,5 @@
 ---
-title: More Experiences
+title: More
 description: "Practical lessons, experiment logs, technical guides, and annual reflections by Chen Jing (经宸)."
 archive: false
 hide:
@@ -8,7 +8,7 @@ hide:
 
 # Introduction
 
-More Experiences is where I keep the lessons that do not fit neatly into conventional course notes: problems I have debugged, experiments I have run, and moments worth revisiting. Rather than presenting only polished answers, this section records what happened, what I tried, what failed, and what eventually worked.
+Here is more about the things that do not fit neatly into conventional course notes: problems I have debugged, experiments I have run, and moments worth revisiting. Rather than presenting only polished answers, this section records what happened, what I tried, what failed, and what eventually worked.
 
 <div class="grid cards intro-card-grid" markdown>
 

@@ -1,0 +1,126 @@
+{# Material header contract; EdwinOS renders its progressive glass before paint.
+   Keep controls and their data-md-component attributes aligned with Material. #}
+{% set class = "md-header" %}
+{% if "navigation.tabs.sticky" in features %}
+  {% set class = class ~ " md-header--shadow md-header--lifted" %}
+{% elif "navigation.tabs" not in features %}
+  {% set class = class ~ " md-header--shadow" %}
+{% endif %}
+<header class="{{ class }}" data-md-component="header">
+  <div class="edwinos-tab-glass-track" aria-hidden="true">
+    <span class="edwinos-tab-glass"></span>
+  </div>
+  <div class="edwinos-header-glass" aria-hidden="true">
+    {% for layer in range(1, 6) %}
+      <div class="edwinos-header-glass__layer edwinos-header-glass__layer--{{ layer }}"></div>
+    {% endfor %}
+    <div class="edwinos-header-glass__fade"></div>
+  </div>
+  <nav class="md-header__inner md-grid" aria-label="{{ lang.t('header') }}">
+    <a href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}" title="{{ config.site_name | e }}" class="md-header__button md-logo" aria-label="{{ config.site_name }}" data-md-component="logo">
+      {% include "partials/logo.html" %}
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      {% set icon = config.theme.icon.menu or "material/menu" %}
+      {% include ".icons/" ~ icon ~ ".svg" %}
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            {{ config.site_name }}
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            {% if page.meta and page.meta.title %}
+              {{ page.meta.title }}
+            {% else %}
+              {{ page.title }}
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+    {% if config.theme.palette %}
+      {% if not config.theme.palette is mapping %}
+        {% include "partials/palette.html" %}
+      {% endif %}
+    {% endif %}
+    {% if not config.theme.palette is mapping %}
+      {% include "partials/javascripts/palette.html" %}
+    {% endif %}
+    {% if config.extra.alternate %}
+      {% include "partials/alternate.html" %}
+    {% endif %}
+    {% if "material/search" in config.plugins %}
+      {% set search = config.plugins["material/search"] | attr("config") %}
+      {% if search.enabled %}
+        <label class="md-header__button md-icon" for="__search">
+          {% set icon = config.theme.icon.search or "material/magnify" %}
+          {% include ".icons/" ~ icon ~ ".svg" %}
+        </label>
+        {% include "partials/search.html" %}
+      {% endif %}
+    {% endif %}
+    {% if config.repo_url %}
+      <div class="md-header__source">
+        {% include "partials/source.html" %}
+      </div>
+    {% endif %}
+  </nav>
+  {% if "navigation.tabs.sticky" in features %}
+    {% if "navigation.tabs" in features %}
+      {% include "partials/tabs.html" %}
+    {% endif %}
+  {% endif %}
+  <script>
+    /* Seed the real selected position before paint; the runtime reuses this
+       geometry owner after Material replaces the tabs on content arrival. */
+    window.__edwinosTabGlassGeometry = function (header, destination, reveal) {
+      var rail = header.querySelector('.md-tabs .md-grid');
+      var tabs = header.querySelector('.md-tabs');
+      var track = header.querySelector('.edwinos-tab-glass-track');
+      var links = Array.prototype.slice.call(header.querySelectorAll('.md-tabs__link'));
+      if (!rail || !tabs || !track) return null;
+      var selected = null;
+      if (destination) {
+        var path = new URL(destination, location.href).pathname.replace(/\/index\.html$/, '/');
+        links.forEach(function (link, index) {
+          var base = new URL(link.href).pathname.replace(/\/index\.html$/, '/');
+          if ((index === 0 && path === base) ||
+              (index > 0 && (path === base || path.indexOf(base.replace(/\/$/, '') + '/') === 0))) selected = link;
+        });
+      } else if (!document.body.classList.contains('is-home-profile-page')) {
+        selected = header.querySelector('.md-tabs__item--active .md-tabs__link, .md-tabs__link--active');
+      }
+      if (selected && reveal !== false) {
+        var visible = rail.getBoundingClientRect();
+        var button = selected.getBoundingClientRect();
+        if (button.left < visible.left) rail.scrollLeft += button.left - visible.left;
+        else if (button.right > visible.right) rail.scrollLeft += button.right - visible.right;
+      }
+      var frame = header.getBoundingClientRect();
+      var bounds = tabs.getBoundingClientRect();
+      track.style.left = (bounds.left - frame.left) + 'px';
+      track.style.top = (bounds.top - frame.top) + 'px';
+      track.style.width = bounds.width + 'px';
+      track.style.height = bounds.height + 'px';
+      if (!selected) return { selected: false };
+      var box = selected.getBoundingClientRect();
+      return { selected: true, key: selected.href, x: box.left - bounds.left + 1,
+        y: box.top - bounds.top, width: Math.max(0, box.width - 2), height: box.height };
+    };
+    (function () {
+      var header = document.currentScript.parentElement;
+      var glass = header.querySelector('.edwinos-tab-glass');
+      var box = window.__edwinosTabGlassGeometry(header);
+      if (!box) return;
+      header.dataset.edwinosTabGlassReady = '1';
+      if (!box.selected) { glass.hidden = true; return; }
+      glass.style.left = box.x + 'px'; glass.style.top = box.y + 'px';
+      glass.style.width = box.width + 'px'; glass.style.height = box.height + 'px';
+      glass.dataset.edwinosTabSelected = box.key;
+    })();
+  </script>
+</header>

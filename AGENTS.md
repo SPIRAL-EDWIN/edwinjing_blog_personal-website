@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-10-11
+Last updated: 2026-10-12
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -33,8 +33,8 @@ Current stylesheet policy:
 - Do not recreate `extra.css`, `edwinos-overrides.css`, or another tail-patch
   stylesheet.
 - `docs/javascripts/ui-perf.js` is the runtime adaptation layer. It owns body
-  route classes, search interaction adjustments, profile shell injection on
-  home subpages, Beijing time updates, friend-count updates, GitHub source facts,
+  route classes, search interaction adjustments, Beijing time updates,
+  friend-count updates, GitHub source facts,
   visitor-map loading, back-to-top glass, and markdown/list continuity fixes.
   Search input and results share one glass shell: empty activation stays a
   capsule, then a query extends it downward. Closing hides/empties the input
@@ -49,13 +49,42 @@ Current stylesheet policy:
   That fragment owner also handles delayed highlights/layout completion and
   yields immediately to reader input. Avoid root `scroll-padding-top`, which
   makes Chromium move the document while typing into the sticky search input.
-  The initial Archive/Friends body class is seeded by `overrides/main.html`
-  before the header paints; runtime route classification owns later navigation.
+  Initial Overview/Archive/Friends body classes are seeded by
+  `overrides/main.html` before the header paints; runtime route classification
+  owns later navigation. Header glass and repository fact rows are rendered
+  by the existing template partials before first paint. `hooks/home_sections.py`
+  renders HOME subpage profile shells from the authored homepage aside, with
+  rebased local URLs and `data-search-exclude`; do not recreate runtime wrappers
+  or a duplicate profile markup source. Homepage article/section entrance motion
+  must not translate the profile or prose during refresh/scroll restoration.
+  The selected navigation glass is one persistent header surface, seeded by
+  `partials/header.html` and rebound by `setupTabGlass` after Material replaces
+  the tabs. Its lens samples the actual labels above the tabs, below search
+  controls; navigation uses the original Shu Ding UV/SDF double-smoothstep field
+  and derived physical scale, with no fixed rim or normalized direction.
+  Motion strength is bounded to 0..1; narrow labels remain sharp at rest. Preserve selected-item
+  auto-reveal, stationary search opening/closing, masked destination preparation,
+  neutral HOME subpages and layout/reduced-motion lifecycle handling. Chromium
+  uses live backdrop displacement. Keep sampling padding separate from
+  the actual lens UV map; an axis-aware matrix preserves physical offsets
+  while freezing the decoded map during motion. Rebuild at the neutral endpoint.
+  Safari uses one SVG optical source of only the three navigation labels with
+  complementary inside/outside clips. Original anchors own layout and input;
+  hide their glyph fill only after the source is ready, refresh font/palette/
+  hover/focus changes, and bypass displacement at rest. This narrow adapter
+  does not sample the article background or duplicate page content.
 - `docs/index.md` and related markdown files own content and semantic structure.
   Avoid moving content into CSS or JS.
 - Homepage logo and Workshop images use responsive local thumbnails and tiny
   inline blur previews; `tools/generate_loading_previews.py` regenerates them
-  without replacing originals. `ui-perf.js` reveals full images after decoding.
+  without replacing originals. `overrides/partials/image-previews.html` installs
+  the single image-readiness owner in the head; decoding retires preview
+  underlays before the main runtime, and `ui-perf.js` reuses that owner for
+  instant navigation. Native thumbnails must stay visible, including cached
+  refreshes; do not restore an opacity gate or a repeated reveal animation.
+  The logo, first real publication and first Workshop image have matching
+  homepage-only responsive preloads and eager/sync hints at normal priority;
+  later publication and article images retain lazy loading.
   Preserve the original display aspect ratios and the no-JavaScript fallback.
   PDF previews show the first two pages before an explicit reader click sets
   the iframe URL. An iframe load event is not proof that Edge has painted a
@@ -159,7 +188,7 @@ Do not start with a full rewrite. Use a gradual migration plan:
    - Friends page
    - Archive page
    - ENotes page
-   - More Experiences page
+   - More page
 2. Identify component boundaries:
    - global tokens and GitHub palette
    - header/notch and search
