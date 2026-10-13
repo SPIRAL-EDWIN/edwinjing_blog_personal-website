@@ -36,6 +36,7 @@ theme:
   icon:
     logo: material/book-education-outline # 网站左上角 Logo，使用 Material Design 内置图标
     repo: fontawesome/brands/github       # 右上角仓库图标
+    top: octicons/arrow-up-24
     admonition:                           # 自定义 Callout 图标映射 [15]
       note: octicons/tag-16
       abstract: octicons/checklist-16
@@ -198,7 +199,7 @@ extra_javascript:
   - javascripts/ui-perf.js?v=20261013e
 
 extra_css:
-  - stylesheets/edwinos.css?v=20261013a  # Unified EdwinOS cascade
+  - stylesheets/edwinos.css?v=20261013c  # Unified EdwinOS cascade
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。

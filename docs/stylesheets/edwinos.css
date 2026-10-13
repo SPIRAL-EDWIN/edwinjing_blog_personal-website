@@ -4853,37 +4853,38 @@ body.is-home-profile-page
    ========================================================================== */
 
 /* Shared sidebar/navigation primitives. Typography remains separately owned. */
-/* Match search's soft gray scrollbar without Material's accent on hover/focus. */
-.md-sidebar--primary {
+/* Both navigation sidebars share search's soft translucent gray scrollbar.
+   Hover/focus remain gray rather than inheriting Material's blue accent. */
+:is(.md-sidebar--primary, .md-sidebar--secondary) {
     --edwinos-nav-scrollbar-thumb: rgba(96, 99, 108, 0.38);
     --edwinos-nav-scrollbar-hover: rgba(96, 99, 108, 0.56);
 }
 
-[data-md-color-scheme="slate"] .md-sidebar--primary {
+[data-md-color-scheme="slate"] :is(.md-sidebar--primary, .md-sidebar--secondary) {
     --edwinos-nav-scrollbar-thumb: rgba(190, 195, 205, 0.38);
     --edwinos-nav-scrollbar-hover: rgba(190, 195, 205, 0.56);
 }
 
-.md-sidebar--primary .md-sidebar__scrollwrap {
+:is(.md-sidebar--primary, .md-sidebar--secondary) .md-sidebar__scrollwrap {
     scrollbar-color: var(--edwinos-nav-scrollbar-thumb) transparent;
 }
 
-.md-sidebar--primary .md-sidebar__scrollwrap:is(:hover, :focus-within) {
+:is(.md-sidebar--primary, .md-sidebar--secondary) .md-sidebar__scrollwrap:is(:hover, :focus-within) {
     scrollbar-color: var(--edwinos-nav-scrollbar-hover) transparent;
 }
 
-.md-sidebar--primary .md-sidebar__scrollwrap::-webkit-scrollbar-track {
+:is(.md-sidebar--primary, .md-sidebar--secondary) .md-sidebar__scrollwrap::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.md-sidebar--primary .md-sidebar__scrollwrap::-webkit-scrollbar-thumb,
-.md-sidebar--primary .md-sidebar__scrollwrap:is(:hover, :focus-within)::-webkit-scrollbar-thumb {
+:is(.md-sidebar--primary, .md-sidebar--secondary) .md-sidebar__scrollwrap::-webkit-scrollbar-thumb,
+:is(.md-sidebar--primary, .md-sidebar--secondary) .md-sidebar__scrollwrap:is(:hover, :focus-within)::-webkit-scrollbar-thumb {
     background-color: var(--edwinos-nav-scrollbar-thumb);
     border-radius: 999px;
 }
 
-.md-sidebar--primary .md-sidebar__scrollwrap::-webkit-scrollbar-thumb:hover,
-.md-sidebar--primary .md-sidebar__scrollwrap:is(:hover, :focus-within)::-webkit-scrollbar-thumb:hover {
+:is(.md-sidebar--primary, .md-sidebar--secondary) .md-sidebar__scrollwrap::-webkit-scrollbar-thumb:hover,
+:is(.md-sidebar--primary, .md-sidebar--secondary) .md-sidebar__scrollwrap:is(:hover, :focus-within)::-webkit-scrollbar-thumb:hover {
     background-color: var(--edwinos-nav-scrollbar-hover);
 }
 
@@ -9163,6 +9164,11 @@ body[data-md-color-scheme="slate"]
     --edwinos-top-border: rgba(60, 60, 67, 0.2);
     --edwinos-top-highlight: rgba(255, 255, 255, 0.65);
     --edwinos-top-shadow: 0 3px 14px rgba(31, 35, 40, 0.13);
+    font-family: "Inter", "Noto Sans SC", sans-serif;
+    font-weight: 500;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
     overflow: visible;
     background: var(--edwinos-top-tint);
     -webkit-backdrop-filter: blur(4px) saturate(1.12);
@@ -9170,6 +9176,25 @@ body[data-md-color-scheme="slate"]
     box-shadow: var(--edwinos-top-shadow);
     color: #303641;
     text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+.md-top .edwinos-top__content {
+    display: inline-flex;
+    min-height: 1.2rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    vertical-align: middle;
+}
+
+.md-top .edwinos-top__content > svg {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+}
+
+.md-top .edwinos-top__label {
+    line-height: 1.2;
 }
 
 [data-md-color-scheme="slate"] .md-top.edwinos-top-glass {
