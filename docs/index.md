@@ -120,17 +120,20 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
 
     <section class="academic-section" data-overview-reveal="experiences">
       <h2 class="section-title"><span class="title-dash"></span>Selected Experiences</h2>
-      <div class="timeline-cv">
+      <div class="cv-experience-list">
         <div class="cv-item">
-          <div class="cv-marker"></div>
-          <div class="cv-content">
-            <h3 class="cv-title">Member of Physical Intelligence Lab, ZJU</h3>
-            <p class="cv-subtitle">Physics-based simulation · Whole-body control · Sim2Real · Real-world imitation learning</p>
-            <p class="cv-time">2025 - Present</p>
-            <ul class="cv-desc">
-              <li>Exploring whole-body control and tracking frameworks in advanced simulation platforms such as Isaac Lab.</li>
-              <li>Building data-collection and policy-training pipelines for real-world robotic arms and grippers, with the goal of closing the Sim2Real gap.</li>
-            </ul>
+          <div class="cv-content cv-lab-content">
+            <div class="cv-lab-row">
+              <div class="cv-lab-logo">
+                <img class="cv-lab-logo__light off-glb" src="assets/images/labs/physical-intelligence-lab-light.png" alt="Physical Intelligence Lab" width="461" height="70" loading="lazy" decoding="async">
+                <img class="cv-lab-logo__dark off-glb" src="assets/images/labs/physical-intelligence-lab-dark.png" alt="Physical Intelligence Lab" width="461" height="70" loading="lazy" decoding="async">
+              </div>
+              <div class="cv-lab-main">
+                <h3 class="cv-title"><a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener noreferrer">Physical Intelligence Lab</a>, ZJU</h3>
+                <p class="cv-subtitle">Research Assistant — Whole-body control · Reinforcement learning · Reward tuning · Sim2Sim &amp; Sim2Real</p>
+              </div>
+              <p class="cv-time">Jun. 2026 — Present</p>
+            </div>
           </div>
         </div>
       </div>
@@ -140,7 +143,7 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
       <h2 class="section-title"><span class="title-dash"></span>Honors &amp; Awards</h2>
       <ul class="award-list">
         <li><span class="award-year">10/2026</span><span class="award-copy"><strong>Outstanding Student</strong> <span class="award-separator">·</span> <span class="award-name">Zhejiang University</span></span></li>
-        <li><span class="award-year">10/2026</span><span class="award-copy"><strong>Pacesetter in Academic Excellence</strong> <span class="award-separator">·</span> <span class="award-name">Zhejiang University</span></span></li>
+        <li><span class="award-year">10/2026</span><span class="award-copy"><strong>Pacesetter in Academic Excellence</strong> <span class="award-separator">·</span> <span class="award-name">Zhejiang University, CNY 10,000</span></span></li>
         <li><span class="award-year">10/2026</span><span class="award-copy"><strong>Pacesetter in International Exchange</strong> <span class="award-separator">·</span> <span class="award-name">Zhejiang University</span></span></li>
         <li><span class="award-year">04/2026</span><span class="award-copy"><strong>Third Prize</strong> <span class="award-separator">·</span> <span class="award-name">31st Zhejiang University Mechanical Design Competition</span></span></li>
         <li><span class="award-year">01/2024</span><span class="award-copy"><strong>Gold Medal &amp; First Prize</strong> <span class="award-separator">·</span> <span class="award-name">World Robot Contest Finals (WRCF)</span></span></li>
@@ -149,11 +152,14 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
     </section>
 
     <footer class="visitor-meta-footer animate-slide-up" style="--anim-delay: 0.8s;" data-visitor-deployment data-deployment-repository="SPIRAL-EDWIN/edwinjing-blog-website" data-deployment-workflow="deploy.yml">
-      <p class="visitor-meta-footer__signature">
-        <span>&copy; Chen Jing</span>
-        <span class="visitor-meta-footer__separator" aria-hidden="true">&middot;</span>
-        <time class="visitor-meta-footer__updated" data-visitor-deployment-time datetime="2026-10">Latest updated Oct. 2026</time>
-      </p>
+      <div class="visitor-meta-footer__metadata">
+        <p class="visitor-meta-footer__license">Content licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></p>
+        <p class="visitor-meta-footer__signature">
+          <span>&copy; Chen Jing</span>
+          <span class="visitor-meta-footer__separator" aria-hidden="true">&middot;</span>
+          <time class="visitor-meta-footer__updated" data-visitor-deployment-time datetime="2026-10">Latest updated Oct. 2026</time>
+        </p>
+      </div>
       <div class="visitor-container visitor-badge-panel" data-visitor-badge>
         <a class="visitor-badge-link" href="https://visitorbadge.io/status?path=https%3A%2F%2Fedwinjing-blog.com%2F" target="_blank" rel="noopener noreferrer" aria-label="Open Edwin's visitor statistics in a new tab">
           <img class="visitor-badge-image" src="https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fedwinjing-blog.com%2F&amp;label=Edwin%27s%20VISITORS&amp;labelColor=%232ccce4&amp;countColor=%23003f88" alt="Edwin's visitors" loading="lazy" fetchpriority="low" decoding="async" referrerpolicy="no-referrer">

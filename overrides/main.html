@@ -95,6 +95,12 @@
   {{ super() }}
 {% endblock %}
 
+{% block footer %}
+  {% if page.url not in ["", "index.html"] %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
 {% block scripts %}
   <script>
     (function () {
