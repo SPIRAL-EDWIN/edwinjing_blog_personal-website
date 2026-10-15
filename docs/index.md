@@ -62,13 +62,35 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
   <main class="academic-content">
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.1s;">
       <h2 class="section-title"><span class="title-dash"></span>About Me</h2>
-      <p>I am Chen Jing (<span class="about-name-cn" lang="zh-Hans">经宸</span>; Jing is my family name), a sophomore majoring in Mechanical Engineering at the ZJU-UIUC Institute (ZJUI), Zhejiang University. Currently, I am an undergraduate research assistant at the <a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a>, safely guided by <a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">Prof. Hua Chen</a> and <a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">Prof. Liangjing Yang</a>.</p>
-      <p>My research interests broadly lie in Embodied AI, Legged Locomotion, and Whole-body Loco-manipulation. Currently, I am exploring the synergy between physics-based simulation and real-world deployment. Specifically, my work focuses on:</p>
-      <ul class="about-focus-list">
-        <li><strong>Simulation &amp; Reinforcement Learning:</strong> Implementing whole-body control and tracking frameworks within advanced simulation platforms, e.g., Isaac Lab.</li>
-        <li><strong>Real-world Imitation Learning:</strong> Developing end-to-end data collection and policy training pipelines, e.g., Diffusion Policy based on UMI, for real-world robotic arms and grippers.</li>
+      <p>Undergraduate researcher at <strong><a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a>, ZJU</strong>, advised by Prof. <a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">Liangjing Yang</a> and previously by Prof. <a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">Hua Chen</a>. Research on embodied AI, focusing on legged locomotion and whole-body loco-manipulation. Recipient of <strong>Gold Medal &amp; First Prize</strong> at the World Robot Contest Finals (WRCF) and <strong>Outstanding Student</strong> of Zhejiang University (2025–2026). Maintainer of <strong><a href="OsdNotes/">ENotes</a></strong>, an open notebook on whole-body control, real-robot deployment, and university course notes.</p>
+      <details class="about-profile-details">
+      <summary>Detailed profile (详细个人介绍)</summary>
+      <div class="about-profile-body">
+      <p style="--profile-reveal-order: 0;">Hi! I am Chen Jing (经宸; Jing is my family name), a sophomore majoring in Mechanical Engineering at the <a href="https://zjui.intl.zju.edu.cn/" target="_blank" rel="noopener">ZJU-UIUC Institute (ZJUI)</a>, Zhejiang University. I am an undergraduate research assistant at the <a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a>, advised by Prof. <a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">Liangjing Yang</a> and previously by Prof. <a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">Hua Chen</a>.</p>
+      <p style="--profile-reveal-order: 1;">My research focuses on embodied AI, especially legged locomotion and whole-body loco-manipulation. I am also eager to explore other directions that move robotics forward, such as vision-language-action (VLA) models and world models.</p>
+      <p style="--profile-reveal-order: 2;">Recently, I contributed to <a href="https://arxiv.org/abs/2609.18930">a whole-body controller for a bipedal mobile manipulator</a> that tracks a single 6-DoF end-effector target, coordinating arm motion, posture adaptation, and stepping without explicit locomotion commands. My work covers:</p>
+      <ul style="--profile-reveal-order: 3;">
+      <li><strong>Reward tuning</strong> for RL-based whole-body control in Isaac Lab</li>
+      <li><strong>Sim2Sim validation</strong> of trained policies</li>
+      <li><strong>Real-robot deployment</strong> on a LimX TRON 1 biped with an ARX L5 arm</li>
       </ul>
-      <p>I am eager to bridge the gap between simulation and reality (Sim2Real) to enable robots with more agile and dexterous behaviors.</p>
+      <p style="--profile-reveal-order: 4;">I have also worked with UMI-based diffusion policy pipelines.</p>
+      <p style="--profile-reveal-order: 5;">I come from a robotics-competition and mechanical-design background (WRCF, VEX, ZJU Mechanical Design Competition), which keeps me grounded in how things work on real hardware. I am eager to bridge the gap between simulation and reality to enable robots with more agile and dexterous behaviors.</p>
+      <hr style="--profile-reveal-order: 6;">
+      <div lang="zh-CN">
+      <p style="--profile-reveal-order: 7;">Hi！我是<strong>经宸 (English name: Chen Jing)</strong>，浙江大学–伊利诺伊大学厄巴纳-香槟校区联合学院（<a href="https://zjui.intl.zju.edu.cn/" target="_blank" rel="noopener">ZJUI</a>）机械工程专业大二学生。目前是 <a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a> 的本科生科研助理，师从 <a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">Liangjing Yang</a> 教授，此前师从 <a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">Hua Chen</a> 教授。</p>
+      <p style="--profile-reveal-order: 8;">我的研究方向是具身智能，尤其关注足式运动与全身移动操作（loco-manipulation）。同时，我也乐于探索其他推动机器人发展的方向，例如视觉-语言-动作模型（VLA）与世界模型。</p>
+      <p style="--profile-reveal-order: 9;">近期，我参与了<a href="https://arxiv.org/abs/2609.18930">一项双足移动操作机器人的全身控制器工作</a>：仅给定一个 6-DoF 末端执行器目标，控制器即可协调手臂运动、姿态调整与迈步，无需显式的运动指令。我主要负责：</p>
+      <ul style="--profile-reveal-order: 10;">
+      <li>在 Isaac Lab 中为基于强化学习的全身控制进行<strong>奖励函数调参</strong></li>
+      <li>对训练得到的策略进行 <strong>Sim2Sim 验证</strong></li>
+      <li>在搭载 ARX L5 机械臂的 LimX TRON 1 双足机器人上进行<strong>真机部署</strong></li>
+      </ul>
+      <p style="--profile-reveal-order: 11;">此外，我还接触过基于 UMI 的 diffusion policy 流程。</p>
+      <p style="--profile-reveal-order: 12;">我有机器人竞赛与机械设计的背景（WRCF、VEX、浙江大学机械设计竞赛），这让我始终关注真实硬件上的实际表现。我希望弥合仿真与现实之间的差距，让机器人具备更敏捷、更灵巧的行为。</p>
+      </div>
+      </div>
+      </details>
     </section>
 
     <section class="academic-section" data-overview-reveal="news">
@@ -94,6 +116,27 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
       </ul>
     </section>
 
+    <section class="academic-section" data-overview-reveal="experiences">
+      <h2 class="section-title"><span class="title-dash"></span>Selected Experiences</h2>
+      <div class="cv-experience-list">
+        <div class="cv-item">
+          <div class="cv-content cv-lab-content">
+            <div class="cv-lab-row">
+              <div class="cv-lab-logo">
+                <img class="cv-lab-logo__light off-glb" src="assets/images/labs/physical-intelligence-lab-light.png" alt="Physical Intelligence Lab" width="461" height="70" loading="lazy" decoding="async">
+                <img class="cv-lab-logo__dark off-glb" src="assets/images/labs/physical-intelligence-lab-dark.png" alt="Physical Intelligence Lab" width="461" height="70" loading="lazy" decoding="async">
+              </div>
+              <div class="cv-lab-main">
+                <h3 class="cv-title"><a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener noreferrer">Physical Intelligence Lab</a>, ZJU</h3>
+                <p class="cv-subtitle">Research Assistant — Whole-body control · Reinforcement learning · Reward tuning · Sim2Sim &amp; Sim2Real</p>
+              </div>
+              <p class="cv-time">Jun. 2026 — Present</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="academic-section" data-overview-reveal="publications">
       <h2 class="section-title"><span class="title-dash"></span>Publications</h2>
       <!-- OVERVIEW_PUBLICATIONS_AUTO -->
@@ -114,27 +157,6 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
             <a href="assets/posters/iros-2026-moma-poster.pdf" target="_blank" rel="noopener noreferrer">Poster</a>
             <a href="assets/posters/iros-2026-moma-spotlight-talk.pdf" target="_blank" rel="noopener noreferrer">Spotlight&thinsp;·&thinsp;Talk</a>
           </nav>
-        </div>
-      </div>
-    </section>
-
-    <section class="academic-section" data-overview-reveal="experiences">
-      <h2 class="section-title"><span class="title-dash"></span>Selected Experiences</h2>
-      <div class="cv-experience-list">
-        <div class="cv-item">
-          <div class="cv-content cv-lab-content">
-            <div class="cv-lab-row">
-              <div class="cv-lab-logo">
-                <img class="cv-lab-logo__light off-glb" src="assets/images/labs/physical-intelligence-lab-light.png" alt="Physical Intelligence Lab" width="461" height="70" loading="lazy" decoding="async">
-                <img class="cv-lab-logo__dark off-glb" src="assets/images/labs/physical-intelligence-lab-dark.png" alt="Physical Intelligence Lab" width="461" height="70" loading="lazy" decoding="async">
-              </div>
-              <div class="cv-lab-main">
-                <h3 class="cv-title"><a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener noreferrer">Physical Intelligence Lab</a>, ZJU</h3>
-                <p class="cv-subtitle">Research Assistant — Whole-body control · Reinforcement learning · Reward tuning · Sim2Sim &amp; Sim2Real</p>
-              </div>
-              <p class="cv-time">Jun. 2026 — Present</p>
-            </div>
-          </div>
         </div>
       </div>
     </section>
