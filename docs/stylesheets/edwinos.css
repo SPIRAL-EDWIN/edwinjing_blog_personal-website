@@ -3113,6 +3113,12 @@ body[data-md-color-scheme="slate"] .md-tabs,
 
 }
 
+/* Material restores the fixed body's saved position when search unlocks.
+   Keep that restoration immediate, including its unlock animation frame. */
+html.edwinos-search-scroll-locked {
+    scroll-behavior: auto;
+}
+
 /* Search: one glass shell grows from capsule to results window. */
 .md-header .md-search {
     --edwinos-search-glass-blur: 6px;
@@ -3413,6 +3419,14 @@ body[data-md-color-scheme="slate"] .md-tabs,
     overflow: visible !important;
 }
 
+/* A contracted input can exceed the capsule's padding box. Clip without a
+   scroll container so focus cannot leave the resting icon shifted sideways. */
+@media screen and (max-width: 59.984375em) {
+    [data-md-toggle="search"]:not(:checked) ~ .md-header .md-search__inner {
+        overflow: clip !important;
+    }
+}
+
 .md-header .md-search-result {
     width: 100% !important;
     color: var(--edwinos-search-result-color);
@@ -3601,8 +3615,8 @@ body[data-md-color-scheme="slate"] .md-tabs,
 
 /*
  * Header controls share one coordinate system and collapse in two ordered
- * stages. The GitHub icon first wipes a stationary repository label, then the
- * search capsule contracts. Once the capsule is circular it cannot re-expand.
+ * stages. The search capsule contracts to a circle first, then the GitHub
+ * icon wipes a stationary repository label as the remaining space contracts.
  */
 :root {
     --edwinos-header-edge: clamp(8px, 2vw, 32px);
@@ -3643,7 +3657,6 @@ body[data-md-color-scheme="slate"] .md-tabs,
         + var(--edwinos-header-tabs-width)
         + var(--edwinos-header-tabs-search-gap)
     );
-    --edwinos-header-search-stage-width: 190px;
     --edwinos-header-source-max-width: 138.4px;
     --edwinos-header-source-right: calc(
         var(--edwinos-header-right-edge)
@@ -3661,7 +3674,7 @@ body[data-md-color-scheme="slate"] .md-tabs,
         var(--edwinos-header-control-size),
         calc(
             var(--edwinos-header-compression-budget)
-            - var(--edwinos-header-search-stage-width)
+            - var(--edwinos-header-control-size)
         ),
         var(--edwinos-header-source-max-width)
     );

@@ -1519,6 +1519,7 @@
     var listeners = [];
     var timers = new Set();
     var observers = [];
+    listeners.push(trackSearchScrollLock());
     var tabsResizeObserver = null;
     var observedTabs = null;
     var frame = 0;
@@ -1928,6 +1929,41 @@
       }
     };
     refresh();
+  }
+
+  function trackSearchScrollLock() {
+    // Material fixes the body while mobile search is open, then unlocks and
+    // scrollTo's its saved offset in the same task. Keep that restoration out
+    // of the site's smooth-scroll behavior, including reduced-motion mode.
+    var root = document.documentElement;
+    var body = document.body;
+    var releaseFrame = 0;
+    if (typeof window.MutationObserver !== "function") return function () {};
+
+    function sync() {
+      window.cancelAnimationFrame(releaseFrame);
+      releaseFrame = 0;
+      if (body.hasAttribute("data-md-scrolllock")) {
+        root.classList.add("edwinos-search-scroll-locked");
+      } else if (root.classList.contains("edwinos-search-scroll-locked")) {
+        // Mutation observers run after Material's synchronous scroll restore.
+        releaseFrame = window.requestAnimationFrame(function () {
+          releaseFrame = 0;
+          if (!body.hasAttribute("data-md-scrolllock")) {
+            root.classList.remove("edwinos-search-scroll-locked");
+          }
+        });
+      }
+    }
+
+    var observer = new MutationObserver(sync);
+    observer.observe(body, { attributes: true, attributeFilter: ["data-md-scrolllock"] });
+    sync();
+    return function () {
+      observer.disconnect();
+      window.cancelAnimationFrame(releaseFrame);
+      root.classList.remove("edwinos-search-scroll-locked");
+    };
   }
 
   function closeSearchWhenClickingAway() {

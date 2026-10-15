@@ -5,6 +5,53 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const source = fs.readFileSync('docs/javascripts/ui-perf.js', 'utf8');
+const scrollLockSource = source.slice(source.indexOf('  function trackSearchScrollLock()'), source.indexOf('  function closeSearchWhenClickingAway()'));
+// Material's mobile search removes fixed-body positioning before restoring its
+// saved Y with scrollTo(0, Y). Global smooth scrolling must not animate that
+// internal restoration. Exercise the real observer through that same ordering.
+for (const reducedMotion of [false, true]) {
+  const classes = new Set(), frames = new Map();
+  let locked = false, callback, disconnected = false, serial = 0, scrollY = 960;
+  const root = {classList: {
+    add: name => classes.add(name), remove: name => classes.delete(name), contains: name => classes.has(name)
+  }};
+  const body = {hasAttribute: name => name === 'data-md-scrolllock' && locked};
+  class MutationObserver {
+    constructor(fn) { callback = fn; }
+    observe(target, options) { assert.equal(target, body); assert.deepEqual(Array.from(options.attributeFilter), ['data-md-scrolllock']); }
+    disconnect() { disconnected = true; }
+  }
+  const window = {
+    MutationObserver,
+    requestAnimationFrame(fn) { frames.set(++serial, fn); return serial; },
+    cancelAnimationFrame(id) { frames.delete(id); },
+    matchMedia() { return {matches: reducedMotion}; }
+  };
+  const context = {window, document: {documentElement: root, body}, MutationObserver};
+  vm.runInNewContext(scrollLockSource + ';var dispose=trackSearchScrollLock();', context);
+  const flushFrame = () => { const jobs = [...frames.values()]; frames.clear(); jobs.forEach(fn => fn()); };
+  assert.equal(classes.size, 0, 'desktop/no lock leaves ordinary smooth scrolling alone');
+  locked = true; scrollY = 0; callback();
+  assert.equal(classes.has('edwinos-search-scroll-locked'), true);
+  locked = false;
+  // The upstream scrollTo runs before mutation delivery: the existing class
+  // must still force instant restoration at this exact point.
+  assert.equal(classes.has('edwinos-search-scroll-locked'), true);
+  scrollY = 960;
+  callback();
+  assert.equal(scrollY, 960);
+  assert.equal(classes.has('edwinos-search-scroll-locked'), true);
+  flushFrame();
+  assert.equal(classes.size, 0, 'ordinary smooth behavior returns after restoration');
+  locked = true; callback(); locked = false; callback();
+  locked = true; callback(); flushFrame();
+  assert.equal(classes.has('edwinos-search-scroll-locked'), true, 'rapid reopen cancels pending release');
+  locked = false; callback(); context.dispose(); flushFrame();
+  assert.equal(disconnected, true); assert.equal(classes.size, 0);
+}
+const styles = fs.readFileSync('docs/stylesheets/edwinos.css', 'utf8');
+assert.match(styles, /html\.edwinos-search-scroll-locked\s*\{\s*scroll-behavior:\s*auto;/);
+console.log('Search scroll restoration: native unlock ordering, reduced motion, rapid reopen and cleanup passed.');
 const memorySource = source.slice(source.indexOf('  function createSearchQueryMemory()'), source.indexOf('  function setupSearchResultSummary()'));
 const activation = source.slice(source.indexOf('  function setupSearchActivation()'), source.indexOf('  function normalizePaletteButtons()'));
 let queue = new Map(), next = 0, emitted = [], resultLayouts = 0, destinations = [], preparedTabs = [], duringClose = null;
