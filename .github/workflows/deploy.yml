@@ -71,6 +71,7 @@ jobs:
           node tools/test_search_highlight_scope.cjs
           node tools/test_search_highlight_motion.cjs
           node tools/test_top_glass.cjs
+          node tools/test_supplemental_glass.cjs
           node tools/test_fragment_navigation.cjs
           node tools/test_search_math.cjs
           node tools/test_article_math.cjs

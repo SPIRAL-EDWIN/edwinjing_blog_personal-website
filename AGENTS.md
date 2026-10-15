@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-10-13
+Last updated: 2026-10-15
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -157,6 +157,20 @@ Current stylesheet policy:
   child surface from sampling the page. Keep its lighter optical tuning separate
   from search. Rebuild the map only
   for layout/font changes, never on every scroll frame.
+  Supplemental glass on the Profile Archive action, Archive date capsule and
+  native single-copy toolbar is owned by `setupContentGlass`: initialize near
+  the viewport and dispose on exit/content replacement. Keep copy language
+  labels in a separate slot through all reveal states; preserve Material's
+  copy target, icon and success feedback. `setupDrawerGlass` owns the mobile
+  ENotes/More outer surface and bounded optical gain animation. Nested panels
+  remain transparent and hide only inactive ancestor foreground. Keep native
+  transforms, desktop-sized row/back typography, continuous reversal gain,
+  reduced-motion behavior and Safari blur through closing. The outer surface
+  blends a frosted center into a lightly blurred, low-tint edge; its map's blue
+  channel owns the continuous blur weight without changing R/G displacement.
+  Safari uses complementary native-blur masks. Clear native list/item borders
+  across inactive ancestor panels as well as the visible section. Never rebuild a
+  drawer displacement map per animation/scroll frame or add glass to each row.
 
 When adding new UI rules:
 

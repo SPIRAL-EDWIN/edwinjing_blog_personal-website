@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-10-13
+Last updated: 2026-10-15
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -261,6 +261,33 @@ Chromium adds edge-only refraction using the shared rounded-rectangle map
 generator with a separate padded SVG filter; Safari retains native blur and
 perimeter highlights. Its map follows layout/font changes without scroll
 listeners or an idle frame loop; the compositor samples the live page on scroll.
+
+Supplemental glass stays in its existing component owners: the mobile ENotes/
+More drawer, Profile's Archive action, Code Blocks' single-copy toolbar, and
+Archive's Last updated capsule. `setupContentGlass` shares one visibility
+observer, creates independent maps only near visible controls, discovers late
+Material copy toolbars, and disposes its filters/observers on content replacement.
+The copy toolbar itself samples the code backdrop; its child icon remains native.
+Language labels reserve a separate area left of that toolbar even during the
+opacity crossfade. Archive statistics style only direct capsule children, never
+the decorative highlight nested inside them. The Profile link retains its
+26px geometry and the build-time shared HOME markup source.
+
+`setupDrawerGlass` retains Material's full-height drawer and native transforms.
+One outer surface samples the page; nested navigation canvases are transparent.
+Only the foreground of ancestors behind the active nested panel is hidden,
+preserving descendant layout and input. Drawer rows/back titles share desktop
+sidebar typography and one thin chevron design. A 320ms bounded motion envelope
+changes only displacement strength, retaining the current gain on reversal;
+the decoded map is not rebuilt per animation or scroll frame. Closed/desktop/
+hidden states dispose optics, and reduced motion settles directly. Safari keeps
+native blur through the closing transition. Center blur transitions continuously
+from 14px to 2px at the perimeter, with a matching lower-tint edge. Chromium uses
+the displacement map's spare blue channel as a smooth blend weight, adding
+complementary premultiplied images to avoid alpha seams; R/G remain displacement.
+Safari uses complementary masked native blur surfaces. Native item/list borders
+are cleared across ancestor panels so hidden rows cannot leave fixed divider
+lines. No individual row glass or general Safari page-copy renderer is introduced.
 
 ## Runtime ownership
 

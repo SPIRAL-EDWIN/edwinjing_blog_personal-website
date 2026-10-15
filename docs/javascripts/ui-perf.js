@@ -18,6 +18,9 @@
   var headerSearchRuntime = null;
   var tabGlassRuntime = null;
   var topGlassRuntime = null;
+  var drawerGlassRuntime = null;
+  var contentGlassRuntime = null;
+  var controlGlassSequence = 0;
   var searchResultSummarySubscription = null;
   var searchSnippetSources = new WeakMap();
   var sectionNavigationDepthTimer = null;
@@ -342,7 +345,7 @@
       blur.setAttribute('stdDeviation', String(options.blur === undefined ? 4 : options.blur));
       blur.setAttribute('result', prefix + '-blur');
       var displacement = document.createElementNS(svgNS, 'feDisplacementMap');
-      displacement.setAttribute('in', prefix + '-blur');
+      displacement.setAttribute('in', prefix + (options.edgeBlur === undefined ? '-blur' : '-optical-background'));
       displacement.setAttribute('in2', referenceLens ? prefix + '-scaled-map' : prefix + '-map');
       displacement.setAttribute('xChannelSelector', 'R');
       displacement.setAttribute('yChannelSelector', 'G');
@@ -356,6 +359,42 @@
         filter.appendChild(mapTransform);
       }
       filter.appendChild(blur);
+      if (options.edgeBlur !== undefined) {
+        // The map's spare blue channel carries a continuous center weight.
+        // Add complementary premultiplied images rather than overlaying them:
+        // the transition retains full opacity and cannot form a dark seam.
+        var centerMask = document.createElementNS(svgNS, 'feColorMatrix');
+        centerMask.setAttribute('in', prefix + '-map');
+        centerMask.setAttribute('type', 'matrix');
+        centerMask.setAttribute('values', '0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 1 0 0');
+        centerMask.setAttribute('result', prefix + '-center-mask');
+        var edgeBlur = document.createElementNS(svgNS, 'feGaussianBlur');
+        edgeBlur.setAttribute('in', 'SourceGraphic');
+        edgeBlur.setAttribute('stdDeviation', String(options.edgeBlur));
+        edgeBlur.setAttribute('result', prefix + '-edge-blur');
+        var centerImage = document.createElementNS(svgNS, 'feComposite');
+        centerImage.setAttribute('in', prefix + '-blur');
+        centerImage.setAttribute('in2', prefix + '-center-mask');
+        centerImage.setAttribute('operator', 'in');
+        centerImage.setAttribute('result', prefix + '-center-image');
+        var edgeImage = document.createElementNS(svgNS, 'feComposite');
+        edgeImage.setAttribute('in', prefix + '-edge-blur');
+        edgeImage.setAttribute('in2', prefix + '-center-mask');
+        edgeImage.setAttribute('operator', 'out');
+        edgeImage.setAttribute('result', prefix + '-edge-image');
+        var opticalBackground = document.createElementNS(svgNS, 'feComposite');
+        opticalBackground.setAttribute('in', prefix + '-center-image');
+        opticalBackground.setAttribute('in2', prefix + '-edge-image');
+        opticalBackground.setAttribute('operator', 'arithmetic');
+        opticalBackground.setAttribute('k1', '0');
+        opticalBackground.setAttribute('k2', '1');
+        opticalBackground.setAttribute('k3', '1');
+        opticalBackground.setAttribute('k4', '0');
+        opticalBackground.setAttribute('result', prefix + '-optical-background');
+        [centerMask, edgeBlur, centerImage, edgeImage, opticalBackground].forEach(function (primitive) {
+          filter.appendChild(primitive);
+        });
+      }
       filter.appendChild(displacement);
       defs.appendChild(filter);
       definitions.appendChild(defs);
@@ -367,7 +406,8 @@
       var box = feedback.getBoundingClientRect();
       if (!(box.width > 0 && box.height > 0)) return;
       var radius = Math.min(box.width / 2, box.height / 2,
-        parseFloat(window.getComputedStyle(feedback).borderTopLeftRadius) || 24);
+        options.radius === undefined ?
+          (parseFloat(window.getComputedStyle(feedback).borderTopLeftRadius) || 24) : options.radius);
       var key = Math.round(box.width) + ':' + Math.round(box.height) + ':' + Math.round(radius);
       var sampleWidth = box.width + padding * 2;
       var sampleHeight = box.height + padding * 2;
@@ -387,14 +427,19 @@
       }
       feedback.style.setProperty('--' + prefix + '-radius', radius + 'px');
       if (motionMapFrozen || key === mapKey) return;
-      canvas.width = Math.min(768, Math.max(24, Math.ceil((referenceLens ? box.width : sampleWidth) * 1.5)));
-      canvas.height = Math.min(512, Math.max(24, Math.ceil((referenceLens ? box.height : sampleHeight) * 1.5)));
+      var pixelRatio = options.pixelRatio === undefined ? 1.5 : options.pixelRatio;
+      canvas.width = Math.min(768, Math.max(24, Math.ceil((referenceLens ? box.width : sampleWidth) * pixelRatio)));
+      canvas.height = Math.min(options.maxMapHeight || 512,
+        Math.max(24, Math.ceil((referenceLens ? box.height : sampleHeight) * pixelRatio)));
       var pixels = context.createImageData(canvas.width, canvas.height);
       if (referenceLens) {
         referenceScale = fillTabGlassDisplacementMap(pixels, box.width, box.height);
         mapWidth = box.width; mapHeight = box.height;
         setTabGlassMapTransform(mapTransform, 1, 1);
       } else fillRoundedGlassDisplacementMap(pixels, box.width, box.height, padding, radius, options.rim);
+      if (options.edgeBlur !== undefined) {
+        fillGlassBlurWeights(pixels, box.width, box.height, padding, radius, options.blurTransition || 28);
+      }
       context.putImageData(pixels, 0, 0);
       var url = canvas.toDataURL('image/png');
       mapImage.setAttribute('href', url);
@@ -922,6 +967,225 @@
     return { destroy: dispose };
   }
 
+  // One observer owns the small content controls. Only visible controls hold
+  // an optical map; Material still owns the links, copy buttons and feedback.
+  function setupContentGlass() {
+    var content = document.querySelector('.md-content__inner');
+    if (contentGlassRuntime && contentGlassRuntime.content === content) return;
+    if (contentGlassRuntime) contentGlassRuntime.destroy();
+    contentGlassRuntime = null;
+    if (!content) return;
+    var records = new Map();
+    var disposed = false;
+    var discovery = null;
+    var visibility = typeof window.IntersectionObserver === 'function' ?
+      new window.IntersectionObserver(function (entries) {
+        if (disposed) return;
+        entries.forEach(function (entry) {
+          var record = records.get(entry.target);
+          if (!record) return;
+          if (entry.isIntersecting) initialize(record);
+          else if (record.optics) { record.optics.destroy(); record.optics = null; }
+        });
+      }, { rootMargin: '48px' }) : null;
+
+    function initialize(record) {
+      if (disposed || record.optics || !record.element.isConnected) return;
+      var name = record.name;
+      var prefix = 'edwinos-' + name;
+      controlGlassSequence += 1;
+      record.optics = setupLayoutControlGlass(record.element, {
+        prefix: prefix,
+        filterId: prefix + '-refraction-' + controlGlassSequence,
+        filterVariable: '--' + prefix + '-filter',
+        datasetMode: 'edwinosControlGlassMode',
+        datasetBuilds: 'edwinosControlGlassBuilds',
+        blur: record.blur,
+        strength: record.strength,
+        padding: 12
+      });
+    }
+    function register(element, name, blur, strength) {
+      if (records.has(element)) return;
+      var record = { element: element, name: name, blur: blur, strength: strength, optics: null };
+      records.set(element, record);
+      if (visibility) visibility.observe(element);
+      else {
+        var box = element.getBoundingClientRect();
+        if (box.bottom > 0 && box.top < window.innerHeight) initialize(record);
+      }
+    }
+    function discoverCopyControls() {
+      // A future select-lines toolbar is not a single-copy glass control.
+      content.querySelectorAll('.md-code__nav').forEach(function (nav) {
+        var buttons = nav.querySelectorAll('.md-code__button');
+        if (buttons.length === 1 && buttons[0].getAttribute('data-md-type') === 'copy') {
+          register(nav, 'copy', 2.5, 8);
+        }
+      });
+      records.forEach(function (record, element) {
+        if (element.isConnected) return;
+        if (record.optics) record.optics.destroy();
+        if (visibility) visibility.unobserve(element);
+        records.delete(element);
+      });
+    }
+    content.querySelectorAll('.profile-actions > .btn-github-action').forEach(function (element) {
+      register(element, 'profile-action', 3.5, 10);
+    });
+    content.querySelectorAll('.archive-hero__stats > span').forEach(function (element) {
+      register(element, 'archive-stat', 5, 10);
+    });
+    discoverCopyControls();
+    if (typeof window.MutationObserver === 'function' && content.querySelector('pre')) {
+      discovery = new window.MutationObserver(function (mutations) {
+        if (disposed) return;
+        var changed = mutations.some(function (mutation) {
+          return Array.prototype.some.call(mutation.addedNodes, function (node) {
+            return node.nodeType === 1 && (node.matches('.md-code__nav, .md-code__button') ||
+              node.querySelector('.md-code__nav, .md-code__button'));
+          }) || Array.prototype.some.call(mutation.removedNodes, function (node) {
+            return node.nodeType === 1 && (node.matches('.md-code__nav') || node.querySelector('.md-code__nav'));
+          });
+        });
+        if (changed) discoverCopyControls();
+      });
+      discovery.observe(content, { childList: true, subtree: true });
+    }
+    contentGlassRuntime = {
+      content: content,
+      destroy: function () {
+        disposed = true;
+        if (visibility) visibility.disconnect();
+        if (discovery) discovery.disconnect();
+        records.forEach(function (record) { if (record.optics) record.optics.destroy(); });
+        records.clear();
+      }
+    };
+  }
+
+  // Keep the native drawer transform. During its bounded transition only the
+  // displacement gain changes; the decoded map and the live backdrop persist.
+  function setupDrawerGlass() {
+    var sidebar = document.querySelector('.md-sidebar--primary');
+    var toggle = document.querySelector('[data-md-toggle="drawer"]');
+    if (drawerGlassRuntime && drawerGlassRuntime.sidebar === sidebar && drawerGlassRuntime.toggle === toggle) {
+      drawerGlassRuntime.sync();
+      return;
+    }
+    if (drawerGlassRuntime) drawerGlassRuntime.destroy();
+    drawerGlassRuntime = null;
+    if (!sidebar || !toggle || !window.matchMedia) return;
+    var mobile = window.matchMedia('(max-width: 76.234375em)');
+    var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var optics = null;
+    var frame = 0;
+    var closeTimer = 0;
+    var disposed = false;
+    var opened = false;
+    var enabled = false;
+    var gain = 6;
+    function stop() {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(closeTimer);
+      frame = 0;
+      closeTimer = 0;
+    }
+    function release() {
+      stop();
+      if (optics) optics.destroy();
+      optics = null;
+      gain = 6;
+      delete sidebar.dataset.edwinosDrawerMoving;
+    }
+    function initialize() {
+      if (optics) return;
+      optics = setupLayoutControlGlass(sidebar, {
+        prefix: 'edwinos-drawer', filterId: 'edwinos-drawer-refraction',
+        filterVariable: '--edwinos-drawer-filter',
+        datasetMode: 'edwinosDrawerMode', datasetBuilds: 'edwinosDrawerMapBuilds',
+        blur: 14, edgeBlur: 2, blurTransition: 28,
+        strength: 6, radius: 16, padding: 24, rim: 10,
+        pixelRatio: 1, maxMapHeight: 1536
+      });
+    }
+    function animate(closing) {
+      stop();
+      if (!optics || motion.matches || document.hidden) {
+        if (closing) release();
+        else if (optics) { gain = 6; optics.setStrength(gain); }
+        return;
+      }
+      if (sidebar.dataset.edwinosDrawerMode !== 'refraction') {
+        // Safari's native blur must remain on the panel until it has slid out.
+        if (closing) closeTimer = window.setTimeout(release, 320);
+        return;
+      }
+      // A positive baseline means closing never abruptly switches refraction
+      // off while the panel is still visible. No geometry is read per frame.
+      var start = window.performance.now();
+      var duration = 320;
+      var initialGain = gain;
+      sidebar.dataset.edwinosDrawerMoving = '1';
+      function tick(now) {
+        if (disposed || !optics) return;
+        var progress = Math.max(0, Math.min(1, (now - start) / duration));
+        gain = 6 + (initialGain - 6) * (1 - progress) +
+          Math.sin(Math.PI * progress) * (12 - initialGain);
+        optics.setStrength(gain);
+        if (progress < 1) frame = window.requestAnimationFrame(tick);
+        else {
+          frame = 0;
+          delete sidebar.dataset.edwinosDrawerMoving;
+          if (closing) release();
+        }
+      }
+      frame = window.requestAnimationFrame(tick);
+    }
+    function sync() {
+      if (disposed) return;
+      var active = mobile.matches && Boolean(currentDrawerSection());
+      var nextOpen = active && toggle.checked;
+      var changed = active !== enabled || nextOpen !== opened;
+      enabled = active;
+      opened = nextOpen;
+      if (!active) { release(); return; }
+      if (nextOpen) initialize();
+      if (changed) animate(!nextOpen);
+    }
+    function onDepthChange(event) {
+      if (opened && event.target.matches('.md-nav__toggle')) animate(false);
+    }
+    function onMotionChange() {
+      stop();
+      delete sidebar.dataset.edwinosDrawerMoving;
+      if (!opened || document.hidden) release();
+      else { initialize(); gain = 6; optics.setStrength(gain); }
+    }
+    function listen(query, callback, remove) {
+      if (query.addEventListener) query[remove ? 'removeEventListener' : 'addEventListener']('change', callback);
+      else query[remove ? 'removeListener' : 'addListener'](callback);
+    }
+    toggle.addEventListener('change', sync);
+    sidebar.addEventListener('change', onDepthChange);
+    document.addEventListener('visibilitychange', onMotionChange);
+    listen(mobile, sync);
+    listen(motion, onMotionChange);
+    drawerGlassRuntime = {
+      sidebar: sidebar, toggle: toggle, sync: sync,
+      destroy: function () {
+        disposed = true;
+        release();
+        toggle.removeEventListener('change', sync);
+        sidebar.removeEventListener('change', onDepthChange);
+        document.removeEventListener('visibilitychange', onMotionChange);
+        listen(mobile, sync, true);
+        listen(motion, onMotionChange, true);
+      }
+    };
+    sync();
+  }
+
   function showPageNavigationFeedback(pending, label) {
     if (activeArchiveNavigation !== pending || !document.body) return;
     updateNavigationFeedbackGeometry(true);
@@ -1438,6 +1702,26 @@
         pixels.data[index + 1] = Math.round(127.5 + dy * 127.5);
         pixels.data[index + 2] = 128;
         pixels.data[index + 3] = 255;
+      }
+    }
+    return pixels;
+  }
+
+  // Preserve displacement in R/G. B smoothly blends a clear perimeter into
+  // the frosted center, using physical distance to the rounded silhouette.
+  function fillGlassBlurWeights(pixels, width, height, padding, radius, transition) {
+    var sampleWidth = width + padding * 2;
+    var sampleHeight = height + padding * 2;
+    for (var y = 0; y < pixels.height; y += 1) {
+      for (var x = 0; x < pixels.width; x += 1) {
+        var px = (x + 0.5) * sampleWidth / pixels.width - padding;
+        var py = (y + 0.5) * sampleHeight / pixels.height - padding;
+        var qx = Math.abs(px - width / 2) - (width / 2 - radius);
+        var qy = Math.abs(py - height / 2) - (height / 2 - radius);
+        var depth = radius - Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) - Math.min(Math.max(qx, qy), 0);
+        var weight = Math.max(0, Math.min(1, depth / transition));
+        weight = weight * weight * (3 - 2 * weight);
+        pixels.data[(y * pixels.width + x) * 4 + 2] = Math.round(weight * 255);
       }
     }
     return pixels;
@@ -3887,9 +4171,11 @@
     setupSearchResultSummary();
     markProfileDrawerEntries();
     setSectionNavigationDepth();
+    setupDrawerGlass();
     restorePrimarySidebarScroll();
     openExternalContentLinksInNewTabs();
     labelCodeBlockLanguages();
+    setupContentGlass();
     setupCollapsibleCallouts();
     setupAuthorToggles();
     setupProgressiveImages();
