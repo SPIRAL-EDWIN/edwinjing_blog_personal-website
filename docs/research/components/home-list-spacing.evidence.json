@@ -1,0 +1,129 @@
+{
+  "date": "2026-10-14",
+  "url": "https://tianxingchen.github.io/",
+  "evidence_id": "ev_5e247ee2ced863ae34e0d525eede322b536ad29ebe0c712eb66f00a98ec4d49b",
+  "dom_sha256": "b6c6a62b0ab7396b063c6bc68d3eaac4e76026887c632e0c75361fb67ee113af",
+  "provider": {
+    "id": "rea-playwright-browser-scenario",
+    "name": "REA Playwright browser scenario capture provider",
+    "version": "1"
+  },
+  "browser": {
+    "mode": "launch",
+    "process_ownership": "provider-owned",
+    "cleanup": "terminated-owned-process",
+    "product": "Chromium",
+    "version": "155.0.4283.45"
+  },
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "Event sequence records provider receipt order; simultaneous browser causality is not inferred.",
+    "Network content is retained only when selected; response bytes are browser-decoded, not compressed wire bytes.",
+    "Request bytes are limited to what Playwright exposes; not_exposed does not establish body absence or multipart file coverage.",
+    "Network content reads settle within 5 seconds each and never wait for unfinished responses or refetch them.",
+    "Playwright scenario events do not expose request initiator stacks; receipt order does not prove causality.",
+    "Storage values are hashed only after declared-secret redaction.",
+    "Browser host platform and architecture were not observed."
+  ],
+  "method": {
+    "rea": "Controlled Edge browser capture of DOM and inline CSS",
+    "geometry": "Independent CUA computed-style/DOM measurements"
+  },
+  "rules": {
+    "news": {
+      "padding": "7px 0",
+      "margin": "0",
+      "border": "1px",
+      "dateLineHeight": "19.8px",
+      "bodyLineHeight": "20.25px",
+      "singleLineBorderedHeight": 35.796875
+    },
+    "honors": {
+      "padding": "6px 0",
+      "margin": "0",
+      "dateLineHeight": "17.4px",
+      "bodyLineHeight": "18.85px",
+      "singleLineBorderedHeight": 31.84375
+    },
+    "honorsMobile": {
+      "breakpoint": 680,
+      "padding": "9px 0",
+      "margin": "0",
+      "singleLineBorderedHeight": 37.125
+    }
+  },
+  "localBaseline": {
+    "desktopWidth": 1280,
+    "news": {
+      "padding": "7px 0",
+      "margin": "0",
+      "singleLineBorderedHeight": 35.796875
+    },
+    "awards": {
+      "padding": "12.8px 0",
+      "marginBottom": "7.6px",
+      "singleLineBorderedHeight": 46.390625
+    }
+  },
+  "alignment": {
+    "reference": {
+      "viewport": 1280,
+      "headingX": 108,
+      "listX": 108,
+      "rowX": 108,
+      "components": [
+        "News",
+        "Education",
+        "Honors"
+      ]
+    },
+    "localBefore": {
+      "viewport": 1280,
+      "headingComponentX": 343.515625,
+      "news": {
+        "listX": 366.015625,
+        "rowX": 381.015625
+      },
+      "education": {
+        "listX": 352.890625,
+        "rowX": 371.890625
+      },
+      "awards": {
+        "listX": 366.015625,
+        "rowX": 400.015625
+      }
+    },
+    "method": "Fresh CUA DOM geometry; heading includes EdwinOS decorative dash",
+    "localAfter": {
+      "desktop": {
+        "viewport": 1280,
+        "headingX": 343.515625,
+        "listX": 343.515625,
+        "rowX": 343.515625
+      },
+      "mobile": {
+        "viewport": 390,
+        "headingX": 17,
+        "listX": 17,
+        "rowX": 17
+      },
+      "components": [
+        "News",
+        "Education",
+        "Honors"
+      ],
+      "horizontalOverflow": 0,
+      "awardNameWeight": "500",
+      "institutionAndNotesWeight": "400",
+      "colorSchemesChecked": [
+        "default",
+        "slate"
+      ]
+    }
+  },
+  "requestedAwardWeights": {
+    "awardName": 500,
+    "institutionAndNotes": 400,
+    "fontFamiliesAndSizes": "unchanged"
+  }
+}

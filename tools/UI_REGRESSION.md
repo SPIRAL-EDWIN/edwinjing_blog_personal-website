@@ -18,6 +18,19 @@ The checker guard/query-readiness unit tests need only Node:
 node tools/test_ui_equivalence.cjs
 ```
 
+For Overview prose defaults and component type hierarchy, also run:
+
+```sh
+node tools/test_overview_typography.cjs
+```
+
+This Playwright check uses the built site without external requests. It covers
+six widths in both themes, native About disclosure keyboard toggles, contribution
+notes, and injected future prose/list/caption/empty/award states. It asserts that
+ordinary component CSS can override inherited type without `!important`.
+It supports `SITE_DIR` and `BROWSER_EXECUTABLE`; it is not a screenshot or
+Safari/iOS test. Use the A/B checker alongside it for existing visual contracts.
+
 Node must be able to resolve `playwright` and `pngjs`, and Playwright must have
 access to Chromium. These are optional developer dependencies and must not be
 added to the MkDocs deployment environment. For a reproducible run, provision

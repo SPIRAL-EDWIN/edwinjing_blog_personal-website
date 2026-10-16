@@ -146,6 +146,19 @@ class UiArchitectureContractTests(unittest.TestCase):
         self.assertRegex(owned, r"\.section-title")
         self.assertNotRegex(outside, r"\.section-title")
 
+    def test_overview_prose_inherits_without_forcing_component_sizes(self):
+        stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")
+        marker = "\n   Overview Prose\n"
+        self.assertEqual(stylesheet.count(marker), 1)
+        start, _, owned = section_span(stylesheet, marker, "\n   About Me\n")
+        self.assertGreater(start, final_zone_start(stylesheet))
+        self.assertIn("--overview-prose-size: 14px;", owned)
+        self.assertIn("--overview-caption-size: 12px;", owned)
+        for selectors, properties in qualified_rules(stylesheet):
+            if re.search(r"\.academic-section\)?\s+(?:p|li)(?:\s*,|\s*$)", selectors):
+                self.assertFalse(properties & {"font-size", "line-height", "font-weight", "font-family"},
+                                 f"Generic prose overrides component typography: {selectors}")
+
     def test_archive_selectors_have_one_owner_with_typography_exceptions(self):
         stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")
         title = "\n   Archive\n"

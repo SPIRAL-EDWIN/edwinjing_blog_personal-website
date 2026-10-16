@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-10-15
+Last updated: 2026-10-16
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -32,6 +32,11 @@ Current stylesheet policy:
   of the baseline contract. Keep all four Fragment rules in that single owner.
 - Do not recreate `extra.css`, `edwinos-overrides.css`, or another tail-patch
   stylesheet.
+- Overview Prose owns inherited homepage defaults (14px/1.65, 10px paragraph
+  gaps); About details use 1.7 leading and captions use a 12px token. Keep
+  component-specific typography in its owner, without blanket `p`/`li` size or
+  weight overrides. Use the measured Tianxing Chen reference when choosing
+  unsupported new type levels; see the architecture's prose-default contract.
 - `docs/javascripts/ui-perf.js` is the runtime adaptation layer. It owns body
   route classes, search interaction adjustments, Beijing time updates,
   friend-count updates, GitHub source facts,
@@ -64,6 +69,20 @@ Current stylesheet policy:
   missing observers reveal directly. Dispose observers and pending listeners
   on completion or content replacement. This effect does not defer image
   requests or alter homepage image preloads/readiness.
+  Initial sections count as onscreen only when their complete heading is visible;
+  partial headings remain eligible for their first reveal. Headings own normal
+  entrance eligibility, so long columns can still enter normally. The same
+  observer also watches section boundaries solely to recover reading positions
+  with an already-passed heading; body intersection must not trigger an early
+  entrance. Initial onscreen
+  sections remain provisional until reader scrolling; disclosure focus/anchoring
+  scrolls alone must not commit them. Opening About's Detailed Profile may rearm
+  only provisional sections whose headings leave the readable viewport.
+  Automatic viewport entries remain provisional until their entrance completes
+  or actual reader scrolling confirms them. Actual first reveals and completed
+  reading remain permanent for this document; repeated disclosure toggles must not
+  reset them. Preserve the disclosure entry point while provisional sections
+  remain, even when there are no offscreen pending sections.
   The selected navigation glass is one persistent header surface, seeded by
   `partials/header.html` and rebound by `setupTabGlass` after Material replaces
   the tabs. Its lens samples the actual labels above the tabs, below search

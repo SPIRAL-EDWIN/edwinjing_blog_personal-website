@@ -1,0 +1,48 @@
+{
+  "evidence_id": "ev_a1c3b22d4c048a46990ab64ba9b7a2239ff91d0dcba62276b88ac850368c1322",
+  "provider": {
+    "id": "rea-playwright-browser-scenario",
+    "name": "REA Playwright browser scenario capture provider",
+    "version": "1"
+  },
+  "operation": "capture_browser_scenario",
+  "url": "https://tianxingchen.github.io/#experience",
+  "viewport": {
+    "width": 1440,
+    "height": 900,
+    "device_scale_factor": 1
+  },
+  "authority": "controlled-replay",
+  "confidence": "observed",
+  "dom_sha256": "f9ad64433fc0457e031fc2d92c72d271dcc6e03e0d99bedba8d5019d59413bf1",
+  "dom_bytes": 214599,
+  "status": {
+    "status": "complete",
+    "equality_eligible": true,
+    "missing_sections": [],
+    "truncated_sections": []
+  },
+  "status_steps": [
+    {
+      "step": "scenario_start",
+      "status": "completed"
+    },
+    {
+      "step": "experience-ready",
+      "status": "completed"
+    }
+  ],
+  "experience_css": "/* Research Experience: compact full-width rows */\n  .exp-list {\n    display: flex;\n    flex-direction: column;\n  }\n  .exp-item {\n    display: grid;\n    grid-template-columns: 240px minmax(0, 1fr) auto;\n    column-gap: 28px;\n    align-items: center;\n    padding: 16px 0;\n    border: none;\n    border-bottom: 1px solid var(--line-soft);\n    background: transparent;\n  }\n  .exp-item:last-child { border-bottom: none; }\n  .exp-logo-box {\n    width: 240px; height: 80px;\n    display: flex; align-items: center; justify-content: center;\n    border: none; border-radius: 0; background: none; box-shadow: none; overflow: visible;\n  }\n  .exp-logo-box img {\n    width: auto; max-width: 220px; max-height: 68px; height: auto;\n    object-fit: contain; object-position: center; display: block;\n  }\n  .exp-main {\n    display: flex;\n    flex-direction: column;\n    gap: 3px;\n    min-width: 0;\n  }\n  .exp-side {\n    display: flex;\n    flex-direction: column;\n    align-items: flex-end;\n    gap: 4px;\n    justify-self: end;\n    text-align: right;\n  }\n  .exp-period {\n    font-size: 12.5px; font-weight: 500;\n    letter-spacing: .04em;\n    color: var(--ink-faint); margin: 0;\n    white-space: nowrap;\n  }\n  .exp-place {\n    margin: 0;\n    font-size: 12.5px; color: var(--ink-faint); line-height: 1.4;\n    white-space: nowrap;\n  }\n  .exp-list .org { font-size: 17px; }\n  .exp-list .org a { color: var(--accent); }\n  .exp-list .org a:hover { text-decoration: underline; }\n  .exp-list .role { font-size: 13.5px; margin-top: 0; }\n\n  ",
+  "limitations": [
+    "DOM capture shows rendered structure and inline CSS; computed geometry independently measured with CUA.",
+    "No network/events/storage requested; no claim of site-wide behavioral coverage.",
+    "Artifact identity is unavailable for this observation.",
+    "Event sequence records provider receipt order; simultaneous browser causality is not inferred.",
+    "Network content is retained only when selected; response bytes are browser-decoded, not compressed wire bytes.",
+    "Request bytes are limited to what Playwright exposes; not_exposed does not establish body absence or multipart file coverage.",
+    "Network content reads settle within 5 seconds each and never wait for unfinished responses or refetch them.",
+    "Playwright scenario events do not expose request initiator stacks; receipt order does not prove causality.",
+    "Storage values are hashed only after declared-secret redaction.",
+    "Browser host platform and architecture were not observed."
+  ]
+}

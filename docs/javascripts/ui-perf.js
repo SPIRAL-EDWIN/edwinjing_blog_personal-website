@@ -3998,10 +3998,36 @@
     var sections = Array.prototype.slice.call(root.querySelectorAll("[data-overview-reveal]"));
     if (!sections.length) return;
     var pending = new Set();
+    // Initial top-of-page content is visible, but opening Detailed Profile can
+    // push it out of view before the reader has started scrolling through it.
+    var initialStatic = new Set();
+    var automaticEntries = new Map();
+    var headingSections = new Map();
+    var sectionHeadings = new Map();
+    sections.forEach(function (section) {
+      var heading = Array.prototype.find.call(section.children, function (child) {
+        return child.tagName === "H2" && child.classList.contains("section-title");
+      });
+      if (heading) {
+        headingSections.set(heading, section);
+        sectionHeadings.set(section, heading);
+      }
+    });
+    var profileDetails = root.querySelector(".about-profile-details");
     var intersection = null;
+    var intersectionGeneration = 0;
     var scrollTimer = null;
     var nativeScrollEnd = "onscrollend" in window;
     var motion = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+    var initialScrollTop = scrollTop();
+    var canDeferInitialRead = initialScrollTop === 0 && !window.location.hash;
+    var readerStarted = false;
+    var readingScrollIntent = false;
+    var readingIntentTop = initialScrollTop;
+    var traversalStarted = false;
+    var disclosureInteracted = false;
+    var pageShown = document.readyState === "complete";
+    var restoringViewport = false;
     var disposed = false;
     var state = { root: root, dispose: dispose };
     overviewRevealRuntime = state;
@@ -4009,14 +4035,55 @@
     function active() {
       return !disposed && overviewRevealRuntime === state && root.isConnected;
     }
+    function scrollTop() {
+      return typeof window.scrollY === "number" ? window.scrollY : window.pageYOffset || 0;
+    }
+    function commitInitialRead() {
+      initialStatic.forEach(function (section) {
+        overviewRevealedSections.add(section.getAttribute("data-overview-reveal"));
+      });
+      initialStatic.clear();
+      automaticEntries.clear();
+    }
     function reveal(section, animate) {
       overviewRevealedSections.add(section.getAttribute("data-overview-reveal"));
       pending.delete(section);
-      if (intersection) intersection.unobserve(section);
+      initialStatic.delete(section);
+      automaticEntries.delete(section);
+      if (intersection) {
+        intersection.unobserve(sectionHeadings.get(section));
+        intersection.unobserve(section);
+      }
       // Only an actual viewport entry gets a transition; restoration and focus
       // must expose the final position without fighting the fragment owner.
       section.classList.toggle("is-overview-reveal-visible", !!animate);
       section.classList.remove("is-overview-reveal-pending");
+    }
+    function showInitial(section, animate) {
+      pending.delete(section);
+      initialStatic.add(section);
+      if (intersection) {
+        intersection.unobserve(sectionHeadings.get(section));
+        intersection.unobserve(section);
+      }
+      if (animate) {
+        automaticEntries.set(section, window.performance ? window.performance.now() : 0);
+      } else automaticEntries.delete(section);
+      section.classList.toggle("is-overview-reveal-visible", !!animate);
+      section.classList.remove("is-overview-reveal-pending");
+    }
+    function onAutomaticEntryEnd(event) {
+      if (!active() || !automaticEntries.has(event.target) ||
+          !/^(?:opacity|transform)$/.test(event.propertyName) || event.pseudoElement) return;
+      // Reject an already queued end event from an entrance superseded by a
+      // disclosure toggle; its timestamp predates this entrance generation.
+      if (event.timeStamp < automaticEntries.get(event.target)) return;
+      reveal(event.target, true);
+      finishIfComplete();
+    }
+    function headingFullyVisible(section, bottom) {
+      var rect = sectionHeadings.get(section).getBoundingClientRect();
+      return rect.top >= 0 && rect.bottom <= bottom;
     }
     function revealThrough(target) {
       var index = sections.findIndex(function (section) {
@@ -4024,7 +4091,7 @@
       });
       if (index < 0) return;
       sections.slice(0, index + 1).forEach(function (section) {
-        if (pending.has(section)) reveal(section, false);
+        if (pending.has(section) || initialStatic.has(section)) reveal(section, false);
       });
     }
     function revealHash() {
@@ -4036,33 +4103,44 @@
     }
     function exposeRestoredViewport() {
       var bottom = window.innerHeight || document.documentElement.clientHeight;
+      var provisional = canDeferInitialRead && !readerStarted && scrollTop() === 0 && !window.location.hash;
+      if (!provisional) commitInitialRead();
       pending.forEach(function (section) {
         // Read only marked section boundaries on setup/restoration, never on
         // scroll frames. Past content stays visible even after a rapid jump.
-        if (section.getBoundingClientRect().top < bottom) reveal(section, false);
+        if (provisional) {
+          if (headingFullyVisible(section, bottom)) showInitial(section);
+        } else if (section.getBoundingClientRect().top < bottom) reveal(section, false);
       });
     }
     function finishIfComplete() {
-      if (!pending.size) dispose();
+      if (!pending.size && !initialStatic.size) dispose();
     }
     function onHash() {
       if (!active()) return;
+      readerStarted = true;
+      readingScrollIntent = false;
       revealHash();
       finishIfComplete();
     }
     function onFocus(event) {
       if (!active()) return;
+      readerStarted = true;
+      readingScrollIntent = false;
       revealThrough(event.target);
       finishIfComplete();
     }
     function showRemaining() {
       pending.forEach(function (section) { reveal(section, false); });
+      initialStatic.forEach(function (section) { reveal(section, false); });
       finishIfComplete();
     }
     function onPageShow(event) {
       if (!active()) return;
+      pageShown = true;
+      if (traversalStarted) removeReadingIntent();
       if (event.persisted) showRemaining();
-      else {
+      else if (!readerStarted) {
         revealHash();
         exposeRestoredViewport();
         finishIfComplete();
@@ -4070,6 +4148,65 @@
     }
     function onMotionChange() {
       if (active() && motion.matches) showRemaining();
+    }
+    function onFirstDownScroll() {
+      if (!active() || !readingScrollIntent || scrollTop() <= readingIntentTop) return;
+      traversalStarted = true;
+      readerStarted = true;
+      // No geometry/style work on scroll: only record the initial, still-visible
+      // columns as read, then retire this listener after the first downward move.
+      commitInitialRead();
+      window.removeEventListener("scroll", onFirstDownScroll);
+      if (readerStarted) removeReadingIntent();
+      finishIfComplete();
+    }
+    function onReadingIntent(event) {
+      if (!active()) return;
+      if (event.type === "keydown" &&
+          !/^(?:ArrowDown|ArrowUp|PageDown|PageUp|Home|End| |Spacebar)$/.test(event.key)) return;
+      if (event.type === "keydown" && event.target && event.target.closest) {
+        if (event.target.closest("input, textarea, select, [contenteditable]") ||
+            /^(?: |Spacebar)$/.test(event.key) && event.target.closest("summary, button")) {
+          readingScrollIntent = false;
+          return;
+        }
+      }
+      readerStarted = true;
+      readingScrollIntent = true;
+      readingIntentTop = scrollTop();
+    }
+    function removeReadingIntent() {
+      ["wheel", "touchmove", "keydown"].forEach(function (event) {
+        window.removeEventListener(event, onReadingIntent);
+      });
+    }
+    function onProfileToggle() {
+      if (!active()) return;
+      disclosureInteracted = true;
+      readerStarted = true;
+      readingScrollIntent = false;
+      if (profileDetails.open) {
+        var bottom = window.innerHeight || document.documentElement.clientHeight;
+        initialStatic.forEach(function (section) {
+          if (headingFullyVisible(section, bottom)) return;
+          initialStatic.delete(section);
+          automaticEntries.delete(section);
+          pending.add(section);
+          section.classList.remove("is-overview-reveal-visible");
+          section.classList.add("is-overview-reveal-pending");
+        });
+      } else if (canDeferInitialRead && !traversalStarted) {
+        var viewportBottom = window.innerHeight || document.documentElement.clientHeight;
+        pending.forEach(function (section) {
+          // Closing before any traversal restores the original static preview.
+          // Reopening can still re-arm it; committed keys never return here.
+          if (headingFullyVisible(section, viewportBottom)) showInitial(section);
+        });
+      }
+      // Old queued intersections describe the pre-toggle layout. Replace their
+      // generation once per toggle, never on scroll or animation frames.
+      restartIntersection();
+      finishIfComplete();
     }
     function onScrollEnd() {
       scrollTimer = null;
@@ -4079,6 +4216,11 @@
       pending.forEach(function (section) {
         // Leave a currently visible column to IO: scrollend can arrive before
         // its intersection callback and must not steal the entrance animation.
+        if (sectionHeadings.get(section).getBoundingClientRect().bottom <= 0) reveal(section, false);
+      });
+      // Dragging the native scrollbar need not emit a wheel/touch/key intent.
+      // Only wholly passed provisional content can be committed by this path.
+      initialStatic.forEach(function (section) {
         if (section.getBoundingClientRect().bottom <= 0) reveal(section, false);
       });
       finishIfComplete();
@@ -4090,26 +4232,94 @@
     function dispose() {
       if (disposed) return;
       disposed = true;
+      intersectionGeneration++;
       if (intersection) intersection.disconnect();
       intersection = null;
       if (scrollTimer !== null) window.clearTimeout(scrollTimer);
       scrollTimer = null;
       pending.forEach(function (section) { section.classList.remove("is-overview-reveal-pending"); });
       pending.clear();
+      // Leaving visible initial content counts as a completed visit, preserving
+      // the existing no-replay contract when Material returns to Overview.
+      commitInitialRead();
+      if (profileDetails) profileDetails.removeEventListener("toggle", onProfileToggle);
+      root.removeEventListener("transitionend", onAutomaticEntryEnd);
       document.removeEventListener("focusin", onFocus, true);
       window.removeEventListener("hashchange", onHash);
       window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("scroll", onFirstDownScroll);
+      removeReadingIntent();
       window.removeEventListener(nativeScrollEnd ? "scrollend" : "scroll", nativeScrollEnd ? onScrollEnd : onScrollFallback);
       if (motion && motion.removeEventListener) motion.removeEventListener("change", onMotionChange);
       else if (motion && motion.removeListener) motion.removeListener(onMotionChange);
       // Release outgoing nodes but retain stable, already-read section keys.
       sections.length = 0;
+      headingSections.clear();
+      sectionHeadings.clear();
       if (overviewRevealRuntime === state) overviewRevealRuntime = null;
+    }
+    function restartIntersection() {
+      var generation = ++intersectionGeneration;
+      if (intersection) intersection.disconnect();
+      intersection = null;
+      if (!pending.size) return;
+      intersection = new window.IntersectionObserver(function (entries) {
+        if (!active() || generation !== intersectionGeneration) return;
+        var restorationCandidate = !traversalStarted && !readingScrollIntent &&
+          !disclosureInteracted && scrollTop() > 0;
+        // A late native restoration can skip the entire short heading while
+        // landing inside a long section's body (false -> false for its title).
+        // Body records recover that landing, never ordinary bottom entrances.
+        entries.forEach(function (entry) {
+          var section = entry.target;
+          if (!sectionHeadings.has(section) || !entry.isIntersecting ||
+              entry.boundingClientRect.top >= 0 || entry.boundingClientRect.bottom <= 0 ||
+              !(pending.has(section) || automaticEntries.has(section))) return;
+          if (restorationCandidate && !restoringViewport) {
+            restoringViewport = true;
+            automaticEntries.forEach(function (_, automaticSection) { reveal(automaticSection, false); });
+            // One bounded restoration correction also exposes any partial title
+            // at the viewport bottom; it does not run on scroll frames.
+            exposeRestoredViewport();
+          }
+          if (pending.has(section) || automaticEntries.has(section)) {
+            if (canDeferInitialRead && !traversalStarted && !restoringViewport) showInitial(section, false);
+            else reveal(section, false);
+          }
+        });
+        entries.forEach(function (entry) {
+          var section = headingSections.get(entry.target);
+          if (!pending.has(section)) return;
+          var restoring = restorationCandidate && (!pageShown || restoringViewport);
+          var automatic = !traversalStarted && !restoring;
+          if (entry.isIntersecting && entry.intersectionRatio >= 1) {
+            // Focus/assistive positioning can briefly expose a title before a
+            // disclosure expands. Confirm only after its entrance finishes or
+            // actual reading traversal; until then it can still be re-armed.
+            if (automatic) { showInitial(section, true); return; }
+            var index = sections.indexOf(section);
+            sections.slice(0, index).forEach(function (section) {
+              if (pending.has(section) || initialStatic.has(section)) reveal(section, false);
+            });
+            reveal(section, !restoring);
+          }
+          else if (entry.boundingClientRect.bottom <= 0) {
+            if (automatic) showInitial(section, false);
+            else reveal(section, false);
+          }
+        });
+        finishIfComplete();
+      }, { threshold: [0, 1], rootMargin: "0px 0px -30px 0px" });
+      pending.forEach(function (section) {
+        intersection.observe(sectionHeadings.get(section));
+        intersection.observe(section);
+      });
     }
 
     sections.forEach(function (section) {
       section.classList.remove("is-overview-reveal-visible", "is-overview-reveal-pending");
-      if (!overviewRevealedSections.has(section.getAttribute("data-overview-reveal"))) pending.add(section);
+      if (!sectionHeadings.has(section)) reveal(section, false);
+      else if (!overviewRevealedSections.has(section.getAttribute("data-overview-reveal"))) pending.add(section);
     });
     if (!window.IntersectionObserver || (motion && motion.matches)) {
       showRemaining();
@@ -4117,29 +4327,18 @@
     }
     revealHash();
     exposeRestoredViewport();
-    if (!pending.size) { dispose(); return; }
-    intersection = new window.IntersectionObserver(function (entries) {
-      if (!active()) return;
-      entries.forEach(function (entry) {
-        if (!pending.has(entry.target)) return;
-        if (entry.isIntersecting) {
-          var index = sections.indexOf(entry.target);
-          sections.slice(0, index).forEach(function (section) {
-            if (pending.has(section)) reveal(section, false);
-          });
-          reveal(entry.target, true);
-        }
-        else if (entry.boundingClientRect.bottom <= 0) reveal(entry.target, false);
-      });
-      finishIfComplete();
-    }, { threshold: 0, rootMargin: "0px 0px -30px 0px" });
-    pending.forEach(function (section) {
-      section.classList.add("is-overview-reveal-pending");
-      intersection.observe(section);
-    });
+    if (!pending.size && !initialStatic.size) { dispose(); return; }
+    pending.forEach(function (section) { section.classList.add("is-overview-reveal-pending"); });
+    restartIntersection();
+    if (profileDetails) profileDetails.addEventListener("toggle", onProfileToggle);
+    root.addEventListener("transitionend", onAutomaticEntryEnd);
     document.addEventListener("focusin", onFocus, true);
     window.addEventListener("hashchange", onHash);
     window.addEventListener("pageshow", onPageShow);
+    window.addEventListener("scroll", onFirstDownScroll, { passive: true });
+    ["wheel", "touchmove", "keydown"].forEach(function (event) {
+      window.addEventListener(event, onReadingIntent, { passive: true });
+    });
     window.addEventListener(nativeScrollEnd ? "scrollend" : "scroll", nativeScrollEnd ? onScrollEnd : onScrollFallback, { passive: true });
     if (motion && motion.addEventListener) motion.addEventListener("change", onMotionChange);
     else if (motion && motion.addListener) motion.addListener(onMotionChange);

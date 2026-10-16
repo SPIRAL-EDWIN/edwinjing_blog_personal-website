@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-10-15
+Last updated: 2026-10-16
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -45,10 +45,25 @@ instant navigation still initializes replaced content. Homepage prose and its
 profile start at final geometry without nested entrance transforms. Only the
 six Overview sections after About Me, marked `data-overview-reveal`, can fade upward
 16px on their first viewport entry (800ms). `setupOverviewReveal` in `ui-perf.js`
-owns a threshold-zero IntersectionObserver and document-local viewed keys;
-completion or content replacement releases it. About Me and
-any initially visible/restored content stay static. Hash/focus landings and
+owns one IntersectionObserver and document-local viewed keys. A complete heading
+intersection (ratio one) owns normal entrance; section boundary intersections
+only recover reading positions with an already-passed heading. Shared thresholds
+are zero and one, so late native restoration cannot skip a short heading and
+leave visible body content hidden. Completion or content replacement releases
+the observer. About Me and
+initial content with a fully visible heading and restored reading content stay static.
+Partially visible headings await their first entry; section height does not
+participate in the intersection ratio. Hash/focus landings and
 reduced motion reveal directly; default HTML remains visible without JS.
+Ordinary initial viewport exposure is provisional until reader scroll traversal;
+native disclosure focus/anchoring scrolls alone do not commit it. Opening About's
+Detailed Profile can move provisional headings out of the readable viewport and
+return their sections to the existing pending observer. Automatic viewport entries
+stay provisional until the entrance transition completes or reader scrolling
+confirms them, covering focus positioning immediately before disclosure. Committed
+reveals, restoration and repeat browsing never rearm. Keep the native toggle
+entry point alive while provisional sections remain, including a large initial
+viewport with no pending sections; dispose all resources on content replacement.
 Image hints, responsive preloads and native readiness remain unchanged.
 Initial
 HOME route classes are seeded before the header; the Header partial renders
@@ -137,6 +152,30 @@ failure behavior. Do not replace this with `:where()` (zero specificity).
 Star/fork SVG masks have one token pair in the Header owner:
 `--edwinos-star-icon` and `--edwinos-fork-icon`. Header and drawer source facts
 consume these same assets; separate mask aliases are unnecessary.
+
+### Overview prose defaults
+
+The final `Overview Prose` owner sets inherited type on the homepage content
+container, not on every `p`/`li`: 14px / 1.65, with 10px paragraph gaps.
+About's bilingual Detailed Profile inherits 14px with 1.7 leading. The caption
+token is 12px; publication contribution notes use it with 1.65 leading.
+These levels follow the measured Tianxing Chen reference, with a deliberate
+14px adaptation for the bilingual details. See
+`docs/research/components/about-spacing.spec.md` for the captured evidence.
+
+Do not reintroduce blanket homepage paragraph/list font sizes or `!important`
+type resets. New prose inherits the defaults; component classes own titles,
+metadata, captions and empty states. A normal class rule can override inherited
+font size/leading. Override paragraph margins in the component owner with
+`.academic-home-layout .component-name`, without raising importance. News,
+Education, Publications and Awards retain their previous responsive row struts
+through `--overview-row-size`; this is not the default for new prose lists.
+Notes, Friends and Archive are outside this homepage default scope.
+
+Run `tools/test_overview_typography.cjs` for current components, disclosure
+states and injected future prose/caption cases, in addition to the CSS A/B
+checker. Container inheritance is an intentional computed-style difference;
+verify unchanged visible component geometry and pixels separately.
 
 The Header owner intentionally retains a few unscoped `.md-source*` primitives:
 Material also renders the repository source inside the mobile drawer, so those
