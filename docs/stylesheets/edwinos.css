@@ -5927,6 +5927,15 @@ body[data-md-color-scheme="slate"] .md-typeset .btn-github-action:focus {
     fill: var(--academic-muted);
 }
 
+/* Align the envelope with the email glyphs rather than the font line box. */
+.profile-meta .meta-icon--email {
+    transform: translateY(0.08em);
+}
+
+.profile-meta .profile-email-digits {
+    font-size: 0.92em;
+}
+
 .md-typeset .meta-link,
 .md-typeset .meta-link:hover,
 .md-typeset .meta-link:focus,

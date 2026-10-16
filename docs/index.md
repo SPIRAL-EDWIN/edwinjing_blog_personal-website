@@ -39,11 +39,11 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
         </li>
         <li>
           <svg class="meta-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm7-3.25v2.992l2.028.812a.75.75 0 0 1-.557 1.392l-2.5-1A.751.751 0 0 1 7 8.25v-3.5a.75.75 0 0 1 1.5 0Z"></path></svg>
-          <span class="meta-text" id="beijing-time">Loading...</span>
+          <span class="meta-text" id="beijing-time">UTC +08:00</span>
         </li>
         <li>
-          <svg class="meta-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 14H1.75A1.75 1.75 0 0 1 0 12.25v-8.5C0 2.784.784 2 1.75 2ZM1.5 12.251c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V5.809L8.38 9.397a.75.75 0 0 1-.76 0L1.5 5.809v6.442Zm13-8.181v-.32a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25v.32L8 7.88Z"></path></svg>
-          <a href="mailto:edwinjing2026@outlook.com" class="meta-link">edwinjing2026@outlook.com</a>
+          <svg class="meta-icon meta-icon--email" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 14H1.75A1.75 1.75 0 0 1 0 12.25v-8.5C0 2.784.784 2 1.75 2ZM1.5 12.251c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V5.809L8.38 9.397a.75.75 0 0 1-.76 0L1.5 5.809v6.442Zm13-8.181v-.32a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25v.32L8 7.88Z"></path></svg>
+          <a href="mailto:3250110636@zju.edu.cn" class="meta-link"><span class="profile-email-digits">3250110636</span>@zju.edu.cn</a>
         </li>
       </ul>
 
@@ -62,7 +62,7 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
   <main class="academic-content">
     <section class="academic-section animate-slide-up" style="--anim-delay: 0.1s;">
       <h2 class="section-title"><span class="title-dash"></span>About Me</h2>
-      <p>Undergraduate researcher at <strong><a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a></strong>, ZJU, advised by <a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">Prof. Liangjing Yang</a> and previously by <a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">Prof. Hua Chen</a>. Research on embodied AI, focusing on legged locomotion and whole-body loco-manipulation. Recipient of <strong>Gold Medal &amp; First Prize</strong> at the World Robot Contest Finals (WRCF) and <strong>Outstanding Student</strong> of Zhejiang University (2025–2026). Maintainer of <strong><a href="OsdNotes/">ENotes</a></strong>, an open notebook on whole-body control, real-robot deployment, and university course notes.</p>
+      <p>Undergraduate researcher at <strong><a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a></strong>, ZJU, advised by <a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">Prof. Liangjing Yang</a> and previously by <a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">Prof. Hua Chen</a>. Research on embodied AI, focusing on legged locomotion and whole-body loco-manipulation. Recipient of <strong>Gold Medal &amp; First Prize</strong> at the World Robot Contest Finals (WRCF) and <strong>Outstanding Student</strong> of Zhejiang University (2025–2026). Maintainer of <strong><a href="OsdNotes/">ENotes</a></strong>, an open notebook on robotics, embodied AI, and university coursework, with research notes and personal logs under <strong><a href="经验分享/">More</a></strong> (mostly in Chinese).</p>
       <details class="about-profile-details">
       <summary>Detailed profile (详细个人介绍)</summary>
       <div class="about-profile-body">
@@ -78,7 +78,7 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
       <p style="--profile-reveal-order: 5;">I come from a robotics-competition and mechanical-design background (WRCF, VEX, ZJU Mechanical Design Competition), which keeps me grounded in how things work on real hardware. I am eager to bridge the gap between simulation and reality to enable robots with more agile and dexterous behaviors.</p>
       <hr style="--profile-reveal-order: 6;">
       <div lang="zh-CN">
-      <p style="--profile-reveal-order: 7;">Hi！我是<strong>经宸 (English name: Chen Jing)</strong>，浙江大学–伊利诺伊大学厄巴纳-香槟校区联合学院（<a href="https://zjui.intl.zju.edu.cn/" target="_blank" rel="noopener">ZJUI</a>）机械工程专业大二学生。目前是 <a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a> 的本科生科研助理，师从<strong><a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">杨量景教授</a></strong>，此前师从<a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">谌骅教授</a>。</p>
+      <p style="--profile-reveal-order: 7;">Hi！我是<strong>经宸 (English name: Chen Jing)</strong>，浙江大学–伊利诺伊大学厄巴纳-香槟校区联合学院（<a href="https://zjui.intl.zju.edu.cn/" target="_blank" rel="noopener">ZJUI</a>）机械工程专业大二学生。目前是 <a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a> 的本科生科研助理，师从<a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">杨量景教授</a>，此前师从<a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">谌骅教授</a>。</p>
       <p style="--profile-reveal-order: 8;">我的研究方向是具身智能，尤其关注足式运动与全身移动操作（loco-manipulation）。同时，我也乐于探索其他推动机器人发展的方向，例如视觉-语言-动作模型（VLA）与世界模型。</p>
       <p style="--profile-reveal-order: 9;">近期，我参与了<a href="https://arxiv.org/abs/2609.18930">一项双足移动操作机器人的全身控制器工作</a>：仅给定一个 6-DoF 末端执行器目标，控制器即可协调手臂运动、姿态调整与迈步，无需显式的运动指令。我主要负责：</p>
       <ul style="--profile-reveal-order: 10;">
