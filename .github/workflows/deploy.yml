@@ -31,7 +31,8 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.x'
+          # Keep the build compatible with the pinned Pillow <12 dependency.
+          python-version: '3.12'
           cache: 'pip'
           cache-dependency-path: requirements.txt
 
