@@ -114,6 +114,12 @@
     (function () {
       var header = document.currentScript.parentElement;
       var glass = header.querySelector('.edwinos-tab-glass');
+      // Responsive tab padding changes the measured width, especially before
+      // the search reaches its circular endpoint. Seed the same root token as
+      // the runtime before paint instead of exposing its desktop fallback.
+      var tabs = header.querySelector('.md-tabs__list');
+      var tabsWidth = tabs && tabs.getBoundingClientRect().width;
+      if (tabsWidth > 0) document.documentElement.style.setProperty('--edwinos-header-tabs-width', tabsWidth + 'px');
       var box = window.__edwinosTabGlassGeometry(header);
       if (!box) return;
       header.dataset.edwinosTabGlassReady = '1';

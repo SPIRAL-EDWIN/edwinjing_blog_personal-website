@@ -32,6 +32,8 @@ PUBLICATIONS_DATA = Path("data/homepage/publications.yml")
 PUBLICATION_IMAGE_ROOT = "assets/images/publications/"
 PUBLICATION_IMAGE_MAX_BYTES = 256 * 1024
 PUBLICATION_IMAGE_MAX_PIXELS = 2_000_000
+PUBLICATION_PREVIEW_ROOT = "assets/videos/publications/"
+PUBLICATION_PREVIEW_MAX_BYTES = 3 * 1024 * 1024
 SAFE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 AUTHOR_MARKS = frozenset("*†§")
 
@@ -297,6 +299,7 @@ def _render_publication_media(
     *,
     dimensions: tuple[int, int] | None = None,
     initial_image: bool = False,
+    preview: Mapping[str, str] | None = None,
 ) -> str:
     image = _text(entry.get("image"), f"{label}.image", required=False)
     if image:
@@ -311,18 +314,57 @@ def _render_publication_media(
         loading_markup = ('loading="eager" fetchpriority="auto" decoding="sync"'
                           if initial_image else
                           'loading="lazy" fetchpriority="low" decoding="async"')
+        preview_markup = ""
+        if preview:
+            description = html.escape(preview["description"], quote=True)
+            preview_markup = (
+                '<video class="overview-publication__preview" '
+                f'data-preview-src="{html.escape(preview["src"], quote=True)}" '
+                'preload="none" muted loop playsinline aria-hidden="true" tabindex="-1" hidden></video>'
+                '<button type="button" class="overview-publication__preview-toggle" '
+                f'data-preview-description="{description}" aria-label="Play preview: {description}" '
+                'aria-pressed="false" hidden>Play preview</button>'
+            )
+        modifier = " overview-publication__media--preview" if preview else ""
         return (
-            '<div class="overview-publication__media">'
+            f'<div class="overview-publication__media{modifier}">'
             f'<img class="off-glb" src="{html.escape(image, quote=True)}" '
             f'alt="{html.escape(image_alt, quote=True)}"{dimensions_markup} '
             f'{loading_markup}>'
-            "</div>"
+            + preview_markup + "</div>"
         )
     placeholder = _text(entry.get("placeholder", "PAPER"), f"{label}.placeholder")
     return (
         '<div class="overview-publication__media overview-publication__media--placeholder" aria-hidden="true">'
         f"<span>{html.escape(placeholder)}</span></div>"
     )
+
+
+def _publication_preview(entry: Mapping[str, Any], label: str, repo_root: Path | None) -> Mapping[str, str] | None:
+    """Validate optional local clips without probing/decoding media during a build."""
+    if entry.get("preview") is None:
+        return None
+    preview = _mapping(entry["preview"], f"{label}.preview")
+    if not _text(entry.get("image"), f"{label}.image", required=False):
+        raise HomeSectionError(f"{label}.preview requires a static image")
+    src = _text(preview.get("src"), f"{label}.preview.src")
+    # Restrict the authored path as well as its resolved target: no URL schemes,
+    # encoded traversal, query strings, fragments, or symlinks outside this root.
+    if (not src.startswith(PUBLICATION_PREVIEW_ROOT)
+            or not re.fullmatch(r"[A-Za-z0-9_./-]+", src)
+            or ".." in Path(src).parts
+            or Path(src).suffix.lower() not in {".mp4", ".webm"}):
+        raise HomeSectionError(f"{label}.preview.src must be a local MP4/WebM inside docs/{PUBLICATION_PREVIEW_ROOT}")
+    description = _text(preview.get("description"), f"{label}.preview.description")
+    if repo_root is not None:
+        media_root = (repo_root / "docs" / PUBLICATION_PREVIEW_ROOT).resolve()
+        clip = (repo_root / "docs" / src).resolve()
+        if (not media_root.is_relative_to((repo_root / "docs").resolve())
+                or not clip.is_relative_to(media_root) or not clip.is_file()):
+            raise HomeSectionError(f"{label}.preview.src must resolve to an existing file inside docs/{PUBLICATION_PREVIEW_ROOT}")
+        if not 0 < clip.stat().st_size <= PUBLICATION_PREVIEW_MAX_BYTES:
+            raise HomeSectionError(f"{label}.preview.src must be nonempty and no larger than 3 MiB")
+    return {"src": src, "description": description}
 
 
 def _render_venue(raw_venue: Any, label: str) -> str:
@@ -389,6 +431,7 @@ def render_publications(data: Mapping[str, Any], repo_root: Path | None = None) 
             label,
             dimensions=image_dimensions,
             initial_image=bool(image) and not initial_image_rendered,
+            preview=_publication_preview(entry, label, repo_root),
         )
         initial_image_rendered = initial_image_rendered or bool(image)
         authors_markup = _render_authors(authors, collapse_after, entry_id)

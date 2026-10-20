@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-10-16
+Last updated: 2026-10-20
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -34,6 +34,27 @@ Current stylesheet policy:
   stylesheet.
 - Overview Prose owns inherited homepage defaults (14px/1.65, 10px paragraph
   gaps); About details use 1.7 leading and captions use a 12px token. Keep
+  the short About introduction's component-owned 15px/1.75, 76ch reading measure;
+  this is not a global prose reset. Content Hubs owns the scoped `.notes-landing`
+  routes and selected reading lists on ENotes/More, not child articles.
+  Its introduction cards have no links and lift only on fine-pointer hover.
+  `setupContentHubReveal` owns staggered entrances for individual marked units
+  and desktop sidebar rows, never a whole card group or sidebar scroll wrapper,
+  preserving native mobile drawer transforms, reduced motion and restoration.
+  Its read keys distinguish recommended headings from description paragraphs;
+  a heading or clipped card cannot consume text below the viewport. Restoration
+  exposes the current reading position while leaving farther units eligible.
+  Stagger queues contain only currently visible units; recheck the visual
+  viewport at actual start and never consume an unseen queued unit's key.
+  Ordinary wheel/touch/key scrolling must not cancel entrances or consume
+  waiting units. Header/search focus must not mark article content as read.
+  Unseen units start transparent before entering the viewport; never show a
+  unit and then hide it to start its entrance. Preserve the pre-paint capability
+  gate, runtime-failure fallback and independent pending headings/paragraphs.
+  ENotes/More navigation in `mkdocs.yml` puts sibling folders before individual
+  notes, preserving order within each type; keep the section index entry first
+  for Material's `navigation.indexes`.
+  Keep
   component-specific typography in its owner, without blanket `p`/`li` size or
   weight overrides. Use the measured Tianxing Chen reference when choosing
   unsupported new type levels; see the architecture's prose-default contract.
@@ -112,6 +133,12 @@ Current stylesheet policy:
   homepage-only responsive preloads and eager/sync hints at normal priority;
   later publication and article images retain lazy loading.
   Preserve the original display aspect ratios and the no-JavaScript fallback.
+  Optional publication motion comes from `preview` in the publication YAML.
+  `home_sections.py` validates local clips and keeps the original static image;
+  `setupPublicationPreviews` in `ui-perf.js` owns bounded pointer-intent warmup,
+  actual-frame readiness, explicit mobile/keyboard playback and lifecycle cleanup.
+  No clip URL is requested without reader intent, and entries without `preview`
+  keep the static markup. Never couple this video layer to image readiness.
   PDF previews show the first two pages before an explicit reader click sets
   the iframe URL. An iframe load event is not proof that Edge has painted a
   PDF page; retain the previews and direct-open/download alternatives.
@@ -177,17 +204,24 @@ Current stylesheet policy:
   from search. Rebuild the map only
   for layout/font changes, never on every scroll frame.
   Supplemental glass on the Profile Archive action, Archive date capsule and
-  native single-copy toolbar is owned by `setupContentGlass`: initialize near
+  native single-copy toolbar, plus the three ENotes introduction cards, is
+  owned by `setupContentGlass`: initialize near
   the viewport and dispose on exit/content replacement. Keep copy language
   labels in a separate slot through all reveal states; preserve Material's
   copy target, icon and success feedback. `setupDrawerGlass` owns the mobile
-  ENotes/More outer surface and bounded optical gain animation. Nested panels
-  remain transparent and hide only inactive ancestor foreground. Keep native
-  transforms, desktop-sized row/back typography, continuous reversal gain,
+  ENotes/More outer surface and bounded optical gain animation. Its outer native
+  slide stays separate from `setupDrawerTree`, which reuses checkbox/label/nav
+  markup for inline mobile disclosures, including the current article outline.
+  Keep left chevrons, animated child expansion, desktop-sized typography,
+  independent mobile/desktop expansion state, keyboard focus and inert closed
+  groups. Do not restore nested full-height panels or back-title controls.
+  Keep native outer transforms, continuous reversal gain,
   reduced-motion behavior and Safari blur through closing. The outer surface
   blends a frosted center into a lightly blurred, low-tint edge; its map's blue
-  channel owns the continuous blur weight without changing R/G displacement.
-  Safari uses complementary native-blur masks. Clear native list/item borders
+  channel owns a right-edge-only 96px smootherstep blur weight. Leftward regions
+  stay fully frosted, including the top/bottom; R/G displacement is restricted
+  to the free right silhouette. Other glass keeps its rounded-perimeter default.
+  Safari uses matching complementary native-blur masks. Clear native list/item borders
   across inactive ancestor panels as well as the visible section. Never rebuild a
   drawer displacement map per animation/scroll frame or add glass to each row.
 

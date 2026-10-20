@@ -23,7 +23,7 @@
   var controlGlassSequence = 0;
   var searchResultSummarySubscription = null;
   var searchSnippetSources = new WeakMap();
-  var sectionNavigationDepthTimer = null;
+  var drawerTreeRuntime = null;
   var archiveNavigationFeedbackReady = false;
   var archiveNavigationFallbackTimer = null;
   var navigationFeedbackDelayTimer = null;
@@ -43,8 +43,11 @@
   var searchHighlightScopeObserver = null;
   var articleSearchHighlightMotion = null;
   var overviewRevealRuntime = null;
+  var contentHubRevealRuntime = null;
+  var publicationPreviewRuntime = null;
   // Remains document-local across Material visits; a reload starts a fresh read.
   var overviewRevealedSections = new Set();
+  var contentHubRevealedBlocks = new Set();
   var firstScreenReady = false;
   var deferredWork = [];
 
@@ -436,9 +439,9 @@
         referenceScale = fillTabGlassDisplacementMap(pixels, box.width, box.height);
         mapWidth = box.width; mapHeight = box.height;
         setTabGlassMapTransform(mapTransform, 1, 1);
-      } else fillRoundedGlassDisplacementMap(pixels, box.width, box.height, padding, radius, options.rim);
+      } else fillRoundedGlassDisplacementMap(pixels, box.width, box.height, padding, radius, options.rim, options.edge);
       if (options.edgeBlur !== undefined) {
-        fillGlassBlurWeights(pixels, box.width, box.height, padding, radius, options.blurTransition || 28);
+        fillGlassBlurWeights(pixels, box.width, box.height, padding, radius, options.blurTransition || 28, options.edge);
       }
       context.putImageData(pixels, 0, 0);
       var url = canvas.toDataURL('image/png');
@@ -967,8 +970,8 @@
     return { destroy: dispose };
   }
 
-  // One observer owns the small content controls. Only visible controls hold
-  // an optical map; Material still owns the links, copy buttons and feedback.
+  // One observer owns content glass surfaces. Only nearby surfaces hold an
+  // optical map; Material still owns the links, copy buttons and feedback.
   function setupContentGlass() {
     var content = document.querySelector('.md-content__inner');
     if (contentGlassRuntime && contentGlassRuntime.content === content) return;
@@ -1035,6 +1038,9 @@
     });
     content.querySelectorAll('.archive-hero__stats > span').forEach(function (element) {
       register(element, 'archive-stat', 5, 10);
+    });
+    content.querySelectorAll('.notes-landing .landing-route').forEach(function (element) {
+      register(element, 'landing-route', 4, 18);
     });
     discoverCopyControls();
     if (typeof window.MutationObserver === 'function' && content.querySelector('pre')) {
@@ -1104,7 +1110,7 @@
         prefix: 'edwinos-drawer', filterId: 'edwinos-drawer-refraction',
         filterVariable: '--edwinos-drawer-filter',
         datasetMode: 'edwinosDrawerMode', datasetBuilds: 'edwinosDrawerMapBuilds',
-        blur: 14, edgeBlur: 2, blurTransition: 28,
+        blur: 14, edgeBlur: 2, blurTransition: 96, edge: 'right',
         strength: 6, radius: 16, padding: 24, rim: 10,
         pixelRatio: 1, maxMapHeight: 1536
       });
@@ -1674,7 +1680,7 @@
   /* Pure geometry shared by glass components. Only the perimeter bends;
      neutral center pixels retain the continuous background blur. Technique
      attribution: assets/licenses/liquid-glass-MIT.txt. */
-  function fillRoundedGlassDisplacementMap(pixels, width, height, padding, radius, rimWidth) {
+  function fillRoundedGlassDisplacementMap(pixels, width, height, padding, radius, rimWidth, edge) {
     var sampleWidth = width + padding * 2;
     var sampleHeight = height + padding * 2;
     var rim = rimWidth === undefined ? Math.min(7, radius * 0.4) :
@@ -1697,6 +1703,14 @@
           dx = vx / length * profile;
           dy = vy / length * profile;
         }
+        if (edge === 'right') {
+          // The drawer is flush against the left viewport edge. Only its free
+          // right silhouette bends the page, including the rounded corners.
+          var rightWeight = Math.max(0, Math.min(1, (px - (width - radius)) / radius));
+          rightWeight = rightWeight * rightWeight * (3 - 2 * rightWeight);
+          dx *= rightWeight;
+          dy *= rightWeight;
+        }
         var index = (y * pixels.width + x) * 4;
         pixels.data[index] = Math.round(127.5 + dx * 127.5);
         pixels.data[index + 1] = Math.round(127.5 + dy * 127.5);
@@ -1707,9 +1721,9 @@
     return pixels;
   }
 
-  // Preserve displacement in R/G. B smoothly blends a clear perimeter into
-  // the frosted center, using physical distance to the rounded silhouette.
-  function fillGlassBlurWeights(pixels, width, height, padding, radius, transition) {
+  // Preserve displacement in R/G. The drawer's free right edge alone owns
+  // its blur ramp; other surfaces retain the rounded-perimeter default.
+  function fillGlassBlurWeights(pixels, width, height, padding, radius, transition, edge) {
     var sampleWidth = width + padding * 2;
     var sampleHeight = height + padding * 2;
     for (var y = 0; y < pixels.height; y += 1) {
@@ -1718,9 +1732,10 @@
         var py = (y + 0.5) * sampleHeight / pixels.height - padding;
         var qx = Math.abs(px - width / 2) - (width / 2 - radius);
         var qy = Math.abs(py - height / 2) - (height / 2 - radius);
-        var depth = radius - Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) - Math.min(Math.max(qx, qy), 0);
+        var depth = edge === 'right' ? width - px :
+          radius - Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) - Math.min(Math.max(qx, qy), 0);
         var weight = Math.max(0, Math.min(1, depth / transition));
-        weight = weight * weight * (3 - 2 * weight);
+        weight = weight * weight * weight * (weight * (weight * 6 - 15) + 10);
         pixels.data[(y * pixels.width + x) * 4 + 2] = Math.round(weight * 255);
       }
     }
@@ -3373,9 +3388,13 @@
     return null;
   }
 
-  function setSectionNavigationDepth(restoreMobileNativeDepth) {
+  function setSectionNavigationDepth() {
     var section = currentDrawerSection();
-    if (!section) return;
+    if (!section) {
+      if (drawerTreeRuntime) drawerTreeRuntime.destroy();
+      drawerTreeRuntime = null;
+      return;
+    }
 
     var primaryNav = document.querySelector(".md-sidebar--primary .md-nav--primary");
     if (!primaryNav) return;
@@ -3406,7 +3425,6 @@
     });
     if (sectionTitle) {
       sectionTitle.classList.add("edwinos-drawer-section-title");
-      sectionTitle.classList.remove("edwinos-drawer-back-title");
       sectionTitle.setAttribute("aria-label", section.label);
       sectionTitle.removeAttribute("role");
       sectionTitle.removeAttribute("tabindex");
@@ -3424,45 +3442,6 @@
       }
     }
 
-    Array.prototype.forEach.call(
-      sectionNav.querySelectorAll(
-        'nav.md-nav:not(.md-nav--secondary) > label.md-nav__title[for^="__nav_"]'
-      ),
-      function (title) {
-        if (title === sectionTitle) return;
-
-        if (!title.dataset.edwinosDrawerBackFor) {
-          title.dataset.edwinosDrawerBackFor = title.getAttribute("for") || "";
-        }
-
-        title.classList.add("edwinos-drawer-back-title");
-        title.setAttribute("aria-label", "返回上一级导航");
-        title.removeAttribute("for");
-        title.removeAttribute("title");
-        title.setAttribute("role", "button");
-        title.setAttribute("tabindex", "0");
-
-        if (title.dataset.edwinosDrawerBackReady !== "1") {
-          title.dataset.edwinosDrawerBackReady = "1";
-
-          var returnToParentNavigation = function (event) {
-            if (event.type === "keydown" && event.key !== "Enter" && event.key !== " ") return;
-
-            var toggle = document.getElementById(title.dataset.edwinosDrawerBackFor || "");
-            if (!toggle) return;
-
-            event.preventDefault();
-            event.stopPropagation();
-            toggle.checked = false;
-            toggle.dispatchEvent(new Event("change", { bubbles: true }));
-          };
-
-          title.addEventListener("click", returnToParentNavigation);
-          title.addEventListener("keydown", returnToParentNavigation);
-        }
-      }
-    );
-
     if (primarySidebarIsDesktop()) {
       sectionRootToggle.disabled = false;
     } else {
@@ -3470,43 +3449,151 @@
       sectionRootToggle.disabled = true;
       sectionNav.setAttribute("aria-expanded", "true");
     }
+    setupDrawerTree(sectionNav, section.key);
+  }
 
-    var topLevelList = Array.prototype.find.call(sectionNav.children, function (child) {
-      return child.classList && child.classList.contains("md-nav__list");
-    });
-    if (!topLevelList || section.key !== "enotes") return;
-
-    Array.prototype.forEach.call(topLevelList.children, function (item) {
-      var toggle = Array.prototype.find.call(item.children, function (child) {
-        return child.matches && child.matches("input.md-nav__toggle");
+  // Disclosure navigation, not an ARIA tree: native links and checkboxes retain
+  // their responsibilities. Only mobile groups change from panels to inline
+  // rows. Desktop and mobile keep separate expansion state across breakpoints.
+  function setupDrawerTree(root, sectionKey) {
+    if (drawerTreeRuntime && drawerTreeRuntime.root === root) {
+      drawerTreeRuntime.sync();
+      return;
+    }
+    if (drawerTreeRuntime) drawerTreeRuntime.destroy();
+    var records = [];
+    var mobile = !primarySidebarIsDesktop();
+    root.querySelectorAll('input.md-nav__toggle[id^="__nav_"], input.md-nav__toggle[id="__toc"]').forEach(function (toggle) {
+      var item = toggle.parentElement;
+      var group = Array.prototype.find.call(item.children, function (child) {
+        return child.matches && child.matches('nav.md-nav');
       });
-      if (!toggle) return;
-
-      var nativeChecked = toggle.getAttribute("data-edwinos-native-checked");
-      if (nativeChecked === null) {
-        nativeChecked = toggle.checked ? "true" : "false";
-        toggle.setAttribute("data-edwinos-native-checked", nativeChecked);
-      }
-
-      if (primarySidebarIsDesktop()) {
-        toggle.checked = true;
-      } else if (restoreMobileNativeDepth === true) {
-        toggle.checked = nativeChecked === "true";
-      }
+      var control = item.querySelector('label[for="' + toggle.id + '"]');
+      if (!group || !control || !control.querySelector('.md-nav__icon')) return;
+      // Querying the direct disclosure before the group's hidden native title
+      // also handles index folders whose anchor and toggle share a container.
+      var topLevel = item.parentElement === root.querySelector(':scope > .md-nav__list');
+      var record = {toggle: toggle, group: group, control: control,
+        mobileChecked: toggle.checked,
+        desktopChecked: sectionKey === 'enotes' && topLevel ? true : toggle.checked,
+        tabindex: control.getAttribute('tabindex'), role: control.getAttribute('role'),
+        ariaLabel: control.getAttribute('aria-label'),
+        groupId: group.getAttribute('id')};
+      group.id = group.id || toggle.id + '__tree';
+      group.classList.add('edwinos-drawer-tree-group');
+      control.classList.add('edwinos-drawer-tree-toggle');
+      control.setAttribute('aria-controls', group.id);
+      var name = item.querySelector(':scope > .md-nav__container > a.md-nav__link');
+      if (name) control.setAttribute('aria-label', name.textContent.trim());
+      records.push(record);
     });
+    function reflect(record) {
+      record.control.setAttribute('aria-expanded', String(record.toggle.checked));
+      record.group.setAttribute('aria-expanded', String(record.toggle.checked));
+      record.group.inert = mobile && !record.toggle.checked;
+      if (mobile) {
+        record.control.setAttribute('role', 'button');
+        record.control.setAttribute('tabindex', '0');
+      } else {
+        if (record.role === null) record.control.removeAttribute('role');
+        else record.control.setAttribute('role', record.role);
+        if (record.tabindex === null) record.control.removeAttribute('tabindex');
+        else record.control.setAttribute('tabindex', record.tabindex);
+      }
+    }
+    function sync() {
+      var nextMobile = !primarySidebarIsDesktop();
+      if (nextMobile !== mobile) {
+        records.forEach(function (record) {
+          record[mobile ? 'mobileChecked' : 'desktopChecked'] = record.toggle.checked;
+          record.toggle.checked = record[nextMobile ? 'mobileChecked' : 'desktopChecked'];
+        });
+        mobile = nextMobile;
+      }
+      records.forEach(reflect);
+    }
+    function setExpanded(record, expanded) {
+      record.toggle.checked = expanded;
+      record.toggle.dispatchEvent(new Event('change', {bubbles: true}));
+    }
+    function change(event) {
+      records.forEach(function (record) {
+        if (event.target !== record.toggle) return;
+        record[mobile ? 'mobileChecked' : 'desktopChecked'] = record.toggle.checked;
+        reflect(record);
+      });
+    }
+    function visibleControls(scope) {
+      return Array.from(scope.querySelectorAll('.edwinos-drawer-tree-toggle, a.md-nav__link[href]')).filter(function (control) {
+        return !control.closest('[inert]') && control.getClientRects().length &&
+          window.getComputedStyle(control).visibility !== 'hidden';
+      });
+    }
+    function keydown(event) {
+      if (!mobile || event.altKey || event.ctrlKey || event.metaKey) return;
+      var control = event.target.closest('.edwinos-drawer-tree-toggle, a.md-nav__link[href]');
+      if (!control || !root.contains(control)) return;
+      var record = records.find(function (entry) { return entry.control === control; });
+      var controls, index, target;
+      if ((event.key === 'Enter' || event.key === ' ') && record) {
+        setExpanded(record, !record.toggle.checked);
+      } else if (event.key === 'ArrowRight' && record) {
+        if (!record.toggle.checked) setExpanded(record, true);
+        else target = visibleControls(record.group)[0];
+      } else if (event.key === 'ArrowLeft') {
+        if (record && record.toggle.checked) setExpanded(record, false);
+        else {
+          var parent = control.closest('.edwinos-drawer-tree-group');
+          var owner = records.find(function (entry) { return entry.group === parent; });
+          target = owner && owner.control;
+        }
+      } else if (['ArrowDown', 'ArrowUp', 'Home', 'End'].indexOf(event.key) !== -1) {
+        controls = visibleControls(root);
+        index = controls.indexOf(control);
+        if (event.key === 'Home') target = controls[0];
+        else if (event.key === 'End') target = controls[controls.length - 1];
+        else target = controls[Math.max(0, Math.min(controls.length - 1, index + (event.key === 'ArrowDown' ? 1 : -1)))];
+      } else return;
+      // Stop before Material's label key handler: Enter/Space must toggle once.
+      event.preventDefault();
+      event.stopPropagation();
+      if (target) target.focus();
+    }
+    root.addEventListener('change', change);
+    root.addEventListener('keydown', keydown, true);
+    // Capture the authored mobile state before applying desktop's established
+    // first-level ENotes expansion. Repeated enhancement never resets a reader.
+    records.forEach(function (record) {
+      if (!mobile) record.toggle.checked = record.desktopChecked;
+      reflect(record);
+    });
+    drawerTreeRuntime = {root: root, sync: sync, destroy: function () {
+      root.removeEventListener('change', change);
+      root.removeEventListener('keydown', keydown, true);
+      records.forEach(function (record) {
+        record.group.inert = false;
+        record.group.classList.remove('edwinos-drawer-tree-group');
+        record.control.classList.remove('edwinos-drawer-tree-toggle');
+        record.control.removeAttribute('aria-controls');
+        record.control.removeAttribute('aria-expanded');
+        if (record.ariaLabel === null) record.control.removeAttribute('aria-label');
+        else record.control.setAttribute('aria-label', record.ariaLabel);
+        if (record.role === null) record.control.removeAttribute('role');
+        else record.control.setAttribute('role', record.role);
+        if (record.tabindex === null) record.control.removeAttribute('tabindex');
+        else record.control.setAttribute('tabindex', record.tabindex);
+        if (record.groupId === null) record.group.removeAttribute('id');
+      });
+    }};
   }
 
   function setupSectionNavigationDepthSync() {
     if (typeof window.matchMedia !== "function") return;
 
     var media = window.matchMedia(PRIMARY_SIDEBAR_DESKTOP_QUERY);
-    var syncNavigationDepth = function () {
-      window.clearTimeout(sectionNavigationDepthTimer);
-      sectionNavigationDepthTimer = window.setTimeout(function () {
-        sectionNavigationDepthTimer = null;
-        setSectionNavigationDepth(true);
-      }, 180);
-    };
+    // This listener fires only when crossing the breakpoint, not per resize
+    // frame. Restore expansion and focusability before the next layout paints.
+    var syncNavigationDepth = function () { setSectionNavigationDepth(); };
     if (typeof media.addEventListener === "function") {
       media.addEventListener("change", syncNavigationDepth);
     } else if (typeof media.addListener === "function") {
@@ -3838,6 +3925,226 @@
     });
   }
 
+  // Static images retain their existing preload/decode owner. Clips have no src
+  // until bounded, local reader intent; only an actual presented frame covers img.
+  function setupPublicationPreviews() {
+    var root = document.querySelector(".md-content__inner");
+    if (publicationPreviewRuntime && publicationPreviewRuntime.root === root) return;
+    if (publicationPreviewRuntime) publicationPreviewRuntime.dispose();
+    publicationPreviewRuntime = null;
+    if (!root) return;
+    var media = Array.from(root.querySelectorAll(".overview-publication__media--preview"));
+    if (!media.length) return;
+    var motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+    var connection = navigator.connection;
+    var active = null;
+    var prepared = null;
+    var disposed = false;
+    var removers = [];
+    var states = [];
+    function listen(target, event, callback, options) {
+      target.addEventListener(event, callback, options);
+      removers.push(function () { target.removeEventListener(event, callback, options); });
+    }
+    function automaticAllowed() {
+      return finePointer.matches && !motion.matches && !(connection && connection.saveData);
+    }
+    function onScreen(state) {
+      var rect = state.media.getBoundingClientRect();
+      return state.media.isConnected && rect.bottom > 0 && rect.top < window.innerHeight &&
+        rect.right > 0 && rect.left < window.innerWidth;
+    }
+    function label(state, text, action) {
+      state.button.textContent = text;
+      state.button.setAttribute("aria-label", action + ": " + state.description);
+    }
+    function clearPending(state) {
+      window.clearTimeout(state.warmTimer);
+      window.clearTimeout(state.startTimer);
+      window.clearTimeout(state.timeout);
+      state.warmTimer = state.startTimer = state.timeout = null;
+      if (state.frame != null && state.video.cancelVideoFrameCallback) state.video.cancelVideoFrameCallback(state.frame);
+      if (state.raf != null) window.cancelAnimationFrame(state.raf);
+      state.frame = state.raf = null;
+    }
+    function stop(state) {
+      state.generation += 1;
+      state.wanted = false;
+      clearPending(state);
+      state.video.pause();
+      state.media.classList.remove("is-preview-playing", "is-preview-loading");
+      state.button.setAttribute("aria-pressed", "false");
+      label(state, state.failed ? "Retry preview" : "Play preview", state.failed ? "Retry preview" : "Play preview");
+      if (active === state) active = null;
+    }
+    function release(state) {
+      stop(state);
+      if (state.video.hasAttribute("src")) {
+        state.video.removeAttribute("src");
+        state.video.load();
+      }
+      if (prepared === state) prepared = null;
+    }
+    function fail(state) {
+      if (disposed || !state.video.hasAttribute("src")) return;
+      state.failed = true;
+      state.media.classList.add("is-preview-error");
+      release(state);
+    }
+    function prepare(state, explicit) {
+      if (disposed || document.hidden || !onScreen(state) || (state.failed && !explicit)) return false;
+      // Warming is one target at a time, and never interrupts an active preview.
+      if (active && active !== state) return false;
+      if (explicit && state.failed) {
+        state.failed = false;
+        state.media.classList.remove("is-preview-error");
+      }
+      if (prepared && prepared !== state) release(prepared);
+      prepared = state;
+      if (!state.video.hasAttribute("src")) {
+        state.video.src = state.src;
+        state.video.preload = "auto";
+        state.video.load();
+      }
+      return true;
+    }
+    function start(state, explicit) {
+      if (disposed || document.hidden || !onScreen(state) || (!explicit && !automaticAllowed())) return;
+      if (active && active !== state) stop(active);
+      if (!prepare(state, explicit)) return;
+      if (state.wanted) return;
+      // Each preview tells the complete short action, beginning at its start.
+      try { if (state.video.currentTime) state.video.currentTime = 0; } catch (error) {}
+      state.wanted = true;
+      state.playConfirmed = false;
+      state.manual = explicit;
+      active = state;
+      var generation = ++state.generation;
+      state.media.classList.add("is-preview-loading");
+      state.button.setAttribute("aria-pressed", "true");
+      label(state, "Loading…", "Loading preview");
+      function current() { return !disposed && state.wanted && generation === state.generation; }
+      function reveal() {
+        state.frame = state.raf = null;
+        if (!current() || state.video.paused || document.hidden || !onScreen(state)) return;
+        window.clearTimeout(state.timeout);
+        state.media.classList.remove("is-preview-loading");
+        state.media.classList.add("is-preview-playing");
+        label(state, "Pause", "Pause preview");
+      }
+      // requestVideoFrameCallback confirms the decoded frame reached composition.
+      // Older browsers require play() resolution + HAVE_CURRENT_DATA + two paints.
+      function awaitFrame() {
+        if (!current()) return;
+        if (state.video.requestVideoFrameCallback) state.frame = state.video.requestVideoFrameCallback(reveal);
+        else if (state.video.readyState >= 2) {
+          state.raf = window.requestAnimationFrame(function () {
+            state.raf = window.requestAnimationFrame(reveal);
+          });
+        }
+      }
+      state.awaitFrame = awaitFrame;
+      state.timeout = window.setTimeout(function () { if (current()) fail(state); }, 12000);
+      try {
+        var promise = state.video.play();
+        if (promise && promise.then) promise.then(function () {
+          if (current()) { state.playConfirmed = true; awaitFrame(); }
+          // A stale resolution must not pause a newer request on the same video.
+          else if (!state.wanted) state.video.pause();
+        }, function () { if (current()) fail(state); });
+        else { state.playConfirmed = true; awaitFrame(); }
+      } catch (error) { fail(state); }
+    }
+    media.forEach(function (element) {
+      var video = element.querySelector("video[data-preview-src]");
+      var button = element.querySelector(".overview-publication__preview-toggle");
+      if (!video || !button) return;
+      var raw = video.getAttribute("data-preview-src");
+      // Authored data is validated at build time; also reject unsafe runtime DOM.
+      if (!/^assets\/videos\/publications\/[A-Za-z0-9_./-]+\.(mp4|webm)$/i.test(raw) || raw.split("/").indexOf("..") !== -1) return;
+      var src = new URL(raw, window.location.href);
+      if (src.origin !== window.location.origin) return;
+      var state = { media: element, video: video, button: button, src: src.href,
+        description: button.getAttribute("data-preview-description"), generation: 0,
+        wanted: false, manual: false, failed: false, frame: null, raf: null };
+      states.push(state);
+      video.muted = true;
+      video.hidden = false;
+      button.hidden = false;
+      listen(video, "error", function () { fail(state); });
+      listen(video, "loadeddata", function () {
+        if (state.wanted && state.playConfirmed && !video.requestVideoFrameCallback && !video.paused && state.awaitFrame) state.awaitFrame();
+      });
+      listen(button, "click", function () {
+        if (state.wanted) stop(state);
+        else start(state, true);
+      });
+      listen(button, "focus", function () {
+        if (!(connection && connection.saveData) && !motion.matches) prepare(state, false);
+      });
+      listen(element, "focusout", function (event) {
+        if (!element.contains(event.relatedTarget)) stop(state);
+      });
+      listen(element, "pointerenter", function (event) {
+        if (event.pointerType === "touch" || !automaticAllowed() || state.failed) return;
+        // A short pass across the image does not start a download.
+        state.startTimer = window.setTimeout(function () { start(state, false); }, 80);
+      });
+      listen(element, "pointerleave", function (event) {
+        if (event.pointerType !== "touch") stop(state);
+      });
+      var row = element.closest(".overview-publication") || element;
+      listen(row, "pointermove", function (event) {
+        if (event.pointerType === "touch" || !automaticAllowed() || state.failed || video.hasAttribute("src")) return;
+        var rect = element.getBoundingClientRect();
+        var near = event.clientX >= rect.left - 80 && event.clientX <= rect.right + 80 &&
+          event.clientY >= rect.top - 80 && event.clientY <= rect.bottom + 80;
+        if (!near) { window.clearTimeout(state.warmTimer); state.warmTimer = null; return; }
+        if (!state.warmTimer) state.warmTimer = window.setTimeout(function () {
+          state.warmTimer = null;
+          if (automaticAllowed()) prepare(state, false);
+        }, 120);
+      }, { passive: true });
+      listen(row, "pointerleave", function () {
+        window.clearTimeout(state.warmTimer); state.warmTimer = null;
+      });
+    });
+    var observer = window.IntersectionObserver ? new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) states.forEach(function (state) {
+          if (state.media === entry.target) stop(state);
+        });
+      });
+    }) : null;
+    if (observer) states.forEach(function (state) { observer.observe(state.media); });
+    // Fallback only needs a bounded check while there is active or pending intent.
+    else listen(window, "scroll", function () {
+      states.forEach(function (state) { if (!onScreen(state)) stop(state); });
+    }, { passive: true });
+    listen(document, "visibilitychange", function () {
+      if (document.hidden) states.forEach(stop);
+    });
+    listen(window, "pagehide", function () { states.forEach(stop); });
+    function onPreferences() {
+      if (!automaticAllowed()) states.forEach(function (state) {
+        window.clearTimeout(state.warmTimer);
+        window.clearTimeout(state.startTimer);
+        state.warmTimer = state.startTimer = null;
+        if (!state.manual) stop(state);
+      });
+    }
+    [motion, finePointer, connection].forEach(function (target) {
+      if (target && target.addEventListener) listen(target, "change", onPreferences);
+    });
+    publicationPreviewRuntime = { root: root, dispose: function () {
+      disposed = true;
+      if (observer) observer.disconnect();
+      removers.forEach(function (remove) { remove(); });
+      states.forEach(function (state) { release(state); state.button.hidden = true; state.video.hidden = true; });
+    } };
+  }
+
   // Material's article highlighter ignores the index's data-search-exclude.
   // Unwrap only its generated marks in excluded subtrees, retaining author
   // markup and real body matches. Observe these small subtrees because the
@@ -3987,6 +4294,416 @@
     root.querySelectorAll('mark[data-md-highlight]').forEach(register);
     ['scroll', 'resize'].forEach(function (event) { window.addEventListener(event, schedule, { capture: true, passive: true }); });
     ['visibilitychange', 'change', 'toggle'].forEach(function (event) { document.addEventListener(event, schedule, true); });
+  }
+
+  // The introduction hubs use Overview's 16px/800ms entrance without touching
+  // its disclosure state machine. Default HTML stays readable; WAAPI releases
+  // its effects at completion. Individual cards use translate independently
+  // of their hover transform; neither article groups nor sidebar parents move.
+  function setupContentHubReveal() {
+    var root = document.querySelector('.notes-landing');
+    if (contentHubRevealRuntime && contentHubRevealRuntime.root === root) return;
+    if (contentHubRevealRuntime) contentHubRevealRuntime.dispose();
+    contentHubRevealRuntime = null;
+    if (!root) return;
+    var route = navigationPageKey(window.location.href);
+    var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var desktop = window.matchMedia(PRIMARY_SIDEBAR_DESKTOP_QUERY);
+    var records = [];
+    var animations = new Map();
+    var queued = new Map();
+    var observer = null;
+    var resizeObserver = null;
+    var generation = 0;
+    var frame = 0;
+    var layoutFrame = 0;
+    var scrollTimer = null;
+    var nativeScrollEnd = 'onscrollend' in window;
+    var disposed = false;
+    var initialized = false;
+    var readerIntent = false;
+    var restorePass = !!window.location.hash || window.scrollY > 0;
+    var state = { root: root, dispose: dispose };
+    contentHubRevealRuntime = state;
+
+    function active() { return !disposed && root.isConnected && contentHubRevealRuntime === state; }
+    function topInset() {
+      var header = document.querySelector('.md-header');
+      return header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+    }
+    function partsFor(element, base) {
+      var paragraph = 0;
+      return Array.prototype.filter.call(element.children, function (child) {
+        return child.matches('h1, h2, h3, p');
+      }).map(function (child) {
+        var key = base + (/^H[1-6]$/.test(child.tagName) ? ':heading' : ':paragraph-' + paragraph++);
+        return { element: child, key: route + ':' + key, keys: [route + ':' + key] };
+      });
+    }
+    var initialBounds = readableBounds(null, topInset());
+    var usableHeight = Math.max(1, initialBounds.bottom - initialBounds.top);
+    root.querySelectorAll('[data-hub-reveal]').forEach(function (element) {
+      var base = element.getAttribute('data-hub-reveal');
+      var parts = partsFor(element, base);
+      var card = element.classList.contains('landing-route');
+      if (parts.length && (element.matches('.landing-intro, .landing-reading-entry') ||
+        card && (element.getBoundingClientRect().height > usableHeight || parts.some(function (part) {
+          return contentHubRevealedBlocks.has(part.key);
+        })))) {
+        records.push.apply(records, parts);
+      } else {
+        var key = route + ':' + base;
+        // Stable part keys bridge whole-card and short-viewport text modes.
+        records.push({ element: element, key: key,
+          keys: card && parts.length ? parts.map(function (part) { return part.key; }) : [key] });
+      }
+    });
+    if (desktop.matches) {
+      var sectionNav = document.querySelector('.md-sidebar--primary .edwinos-drawer-section-nav');
+      if (sectionNav) sectionNav.querySelectorAll('.md-nav__item > .md-nav__container, .md-nav__item > a.md-nav__link, .md-nav__item > label.md-nav__link').forEach(function (element) {
+        var box = element.getBoundingClientRect();
+        // Material leaves mobile disclosure attributes on desktop section
+        // groups that CSS displays expanded. Use the rendered state instead;
+        // real collapsed descendants have hidden/collapse visibility.
+        if (!box.width || !box.height || window.getComputedStyle(element).visibility !== 'visible') return;
+        var link = element.matches('a[href]') ? element : element.querySelector('a[href]');
+        var identity = link ? link.getAttribute('href') : element.getAttribute('for') || element.textContent.trim();
+        var key = route + ':sidebar:' + identity;
+        records.push({ element: element, key: key, keys: [key], sidebar: true });
+      });
+    }
+    var pending = new Set(records.filter(function (record) {
+      return !record.keys.every(function (key) { return contentHubRevealedBlocks.has(key); });
+    }));
+    records.forEach(function (record) {
+      record.trigger = record.element;
+      record.element.classList.add('is-hub-reveal-unit');
+      record.element.classList.toggle('is-hub-reveal-pending', pending.has(record));
+    });
+    // Replace the pre-paint gate with individual pending units in one task.
+    // Split headings/paragraphs stay transparent without hiding their parent.
+    root.setAttribute('data-hub-reveal-ready', '');
+
+    function releaseQueued(record) {
+      var entry = queued.get(record);
+      if (!entry) return;
+      window.clearTimeout(entry.timer);
+      queued.delete(record);
+    }
+    function cancelAnimations() {
+      Array.from(queued.keys()).forEach(releaseQueued);
+      animations.forEach(function (animation) { animation.cancel(); });
+      animations.clear();
+    }
+    function removeEndMarker(record) {
+      if (record.endMarker) record.endMarker.remove();
+      record.endMarker = null;
+      record.trigger = record.element;
+    }
+    function prepareTrigger(record, inset) {
+      var box = record.element.getBoundingClientRect();
+      var bounds = readableBounds(record, inset);
+      if (box.height <= Math.max(1, bounds.bottom - bounds.top)) {
+        removeEndMarker(record);
+      } else if (!record.endMarker) {
+        // An unusually tall paragraph must not wait forever for ratio one.
+        // Its last line is a separate observation point: seeing its beginning
+        // cannot consume the as-yet unseen tail. This zero-net-width decoration
+        // leaves text, selection and document geometry intact.
+        var marker = document.createElement('span');
+        marker.setAttribute('aria-hidden', 'true');
+        marker.setAttribute('data-hub-reveal-end', '');
+        marker.style.cssText = 'display:inline-block;width:1px;height:1px;margin-left:-1px;vertical-align:bottom;pointer-events:none';
+        var host = record.element;
+        if (host.classList.contains('landing-route')) {
+          host = Array.prototype.filter.call(host.children, function (child) { return child.matches('p, h3'); }).pop() || host;
+        }
+        host.appendChild(marker);
+        record.endMarker = marker;
+        record.trigger = marker;
+      }
+    }
+    function readableBounds(record, inset) {
+      var left = 0;
+      var right = window.innerWidth;
+      var bottom = window.innerHeight;
+      var viewport = window.visualViewport;
+      if (viewport) {
+        inset = Math.max(inset, viewport.offsetTop);
+        left = Math.max(left, viewport.offsetLeft);
+        right = Math.min(right, viewport.offsetLeft + viewport.width);
+        bottom = Math.min(bottom, viewport.offsetTop + viewport.height);
+      }
+      if (record && record.sidebar) {
+        var scrollwrap = record.element.closest('.md-sidebar__scrollwrap');
+        if (scrollwrap) {
+          var clip = scrollwrap.getBoundingClientRect();
+          inset = Math.max(inset, clip.top);
+          left = Math.max(left, clip.left);
+          right = Math.min(right, clip.right);
+          bottom = Math.min(bottom, clip.bottom);
+        }
+      }
+      return { top: inset, bottom: bottom, left: left, right: right };
+    }
+    function fullyExposed(record, inset) {
+      var box = record.element.getBoundingClientRect();
+      if (document.hidden || !box.width || !box.height ||
+        window.getComputedStyle(record.element).visibility !== 'visible') return false;
+      var bounds = readableBounds(record, inset);
+      if (box.left < bounds.left - 1 || box.right > bounds.right + 1) return false;
+      if (record.endMarker) {
+        var end = record.endMarker.getBoundingClientRect();
+        return end.top >= bounds.top && end.bottom <= bounds.bottom && box.bottom <= bounds.bottom + 1;
+      }
+      return box.top >= bounds.top && box.bottom <= bounds.bottom;
+    }
+    function reveal(record, animate, delay) {
+      if (!active() || !pending.has(record)) return;
+      if (animate) {
+        if (!fullyExposed(record, topInset())) return;
+        if (delay > 0 && typeof record.element.animate === 'function') {
+          if (queued.has(record)) return;
+          var entry = { timer: 0 };
+          // Delay only this currently visible batch. No viewed key is consumed
+          // until a live viewport check at its actual start. Pending opacity
+          // already keeps the unit blank, including before it enters view.
+          entry.timer = window.setTimeout(function () {
+            releaseQueued(record);
+            if (active() && pending.has(record)) reveal(record, true, 0);
+          }, delay);
+          queued.set(record, entry);
+          return;
+        }
+      }
+      releaseQueued(record);
+      pending.delete(record);
+      record.element.classList.remove('is-hub-reveal-pending');
+      record.keys.forEach(function (key) { contentHubRevealedBlocks.add(key); });
+      if (observer) {
+        observer.unobserve(record.trigger);
+        if (record.trigger !== record.element) observer.unobserve(record.element);
+      }
+      removeEndMarker(record);
+      if (animate && typeof record.element.animate === 'function') {
+        var animation = record.element.animate([
+          { opacity: 0, translate: '0 16px' },
+          { opacity: 1, translate: '0 0' }
+        ], { duration: 800, delay: 0, fill: 'backwards', easing: 'cubic-bezier(.2,.7,.3,1)' });
+        animations.set(record.element, animation);
+        animation.onfinish = animation.oncancel = function () {
+          animations.delete(record.element);
+          finishIfComplete();
+        };
+      }
+      if (!pending.size && observer) { observer.disconnect(); observer = null; }
+      finishIfComplete();
+    }
+    function finishIfComplete() { if (!pending.size && !animations.size) dispose(); }
+    function revealBatch(candidates) {
+      [false, true].forEach(function (sidebar) {
+        var batch = records.filter(function (record) {
+          return !!record.sidebar === sidebar && pending.has(record) && !queued.has(record) && candidates.has(record);
+        });
+        var spacing = Math.min(80, (sidebar ? 600 : 480) / Math.max(1, batch.length - 1));
+        batch.forEach(function (record, index) { reveal(record, true, index * spacing); });
+      });
+    }
+    function showAll() {
+      cancelAnimations();
+      Array.from(pending).forEach(function (record) { reveal(record, false); });
+    }
+    function exposeViewport() {
+      var inset = topInset();
+      Array.from(pending).forEach(function (record) {
+        var box = record.element.getBoundingClientRect();
+        var bounds = readableBounds(record, inset);
+        // A restored/fragment viewport exposes its current reading position,
+        // not the entire route. Bottom-clipped paragraphs remain eligible.
+        if (box.bottom <= bounds.top || fullyExposed(record, inset) ||
+          box.top < bounds.top && box.bottom <= bounds.bottom) reveal(record, false);
+      });
+    }
+    function exposeTarget(target) {
+      var index = records.findIndex(function (record) { return record.element.contains(target); });
+      // Focusing header/search/drawer controls must not consume article units.
+      if (index < 0) return;
+      cancelAnimations();
+      if (index >= 0) records.slice(0, index + 1).forEach(function (record) {
+        if (!!record.sidebar === !!records[index].sidebar) reveal(record, false);
+      });
+      exposeViewport();
+    }
+    function onHash() {
+      var id;
+      try { id = decodeURIComponent(window.location.hash.slice(1)); } catch (_) { return; }
+      var target = id && document.getElementById(id);
+      if (target) { restorePass = true; exposeTarget(target); scheduleLayout(); }
+    }
+    function onFocus(event) { exposeTarget(event.target); }
+    function onReaderIntent(event) {
+      if (event.type === 'keydown' && !/^(ArrowDown|ArrowUp|PageDown|PageUp|Home|End| |Spacebar)$/.test(event.key)) return;
+      if (event.type === 'keydown' && event.target.closest &&
+        event.target.closest('input, textarea, select, [contenteditable]')) return;
+      readerIntent = true;
+      // Wheel/touch events continue throughout a smooth reading gesture.
+      // Keep started entrances running and queued units unread: their timers
+      // already check live bounds before starting, including during scrolling.
+    }
+    function onScroll() {
+      // Only startup restoration is special. Native scrollbar drags and
+      // programmatic reader scrolling must not flush the unread queue.
+      if (!initialized && !readerIntent) restorePass = true;
+      if (!nativeScrollEnd) {
+        window.clearTimeout(scrollTimer);
+        scrollTimer = window.setTimeout(onScrollEnd, 120);
+      }
+    }
+    function onScrollEnd() {
+      scrollTimer = null;
+      if (!active() || !initialized) return;
+      var inset = topInset();
+      var candidates = new Set();
+      Array.from(pending).forEach(function (record) {
+        var box = record.element.getBoundingClientRect();
+        var bounds = readableBounds(record, inset);
+        if (box.bottom <= bounds.top) reveal(record, false);
+        else if (fullyExposed(record, inset)) candidates.add(record);
+        else if (box.top < bounds.top && box.bottom <= bounds.bottom) reveal(record, false);
+      });
+      revealBatch(candidates);
+    }
+    function onPageShow(event) {
+      if (event.persisted || window.scrollY > 0) {
+        restorePass = true;
+        cancelAnimations();
+        if (initialized) { exposeViewport(); scheduleLayout(); }
+      }
+    }
+    function onMotionChange() { if (motion.matches) showAll(); }
+    function onVisibilityChange() {
+      if (document.hidden) cancelAnimations();
+      else scheduleLayout();
+    }
+    function onDesktopChange() {
+      if (!desktop.matches) records.forEach(function (record) {
+        if (!record.sidebar) return;
+        var animation = animations.get(record.element);
+        if (animation) animation.cancel();
+        reveal(record, false);
+      });
+      scheduleLayout();
+    }
+    function scheduleLayout() {
+      if (!active() || !initialized || layoutFrame) return;
+      layoutFrame = window.requestAnimationFrame(function () {
+        layoutFrame = 0;
+        if (active()) observePending();
+      });
+    }
+    function observePending() {
+      if (!active() || !pending.size) return;
+      if (observer) observer.disconnect();
+      var currentGeneration = ++generation;
+      var inset = topInset();
+      Array.from(pending).forEach(function (record) { prepareTrigger(record, inset); });
+      if (restorePass) { exposeViewport(); restorePass = false; }
+      if (!active() || !pending.size) return;
+      observer = new window.IntersectionObserver(function (entries) {
+        if (!active() || currentGeneration !== generation) return;
+        var top = topInset();
+        var candidates = new Set();
+        entries.forEach(function (entry) {
+          records.forEach(function (record) {
+            if (!pending.has(record) || (entry.target !== record.trigger && entry.target !== record.element)) return;
+            var box = record.element.getBoundingClientRect();
+            var bounds = readableBounds(record, top);
+            if (box.bottom <= bounds.top) reveal(record, false);
+            else if (entry.isIntersecting && fullyExposed(record, top)) candidates.add(record);
+            else if (box.top < bounds.top && box.bottom <= bounds.bottom) reveal(record, false);
+          });
+        });
+        revealBatch(candidates);
+      }, { rootMargin: '-' + Math.ceil(inset) + 'px 0px 0px', threshold: [0, 1] });
+      var candidates = new Set();
+      Array.from(pending).forEach(function (record) {
+        var box = record.element.getBoundingClientRect();
+        var bounds = readableBounds(record, inset);
+        if (box.bottom <= bounds.top) reveal(record, false);
+        else if (fullyExposed(record, inset)) candidates.add(record);
+        else if (box.top < bounds.top && box.bottom <= bounds.bottom) reveal(record, false);
+        if (pending.has(record)) {
+          observer.observe(record.trigger);
+          if (record.trigger !== record.element) observer.observe(record.element);
+        }
+      });
+      revealBatch(candidates);
+    }
+    function dispose() {
+      if (disposed) return;
+      disposed = true;
+      generation++;
+      window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(layoutFrame);
+      window.clearTimeout(scrollTimer);
+      if (observer) observer.disconnect();
+      if (resizeObserver) resizeObserver.disconnect();
+      cancelAnimations();
+      records.forEach(function (record) {
+        removeEndMarker(record);
+        record.element.classList.remove('is-hub-reveal-pending');
+      });
+      pending.clear();
+      document.removeEventListener('focusin', onFocus, true);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('hashchange', onHash);
+      window.removeEventListener('pageshow', onPageShow);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('scrollend', onScrollEnd);
+      window.removeEventListener('resize', scheduleLayout);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', scheduleLayout);
+        window.visualViewport.removeEventListener('scroll', scheduleLayout);
+      }
+      window.removeEventListener('beforeprint', showAll);
+      ['wheel', 'touchmove', 'keydown'].forEach(function (name) { window.removeEventListener(name, onReaderIntent); });
+      motion.removeEventListener('change', onMotionChange);
+      desktop.removeEventListener('change', onDesktopChange);
+    }
+    if (!pending.size || motion.matches || !window.IntersectionObserver) {
+      showAll();
+      dispose();
+      return;
+    }
+    document.addEventListener('focusin', onFocus, true);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('hashchange', onHash);
+    window.addEventListener('pageshow', onPageShow);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    if (nativeScrollEnd) window.addEventListener('scrollend', onScrollEnd, { passive: true });
+    window.addEventListener('resize', scheduleLayout, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', scheduleLayout, { passive: true });
+      window.visualViewport.addEventListener('scroll', scheduleLayout, { passive: true });
+    }
+    window.addEventListener('beforeprint', showAll);
+    ['wheel', 'touchmove', 'keydown'].forEach(function (name) { window.addEventListener(name, onReaderIntent, { passive: true }); });
+    motion.addEventListener('change', onMotionChange);
+    desktop.addEventListener('change', onDesktopChange);
+    if (typeof window.ResizeObserver === 'function') {
+      resizeObserver = new window.ResizeObserver(scheduleLayout);
+      resizeObserver.observe(root);
+    }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleLayout);
+    frame = window.requestAnimationFrame(function () {
+      frame = window.requestAnimationFrame(function () {
+        if (!active()) return;
+        initialized = true;
+        restorePass = restorePass || !readerIntent && window.scrollY > 0;
+        if (window.location.hash) onHash();
+        observePending();
+      });
+    });
   }
 
   function setupOverviewReveal() {
@@ -4372,11 +5089,14 @@
     setSectionNavigationDepth();
     setupDrawerGlass();
     restorePrimarySidebarScroll();
+    setupContentHubReveal();
+    window.clearTimeout(window.__edwinosHubRevealBootTimer);
     openExternalContentLinksInNewTabs();
     labelCodeBlockLanguages();
     setupContentGlass();
     setupCollapsibleCallouts();
     setupAuthorToggles();
+    setupPublicationPreviews();
     setupProgressiveImages();
     setupPdfViewers();
     setupVisitorBadge();

@@ -6,32 +6,86 @@ hide:
   - toc
 ---
 
-# Introduction
+<div class="notes-landing" markdown="1">
 
-ENotes (Edwin's Notes) is my open knowledge notebook—a growing collection of course notes, lecture takeaways, research reading, and practical references from my time at Zhejiang University. I use it to turn scattered material into something I can revisit, connect, and improve over time.
+# ENotes {data-hub-reveal="title"}
 
-<div class="grid cards intro-card-grid" markdown>
+<div class="landing-intro" data-hub-reveal="intro" markdown="1">
 
--   :material-school-outline: **Coursework**
-
-    Notes and reviews from classes, including computer science, chemistry, and philosophy.
-
--   :material-robot-industrial: **Embodied AI & Research**
-
-    Reading notes, concept maps, and evolving thoughts on robotics, VLA models, and physical intelligence.
-
--   :material-source-repository: **Development & References**
-
-    Reusable workflows and technical references gathered while learning, building, and debugging.
+My open notebook of robotics, coursework, and practical tools. These are the explanations, connections, and references I keep returning to while learning and building at Zhejiang University.
 
 </div>
 
-## A note on these notes
+<div class="landing-routes" markdown="1">
 
-These pages are working notes rather than finished textbooks. Some entries are carefully structured; others preserve ideas while they are still taking shape. Browse by topic, follow the links between related pages, or use search to find a specific concept.
+<div class="landing-route" data-hub-reveal="card-1" markdown="1">
 
-I share them in the hope that they are useful for learning and discussion. If you spot an error or want to exchange ideas, feel free to reach out through the contact links on the Overview page.
+### Robotics & Research
 
-!!! tip "Enjoying the notes?"
+Start with the embodied intelligence roadmap: perception, planning, and the connections between robot learning systems.
 
-    If you find this collection useful, please consider giving the GitHub repository in the upper-right corner a [Star 🌟](https://github.com/SPIRAL-EDWIN/edwinjing_blog_personal-website){ target="_blank" rel="noopener" }. It is the strongest encouragement for me to keep learning, organizing, and sharing.
+</div>
+
+<div class="landing-route" data-hub-reveal="card-2" markdown="1">
+
+### Coursework
+
+Start with my CS101 Python notes, from expressions and data types to worked examples.
+
+</div>
+
+<div class="landing-route" data-hub-reveal="card-3" markdown="1">
+
+### Tools & References
+
+Start with Git with gh: version control concepts, GitHub collaboration, and everyday workflows.
+
+</div>
+
+</div>
+
+<div class="landing-selection" markdown="1">
+
+## Selected Notes {#start-here data-hub-reveal="start-here-title"}
+
+<div class="landing-reading-list" markdown="1">
+
+<div class="landing-reading-entry" data-hub-reveal="note-3" markdown="1">
+
+### [PHIL 206 Notes](PHIL/PHIL%20206.md) <span class="landing-language">· Chinese / English</span> {#phil-206-notes}
+
+Lecture notes on early modern philosophy, with bilingual explanations and links to exam review material.
+
+</div>
+
+<div class="landing-reading-entry" data-hub-reveal="note-1" markdown="1">
+
+### [手眼标定理论与实践](Embodied%20AI/【Hand-Eye%20Calibration】%20手眼标定理论与实践.md) <span class="landing-title-translation" lang="en">Hand–Eye Calibration: Theory &amp; Practice <span class="landing-language">· In Chinese</span></span> {#handeye-calibration-theory-practice}
+
+From coordinate transforms to eye-in-hand calibration and the connection to real robot deployment.
+
+</div>
+
+<div class="landing-reading-entry" data-hub-reveal="note-2" markdown="1">
+
+### [Bash命令与服务器训练操作查表指南](Embodied%20AI/Bash命令与服务器训练操作查表指南.md) <span class="landing-title-translation" lang="en">Bash &amp; Remote Training Quick Reference <span class="landing-language">· In Chinese</span></span> {#bash-bash-remote-training-quick-reference}
+
+A practical reference for reading shell commands, managing remote sessions, and checking training processes.
+
+</div>
+
+</div>
+
+</div>
+
+<div class="landing-footer" markdown="1">
+
+These are working notes: I revisit them as my understanding grows. Corrections and conversations are welcome through the contacts on [Overview](../index.md).
+{: data-hub-reveal="footer-1"}
+
+If something here helps, a [GitHub Star](https://github.com/SPIRAL-EDWIN/edwinjing_blog_personal-website){ target="_blank" rel="noopener" } is always appreciated.
+{: data-hub-reveal="footer-2"}
+
+</div>
+
+</div>

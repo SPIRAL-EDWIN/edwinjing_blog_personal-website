@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-10-16
+Last updated: 2026-10-20
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -163,6 +163,83 @@ These levels follow the measured Tianxing Chen reference, with a deliberate
 14px adaptation for the bilingual details. See
 `docs/research/components/about-spacing.spec.md` for the captured evidence.
 
+The short About introduction is a local reading exception: 15px / 1.75 and a
+76ch maximum measure in the About Me owner. General future prose and bilingual
+details retain the defaults above. Publication thumbnails use a slightly larger
+responsive column while retaining each image's original aspect ratio. At night,
+the university artwork has a light painted surround without changing dimensions.
+
+The Content Hubs owner styles `.notes-landing` only: ENotes offers three
+non-link introduction cards and selected notes; More labels its selected lab, technical and personal
+writing without duplicating sidebar navigation. English title translations are
+non-selectable text siblings of the original title links. Language metadata
+follows the translation (or the original English title) after a middle dot,
+also as non-selectable text outside the link. Child article
+typography is unaffected. MkDocs TOC keeps heading IDs but does not emit heading
+permalink icons (`permalink: false`), including on individual note pages.
+Heading links reset the historical theme border and use one text underline on
+hover/focus. Fine-pointer card hover lifts 3px, with reduced motion left static.
+`setupContentHubReveal` owns individual `data-hub-reveal` units: the page title,
+introduction, each card, section heading, recommended entry and footer paragraph.
+Desktop sidebar targets are visible row surfaces, never their enclosing groups,
+lists or scroll wrapper. Neither animation lane contains nested targets.
+Desktop row discovery uses rendered size and `visibility: visible`, not mobile
+`aria-expanded` attributes: Material can render those section groups expanded on
+desktop while their mobile checkbox remains unchecked. Headers and all visible
+child notes share DOM-order timing. A row must fit its sidebar scroll wrapper as
+well as the readable window before an entrance consumes its key.
+Each unit uses Overview's 16px/800ms fade and easing, once per route/unit in this
+document. Visible batches stagger in DOM order, up to 80ms apart, bounded to
+480ms for the article and 600ms for the independent sidebar lane. Delayed
+stagger holds are bounded to those currently visible candidates. Queued units
+remain unread and observed: each timer checks the live visual viewport and
+sidebar clipping again, then starts an immediate
+WAAPI effect. A unit displaced offscreen before its turn keeps its future
+entrance instead of consuming a viewed key. Background documents do not enter;
+visibility, visual-viewport resize/pan, layout and font changes reconcile pending
+units. Ordinary wheel/touch/key scrolling preserves started entrances and unread
+queued units; it never settles them statically. Navigation/reduced motion cancel
+timers and release pending opacity. Focus outside the reveal records, including
+header search controls, cannot consume article keys.
+Unseen units start transparent, matching Overview's pending state. The inline
+head capability gate hides authored units before runtime initialization; setup
+atomically replaces it with individual pending classes on the actual records,
+so split titles/paragraphs never inherit a second parent fade. The gate fails
+open after four seconds if the runtime fails, and is absent for no-JS/reduced
+motion. An actual entrance removes its pending class and immediately starts
+the 0-to-1 WAAPI effect, with backwards fill released on completion. Waiting
+for visibility or stagger must never display a unit before fading it in.
+The entrance animates `translate`; card hover owns `transform` independently,
+without resizing cards or rebuilding glass maps. First visible units enter on
+arrival only when the whole unit fits the readable viewport. Recommended titles
+and descriptions have independent stable keys; a visible title never consumes
+its bottom-clipped paragraph. Ordinary cards require their complete box; cards
+taller than the usable viewport split into heading/paragraph units. An oversized
+text unit observes a zero-net-width, aria-hidden last-line marker so its unseen
+tail stays pending without a ratio-one deadlock. Resize/font changes reconcile
+pending units without scroll-frame geometry work.
+Hash/focus and restored positions expose only current/passed content directly,
+preserving first-entry effects farther down the route. Ordinary scrolling,
+including scrollbar drags without wheel/key intent, never flushes that queue;
+scroll-end reconciliation recovers skipped boundaries. Reduced motion and absent
+observers show all content directly. No-JavaScript content remains visible. Completion and content
+replacement dispose observers, animation effects and listeners; native mobile
+drawer transforms are untouched. The scoped article shell disables its historical
+entrance to avoid layering two page animations.
+
+### Optional publication previews
+
+`home_sections.py` accepts validated local MP4/WebM clips under
+`assets/videos/publications/` through the optional publication `preview` field.
+The static image and its loading/preload hints remain unchanged. Clips have no
+`src` at first paint. `setupPublicationPreviews` owns one bounded nearby-pointer
+warmup and one active clip, shows motion only after a decoded frame, and retains
+the image on errors. Touch/keyboard use an explicit button; reduced motion and
+Save-Data disable automatic warmup/playback. Leaving the viewport or page pauses
+playback; content replacement releases media, listeners and observers. Without
+preview data the markup and network behavior stay static. See
+`data/homepage/README.md` for asset preparation and configuration.
+
 Do not reintroduce blanket homepage paragraph/list font sizes or `!important`
 type resets. New prose inherits the defaults; component classes own titles,
 metadata, captions and empty states. A normal class rule can override inherited
@@ -188,6 +265,9 @@ share numeric left/right/top/height coordinates. The expanded height has its
 own token and must not change the shared Header control size or horizontal
 targets. Active tab backgrounds are inset 1px horizontally without moving
 their buttons or text. Search stays above covered controls until closing ends.
+The header partial seeds the measured tab-width token before first paint.
+Passive font/layout corrections settle without coordinate transitions; only
+the existing search interaction state enables opening/closing transitions.
 Selected navigation uses one persistent header capsule, outside the tabs that
 Material replaces. The header partial seeds its actual selected geometry before
 paint; `setupTabGlass` reuses that helper for arrival, mobile auto-reveal and
@@ -302,8 +382,12 @@ perimeter highlights. Its map follows layout/font changes without scroll
 listeners or an idle frame loop; the compositor samples the live page on scroll.
 
 Supplemental glass stays in its existing component owners: the mobile ENotes/
-More drawer, Profile's Archive action, Code Blocks' single-copy toolbar, and
-Archive's Last updated capsule. `setupContentGlass` shares one visibility
+More drawer, Profile's Archive action, Code Blocks' single-copy toolbar,
+Archive's Last updated capsule, and Content Hubs' three ENotes introduction
+cards (`.notes-landing .landing-route`). Those cards keep their authored layout
+and use the same rounded lens as Back to Top, with 4px blur and a bounded 18px
+displacement scale; Safari retains native blur and perimeter highlights.
+`setupContentGlass` shares one visibility
 observer, creates independent maps only near visible controls, discovers late
 Material copy toolbars, and disposes its filters/observers on content replacement.
 The copy toolbar itself samples the code backdrop; its child icon remains native.
@@ -314,14 +398,27 @@ the decorative highlight nested inside them. The Profile link retains its
 
 `setupDrawerGlass` retains Material's full-height drawer and native transforms.
 One outer surface samples the page; nested navigation canvases are transparent.
-Only the foreground of ancestors behind the active nested panel is hidden,
-preserving descendant layout and input. Drawer rows/back titles share desktop
-sidebar typography and one thin chevron design. A 320ms bounded motion envelope
+`setupDrawerTree` reuses the native checkbox, disclosure label and nav markup
+for mobile inline expansion, including the current article outline. A left
+16px chevron rotates clockwise; child groups expand with a 220ms grid transition
+instead of full-height drill-down panels. Only the outer site's root controls
+are hidden behind the selected section. Rows share desktop sidebar typography.
+Closed groups are inert, disclosure ARIA follows checkbox state, and capture
+keyboard handling avoids double toggles with Material. Desktop and mobile keep
+independent expansion states; replacement removes listeners and owned metadata.
+The design follows VS Code's left twistie and inline hierarchy; the smooth
+rotation/height transitions are EdwinOS additions, not VS Code source behavior.
+A 320ms bounded motion envelope
 changes only displacement strength, retaining the current gain on reversal;
 the decoded map is not rebuilt per animation or scroll frame. Closed/desktop/
 hidden states dispose optics, and reduced motion settles directly. Safari keeps
 native blur through the closing transition. Center blur transitions continuously
-from 14px to 2px at the perimeter, with a matching lower-tint edge. Chromium uses
+from 14px to 2px only within 96px of the free right edge, using a horizontal
+smootherstep band and matching lower-tint stops. The left region remains fully
+frosted even beside the top/bottom. Right-only displacement smoothly excludes
+the attached left silhouette; other glass retains its rounded-perimeter field.
+This wider, zero-slope endpoint curve avoids a visibly sudden glass boundary.
+Chromium uses
 the displacement map's spare blue channel as a smooth blend weight, adding
 complementary premultiplied images to avoid alpha seams; R/G remain displacement.
 Safari uses complementary masked native blur surfaces. Native item/list borders
@@ -363,6 +460,14 @@ lines. No individual row glass or general Safari page-copy renderer is introduce
   by `tools/write_github_repo_facts.py`.
 - Friends cards: `docs/HOME/friends.md`.
 - Archive cards: generated from content metadata by `hooks/archive.py`.
+- ENotes/More footer metadata, including child articles:
+  `overrides/partials/notes-footer.html`, scoped by `overrides/main.html` to those
+  source directories and rendered inside the article column, with its separator
+  confined to that column and `data-search-exclude` on the footer. It shares
+  Overview's Visitor Footer type rules and deployment-month runtime, but has no
+  visitor badge. Metadata stays on one
+  line when space permits and wraps naturally when narrow. The build month is
+  the no-JS/API-failure fallback; other routes retain Material's copyright path.
 
 The source repository name and the deployment repository name are currently
 different by design in the existing data. Do not normalize them during a UI

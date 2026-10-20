@@ -38,7 +38,8 @@ async function main() {
           const css = getComputedStyle(element);
           return [css.fontSize, css.lineHeight, css.fontWeight];
         });
-        assert.deepEqual(await type('.academic-section:first-of-type > p'), ['14px', '23.1px', '400']);
+        // Only the short About introduction opts into the larger reading size.
+        assert.deepEqual(await type('.academic-section:first-of-type > p'), ['15px', '26.25px', '400']);
         assert.deepEqual(await type('.overview-publication-notes'), ['12px', '19.8px', '400']);
         const rowType = width <= 768 ? ['14.8px', '21.904px'] : ['15.2px', '22.496px'];
         for (const selector of ['.news-list > li', '.overview-education-item',

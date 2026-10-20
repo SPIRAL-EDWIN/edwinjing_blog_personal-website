@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-13",
+  "timezone": "Asia/Shanghai",
+  "url": "https://tianxingchen.github.io/",
+  "sourceCommit": "b92ce6cd97835ce5a63028a37b0edc27eef02cfd",
+  "method": "Read-only DOM/computed styles and explicit interactions via Codex in-app browser",
+  "deploymentByteEqualityVerified": false,
+  "stylesheets": ["https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"],
+  "scripts": [{"src": "", "characters": 14901}],
+  "viewportHeight": 1000,
+  "layouts": [
+    {"width":1440,"horizontalOverflow":0,"navHeight":56,"wrapWidth":1120,"wrapX":160,"wrapHorizontalPadding":28,"contentWidth":1064,"heroColumns":[670.242,361.758],"heroColumnGap":32,"titleSize":56,"menuToggle":"none","researchToc":"flex"},
+    {"width":768,"horizontalOverflow":0,"navHeight":56,"wrapWidth":768,"wrapX":0,"wrapHorizontalPadding":22,"contentWidth":724,"heroColumns":[468.32,231.68],"heroColumnGap":24,"titleSize":42.24,"menuToggle":"flex","researchToc":"none"},
+    {"width":390,"horizontalOverflow":0,"navHeight":52,"wrapWidth":390,"wrapX":0,"wrapHorizontalPadding":16,"contentWidth":358,"heroColumns":[358],"heroGap":18,"titleSize":35.1,"portraitWidth":200,"portraitHeight":250,"menuToggle":"flex","researchToc":"none"}
+  ],
+  "interactions": {
+    "mobileMenu": {"openAriaExpanded":"true","openLinksDisplay":"flex","openBodyOverflow":"hidden","escapeAriaExpanded":"false"},
+    "news": {"collapsedVisibleItems":8,"expandedVisibleItems":42,"expandedLabel":"Show less ↑","ariaExpanded":null},
+    "publicationNavigation": {"hash":"#publications","activeNav":"Publications","tocClass":"research-toc is-visible"},
+    "imageLightbox": {"trigger":"View RMBench preview","dialogLabel":"Expanded media preview","openMediaCount":1,"openBodyOverflow":"hidden","escapeClosed":true,"closedMediaCount":0},
+    "othersToc": {"hash":"#pub-others","ariaExpanded":"true","inertItemsAfterExpand":0}
+  },
+  "limits": ["Three sampled widths only; no exhaustive breakpoint sweep", "Not all media or hover states tested", "Static REA analysis was run separately; REA browser capture was not used", "Online deployment was not byte-compared to pinned source"]
+}

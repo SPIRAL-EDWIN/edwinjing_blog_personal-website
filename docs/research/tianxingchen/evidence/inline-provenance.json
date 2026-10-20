@@ -1,0 +1,18 @@
+{
+  "method": "Inline script body copied verbatim; no code executed.",
+  "scripts": [
+    {
+      "path": "inline-1.js",
+      "source": "/private/tmp/tianxingchen-study/source/index.html",
+      "htmlSha256": "f770c1f7f0438a5dceae60bca0290e1b8a6aa0ef7a7163a39ce273ef4c7c9ea9",
+      "htmlStartUtf16Offset": 175987,
+      "htmlEndUtf16Offset": 190888,
+      "htmlStartByteOffset": 177441,
+      "htmlStartLine": 3527,
+      "lineMapping": "originalLine = extractedLine + htmlStartLine - 1",
+      "attributes": "",
+      "bytes": 14925,
+      "sha256": "3bb0edfd1516f9c71082a64fc4b628dff39b6cbd02b093457c2e28049a2d4cbe"
+    }
+  ]
+}

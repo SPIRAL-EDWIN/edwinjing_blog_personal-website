@@ -302,6 +302,63 @@ class HomeSectionsTests(unittest.TestCase):
             self.assertIn('width="480" height="328"', markup)
             self.assertIn('loading="eager" fetchpriority="auto" decoding="sync"', markup)
 
+    def test_publication_preview_is_optional_and_never_eager(self):
+        entry = publication_data([{"name": "Chen Jing"}],
+            image="assets/images/publications/paper.webp", image_alt="Task cover")
+        static = HOME_SECTIONS.render_publications(entry)
+        self.assertNotIn("<video", static)
+        self.assertNotIn("preview-toggle", static)
+        entry["entries"][0]["preview"] = {
+            "src": "assets/videos/publications/paper.mp4", "description": 'Robot <task> "preview"'}
+        markup = Markup(HOME_SECTIONS.render_publications(entry))
+        video = markup.select("video")[0]
+        self.assertNotIn("src", video)
+        self.assertEqual(video["preload"], "none")
+        self.assertIn("hidden", video)
+        self.assertEqual(video["data-preview-src"], "assets/videos/publications/paper.mp4")
+        self.assertEqual(markup.select("img")[0]["loading"], "eager")
+        self.assertIn("hidden", markup.select("button")[0])
+
+    def test_publication_preview_rejects_unsafe_paths_and_missing_cover(self):
+        paths = ["https://example.com/task.mp4", "//example.com/task.mp4",
+            "assets/videos/publications/../task.mp4", "assets/videos/publications/%2e%2e/task.mp4",
+            "assets/videos/publications/task.mp4?download=1", "assets/videos/publications/task.gif",
+            "assets/videos/publications/task.mp4#fragment"]
+        for src in paths:
+            with self.subTest(src=src), self.assertRaises(HOME_SECTIONS.HomeSectionError):
+                HOME_SECTIONS.render_publications(publication_data([{"name": "Chen Jing"}],
+                    image="assets/images/publications/paper.webp", image_alt="Cover",
+                    preview={"src": src, "description": "Robot task"}))
+        with self.assertRaisesRegex(HOME_SECTIONS.HomeSectionError, "requires a static image"):
+            HOME_SECTIONS.render_publications(publication_data([{"name": "Chen Jing"}],
+                preview={"src": "assets/videos/publications/task.mp4", "description": "Robot task"}))
+
+    def test_publication_preview_checks_presence_size_and_symlink_target(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            images = root / "docs/assets/images/publications"
+            images.mkdir(parents=True)
+            Image.new("RGB", (20, 10)).save(images / "paper.webp")
+            clips = root / "docs/assets/videos/publications"
+            clips.mkdir(parents=True)
+            entry = publication_data([{"name": "Chen Jing"}],
+                image="assets/images/publications/paper.webp", image_alt="Cover",
+                preview={"src": "assets/videos/publications/task.mp4", "description": "Robot task"})
+            clip = clips / "task.mp4"
+            for content in [None, b"", b"x" * (HOME_SECTIONS.PUBLICATION_PREVIEW_MAX_BYTES + 1)]:
+                if content is not None:
+                    clip.write_bytes(content)
+                with self.assertRaises(HOME_SECTIONS.HomeSectionError):
+                    HOME_SECTIONS.render_publications(entry, root)
+            clip.write_bytes(b"fixture validation does not decode media")
+            self.assertIn("data-preview-src", HOME_SECTIONS.render_publications(entry, root))
+            clip.unlink()
+            outside = root / "outside.mp4"
+            outside.write_bytes(b"outside")
+            clip.symlink_to(outside)
+            with self.assertRaises(HOME_SECTIONS.HomeSectionError):
+                HOME_SECTIONS.render_publications(entry, root)
+
     def test_first_real_publication_image_is_ready_early_and_later_images_stay_lazy(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -1,0 +1,351 @@
+{
+  "package": "rea-agents",
+  "version": "6.4.0",
+  "node": "v24.19.0",
+  "installation": "pnpm add rea-agents@6.4.0 --ignore-scripts in /private/tmp/tianxingchen-study/rea",
+  "command": "node node_modules/rea-agents/scripts/rea.mjs analyze-javascript-application PATH --format json --full-output",
+  "directSource": {
+    "statistics": {
+      "relevant_files": 1,
+      "nested_asar_containers": 0,
+      "text_bytes_read": 192393,
+      "invalid_utf8_files": 0,
+      "parsed_javascript_files": 0,
+      "visited_ast_nodes": 0,
+      "findings": 0,
+      "modules": 0,
+      "parse_failures": 0
+    },
+    "result": "direct-source-result.json"
+  },
+  "extractedInline": {
+    "statistics": {
+      "relevant_files": 2,
+      "nested_asar_containers": 0,
+      "text_bytes_read": 15556,
+      "invalid_utf8_files": 0,
+      "parsed_javascript_files": 1,
+      "visited_ast_nodes": 2345,
+      "findings": 0,
+      "modules": 0,
+      "parse_failures": 0
+    },
+    "duration": "16412ms",
+    "result": "extracted-inline-escalated-result.json",
+    "semanticNodeCount": 1687,
+    "semanticRelationCount": 1192,
+    "coverageStatus": "unknown",
+    "unknownCount": 588,
+    "families": [
+      {
+        "family": "boundary",
+        "status": "partial",
+        "retainedRelations": 3,
+        "unknownCount": 0
+      },
+      {
+        "family": "call-flow",
+        "status": "partial",
+        "retainedRelations": 76,
+        "unknownCount": 187
+      },
+      {
+        "family": "child-process",
+        "status": "partial",
+        "retainedRelations": 0,
+        "unknownCount": 0
+      },
+      {
+        "family": "closure",
+        "status": "partial",
+        "retainedRelations": 110,
+        "unknownCount": 0
+      },
+      {
+        "family": "configuration",
+        "status": "partial",
+        "retainedRelations": 0,
+        "unknownCount": 0
+      },
+      {
+        "family": "data-flow",
+        "status": "partial",
+        "retainedRelations": 835,
+        "unknownCount": 143
+      },
+      {
+        "family": "event",
+        "status": "partial",
+        "retainedRelations": 0,
+        "unknownCount": 0
+      },
+      {
+        "family": "object-flow",
+        "status": "partial",
+        "retainedRelations": 160,
+        "unknownCount": 254
+      },
+      {
+        "family": "promise-ownership",
+        "status": "partial",
+        "retainedRelations": 8,
+        "unknownCount": 4
+      },
+      {
+        "family": "request",
+        "status": "partial",
+        "retainedRelations": 0,
+        "unknownCount": 0
+      },
+      {
+        "family": "resource-lifecycle",
+        "status": "partial",
+        "retainedRelations": 0,
+        "unknownCount": 0
+      },
+      {
+        "family": "timer",
+        "status": "partial",
+        "retainedRelations": 0,
+        "unknownCount": 0
+      }
+    ],
+    "namedFunctions": [
+      {
+        "name": "initResearchToc",
+        "derivedStartLine": 228,
+        "originalHtmlStartLine": 3754,
+        "derivedEndLine": 284,
+        "originalHtmlEndLine": 3810
+      },
+      {
+        "name": "initMobileNav",
+        "derivedStartLine": 104,
+        "originalHtmlStartLine": 3630,
+        "derivedEndLine": 127,
+        "originalHtmlEndLine": 3653
+      },
+      {
+        "name": "toggleHonors",
+        "derivedStartLine": 286,
+        "originalHtmlStartLine": 3812,
+        "derivedEndLine": 291,
+        "originalHtmlEndLine": 3817
+      },
+      {
+        "name": "stopReverse",
+        "derivedStartLine": 384,
+        "originalHtmlStartLine": 3910,
+        "derivedEndLine": 388,
+        "originalHtmlEndLine": 3914
+      },
+      {
+        "name": "setPubOthersInert",
+        "derivedStartLine": 187,
+        "originalHtmlStartLine": 3713,
+        "derivedEndLine": 195,
+        "originalHtmlEndLine": 3721
+      },
+      {
+        "name": "docTop",
+        "derivedStartLine": 137,
+        "originalHtmlStartLine": 3663,
+        "derivedEndLine": 140,
+        "originalHtmlEndLine": 3666
+      },
+      {
+        "name": "applyRate",
+        "derivedStartLine": 380,
+        "originalHtmlStartLine": 3906,
+        "derivedEndLine": 380,
+        "originalHtmlEndLine": 3906
+      },
+      {
+        "name": "buildShort",
+        "derivedStartLine": 11,
+        "originalHtmlStartLine": 3537,
+        "derivedEndLine": 28,
+        "originalHtmlEndLine": 3554
+      },
+      {
+        "name": "initPubOthersPeek",
+        "derivedStartLine": 215,
+        "originalHtmlStartLine": 3741,
+        "derivedEndLine": 225,
+        "originalHtmlEndLine": 3751
+      },
+      {
+        "name": "compact",
+        "derivedStartLine": 45,
+        "originalHtmlStartLine": 3571,
+        "derivedEndLine": 58,
+        "originalHtmlEndLine": 3584
+      },
+      {
+        "name": "toggleNews",
+        "derivedStartLine": 171,
+        "originalHtmlStartLine": 3697,
+        "derivedEndLine": 176,
+        "originalHtmlEndLine": 3702
+      },
+      {
+        "name": "syncPubOthersVideos",
+        "derivedStartLine": 177,
+        "originalHtmlStartLine": 3703,
+        "derivedEndLine": 186,
+        "originalHtmlEndLine": 3712
+      },
+      {
+        "name": "reverseStep",
+        "derivedStartLine": 390,
+        "originalHtmlStartLine": 3916,
+        "derivedEndLine": 406,
+        "originalHtmlEndLine": 3932
+      },
+      {
+        "name": "syncActive",
+        "derivedStartLine": 250,
+        "originalHtmlStartLine": 3776,
+        "derivedEndLine": 257,
+        "originalHtmlEndLine": 3783
+      },
+      {
+        "name": "init",
+        "derivedStartLine": 60,
+        "originalHtmlStartLine": 3586,
+        "derivedEndLine": 62,
+        "originalHtmlEndLine": 3588
+      },
+      {
+        "name": "togglePubOthers",
+        "derivedStartLine": 196,
+        "originalHtmlStartLine": 3722,
+        "derivedEndLine": 210,
+        "originalHtmlEndLine": 3736
+      },
+      {
+        "name": "shouldKeep",
+        "derivedStartLine": 5,
+        "originalHtmlStartLine": 3531,
+        "derivedEndLine": 9,
+        "originalHtmlEndLine": 3535
+      },
+      {
+        "name": "initNavActive",
+        "derivedStartLine": 130,
+        "originalHtmlStartLine": 3656,
+        "derivedEndLine": 169,
+        "originalHtmlEndLine": 3695
+      },
+      {
+        "name": "setOpen",
+        "derivedStartLine": 110,
+        "originalHtmlStartLine": 3636,
+        "derivedEndLine": 115,
+        "originalHtmlEndLine": 3641
+      },
+      {
+        "name": "startReverse",
+        "derivedStartLine": 408,
+        "originalHtmlStartLine": 3934,
+        "derivedEndLine": 414,
+        "originalHtmlEndLine": 3940
+      },
+      {
+        "name": "setActive",
+        "derivedStartLine": 238,
+        "originalHtmlStartLine": 3764,
+        "derivedEndLine": 242,
+        "originalHtmlEndLine": 3768
+      },
+      {
+        "name": "openLightbox",
+        "derivedStartLine": 314,
+        "originalHtmlStartLine": 3840,
+        "derivedEndLine": 346,
+        "originalHtmlEndLine": 3872
+      },
+      {
+        "name": "syncVisibility",
+        "derivedStartLine": 244,
+        "originalHtmlStartLine": 3770,
+        "derivedEndLine": 248,
+        "originalHtmlEndLine": 3774
+      },
+      {
+        "name": "render",
+        "derivedStartLine": 30,
+        "originalHtmlStartLine": 3556,
+        "derivedEndLine": 43,
+        "originalHtmlEndLine": 3569
+      },
+      {
+        "name": "markLeadPublications",
+        "derivedStartLine": 65,
+        "originalHtmlStartLine": 3591,
+        "derivedEndLine": 87,
+        "originalHtmlEndLine": 3613
+      },
+      {
+        "name": "PubAuthorsCompact",
+        "derivedStartLine": 4,
+        "originalHtmlStartLine": 3530,
+        "derivedEndLine": 63,
+        "originalHtmlEndLine": 3589
+      },
+      {
+        "name": "setActive",
+        "derivedStartLine": 142,
+        "originalHtmlStartLine": 3668,
+        "derivedEndLine": 157,
+        "originalHtmlEndLine": 3683
+      },
+      {
+        "name": "closeLightbox",
+        "derivedStartLine": 302,
+        "originalHtmlStartLine": 3828,
+        "derivedEndLine": 312,
+        "originalHtmlEndLine": 3838
+      },
+      {
+        "name": "initPubFeaturedLightbox",
+        "derivedStartLine": 294,
+        "originalHtmlStartLine": 3820,
+        "derivedEndLine": 359,
+        "originalHtmlEndLine": 3885
+      },
+      {
+        "name": "initVideoPingPong",
+        "derivedStartLine": 372,
+        "originalHtmlStartLine": 3898,
+        "derivedEndLine": 430,
+        "originalHtmlEndLine": 3956
+      },
+      {
+        "name": "playPeek",
+        "derivedStartLine": 219,
+        "originalHtmlStartLine": 3745,
+        "derivedEndLine": 219,
+        "originalHtmlEndLine": 3745
+      }
+    ],
+    "totalFunctions": 76
+  },
+  "environmentIssues": [
+    "Sandbox startup failed: REA compiles macOS ProcessRunTokenReader.swift; clang ModuleCache access was denied.",
+    "Environment cache redirection did not propagate to helper compiler.",
+    "Approved unsandboxed inert static analysis completed successfully."
+  ],
+  "limitations": [
+    "This command inventories HTML but did not parse the inline JavaScript in the original HTML. Manual verbatim extraction was necessary.",
+    "CSS layout and DOM/browser listener semantics are not reconstructed by this JavaScript/Electron-focused command.",
+    "Zero findings is the application-level findings metric; semantic extraction did generate a larger graph.",
+    "Static candidates do not prove runtime execution, behavior equivalence, or visual equivalence."
+  ],
+  "unknownReasons": {
+    "dynamic-call": 187,
+    "ambiguous-target": 257,
+    "unknown-value": 143,
+    "dynamic-property": 1
+  }
+}

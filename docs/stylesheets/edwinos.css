@@ -3286,11 +3286,14 @@ html.edwinos-search-scroll-locked {
     height: auto !important;
 }
 
-/*
- * Keep the search field in one header coordinate system so opening and
- * closing can animate between its resting width and the full notch.
- */
+/* Passive layout/font measurements must settle directly. Only an explicit
+   search interaction animates the shared resting/expanded coordinates; the
+   runtime keeps this state through the entire closing transition. */
 .md-header .md-search {
+    transition: none !important;
+}
+
+html.edwinos-search-transitioning .md-header .md-search {
     transition:
         left 420ms cubic-bezier(0.42, 0, 0.58, 1),
         right 420ms cubic-bezier(0.42, 0, 0.58, 1),
@@ -5027,7 +5030,7 @@ body.is-home-profile-page
     border-bottom-color: rgba(148, 163, 184, 0.2);
 }
 
-@media screen and (max-width: 76.1875em) {
+@media screen and (max-width: 76.234375em) {
     [data-md-color-scheme="default"] .md-nav--primary {
         background: rgba(250, 250, 249, 0.96);
         border-right: 1px solid #e7e5e4;
@@ -5060,7 +5063,7 @@ body.is-home-profile-page
     display: none !important;
 }
 
-@media screen and (max-width: 76.1875em) {
+@media screen and (max-width: 76.234375em) {
     html:not(:has(> head > link[rel="canonical"][href*="/OsdNotes/"])):not(:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]))
     [data-md-toggle="drawer"]:checked ~ .md-container .md-sidebar--primary,
     html:not(:has(> head > link[rel="canonical"][href*="/OsdNotes/"])):not(:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]))
@@ -5126,72 +5129,9 @@ body.is-home-profile-page
         display: none !important;
         content: none !important;
     }
-
-    .md-nav--primary[data-edwinos-drawer-section]
-    .edwinos-drawer-section-nav
-    .edwinos-drawer-back-title {
-        position: relative !important;
-        display: flex !important;
-        width: 100% !important;
-        height: 5.6rem !important;
-        min-height: 5.6rem !important;
-        align-items: center !important;
-        margin: 0 !important;
-        padding: 3.5rem 0.8rem 0 2.2rem !important;
-        overflow: hidden !important;
-        color: var(--md-default-fg-color) !important;
-        font-family: var(--edwinos-font-mono) !important;
-        font-size: 0.7rem !important;
-        font-weight: 600 !important;
-        line-height: 1.3 !important;
-        white-space: nowrap !important;
-        text-overflow: ellipsis !important;
-        cursor: pointer !important;
-    }
-
-    .md-nav--primary[data-edwinos-drawer-section]
-    .edwinos-drawer-section-nav
-    .edwinos-drawer-back-title
-    > .md-nav__icon {
-        display: none !important;
-    }
-
-    .md-nav--primary[data-edwinos-drawer-section]
-    .edwinos-drawer-section-nav
-    .edwinos-drawer-back-title::before {
-        position: absolute !important;
-        top: auto !important;
-        bottom: 0.6rem !important;
-        left: 0.95rem !important;
-        content: "" !important;
-        display: block !important;
-        width: 0.9rem !important;
-        height: 0.9rem !important;
-        background-color: currentColor !important;
-        border: 0 !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        -webkit-mask-image: var(--edwinos-drawer-chevron) !important;
-        mask-image: var(--edwinos-drawer-chevron) !important;
-        -webkit-mask-position: center !important;
-        mask-position: center !important;
-        -webkit-mask-repeat: no-repeat !important;
-        mask-repeat: no-repeat !important;
-        -webkit-mask-size: contain !important;
-        mask-size: contain !important;
-        transform: rotate(180deg) !important;
-        pointer-events: none !important;
-    }
-
-    .md-nav--primary[data-edwinos-drawer-section]
-    .edwinos-drawer-section-nav
-    .edwinos-drawer-back-title:is(:hover, :focus-visible)::before {
-        color: var(--md-accent-fg-color) !important;
-        background-color: currentColor !important;
-    }
 }
 
-@media screen and (min-width: 34.0625rem) and (max-width: 76.1875rem) {
+@media screen and (min-width: 34.0625rem) and (max-width: 76.234375rem) {
     html:has(> head > link[rel="canonical"][href*="/OsdNotes/"]),
     html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"]) {
         --edwinos-mobile-drawer-space: calc(
@@ -5227,7 +5167,7 @@ body.is-home-profile-page
     }
 }
 
-@media screen and (min-width: 34.0625rem) and (max-width: 76.1875rem) {
+@media screen and (min-width: 34.0625rem) and (max-width: 76.234375rem) {
     html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
     body .md-header__button[for="__drawer"],
     html:has(> head > link[rel="canonical"][href*="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
@@ -5252,14 +5192,14 @@ body.is-home-profile-page
 }
 
 .md-sidebar--primary .md-nav__list
-.md-nav__link:not(.md-nav__title):not(.edwinos-drawer-back-title):not(.edwinos-drawer-section-title),
+.md-nav__link:not(.md-nav__title):not(.edwinos-drawer-section-title),
 .md-sidebar--secondary [data-md-component="toc"] .md-nav__link {
     box-sizing: border-box;
     transition-property: color, background-color, opacity !important;
 }
 
 .md-sidebar--primary .md-nav__list
-.md-nav__link:not(.md-nav__title):not(.edwinos-drawer-back-title):not(.edwinos-drawer-section-title):is(:hover, :focus-visible, .md-nav__link--active),
+.md-nav__link:not(.md-nav__title):not(.edwinos-drawer-section-title):is(:hover, :focus-visible, .md-nav__link--active),
 .md-sidebar--secondary [data-md-component="toc"]
 .md-nav__link:is(:hover, :focus-visible, .md-nav__link--active, .edwinos-toc-link--selected) {
     padding-left: 0 !important;
@@ -5267,15 +5207,19 @@ body.is-home-profile-page
 }
 
 /* Drawer: one optical canvas beneath clear, desktop-sized navigation text.
-   Material still owns the drawer transform and its nested-panel navigation. */
-@media screen and (max-width: 76.1875em) {
+   Material keeps the outer drawer transform; children expand inline as a tree. */
+@media screen and (max-width: 76.234375em) {
     .md-nav--primary[data-edwinos-drawer-section] {
         --edwinos-drawer-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m9 5 7 7-7 7' fill='none' stroke='black' stroke-width='1.65' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     }
 
     .md-sidebar--primary.edwinos-drawer-glass {
         --edwinos-drawer-tint: linear-gradient(to left,
-            rgba(246, 248, 250, 0.06), rgba(246, 248, 250, 0.56) 28px);
+            rgba(246, 248, 250, 0.06) 0,
+            rgba(246, 248, 250, 0.11175) 24px,
+            rgba(246, 248, 250, 0.31) 48px,
+            rgba(246, 248, 250, 0.50825) 72px,
+            rgba(246, 248, 250, 0.56) 96px);
         background: var(--edwinos-drawer-tint) !important;
         border: 0 !important;
         border-right: 1px solid rgba(255, 255, 255, 0.48) !important;
@@ -5288,7 +5232,11 @@ body.is-home-profile-page
 
     [data-md-color-scheme="slate"] .md-sidebar--primary.edwinos-drawer-glass {
         --edwinos-drawer-tint: linear-gradient(to left,
-            rgba(13, 17, 23, 0.08), rgba(13, 17, 23, 0.58) 28px);
+            rgba(13, 17, 23, 0.08) 0,
+            rgba(13, 17, 23, 0.13175) 24px,
+            rgba(13, 17, 23, 0.33) 48px,
+            rgba(13, 17, 23, 0.52825) 72px,
+            rgba(13, 17, 23, 0.58) 96px);
         border-right-color: rgba(203, 213, 225, 0.18) !important;
     }
 
@@ -5318,15 +5266,23 @@ body.is-home-profile-page
     .md-sidebar--primary.edwinos-drawer-glass[data-edwinos-drawer-mode="native-blur"]::before {
         -webkit-backdrop-filter: blur(14px) saturate(1.08);
         backdrop-filter: blur(14px) saturate(1.08);
-        -webkit-mask-image: linear-gradient(to left, transparent, #000 28px);
-        mask-image: linear-gradient(to left, transparent, #000 28px);
+        -webkit-mask-image: linear-gradient(to left,
+            transparent 0, rgba(0, 0, 0, 0.1035) 24px,
+            rgba(0, 0, 0, 0.5) 48px, rgba(0, 0, 0, 0.8965) 72px, #000 96px);
+        mask-image: linear-gradient(to left,
+            transparent 0, rgba(0, 0, 0, 0.1035) 24px,
+            rgba(0, 0, 0, 0.5) 48px, rgba(0, 0, 0, 0.8965) 72px, #000 96px);
     }
 
     .md-sidebar--primary.edwinos-drawer-glass[data-edwinos-drawer-mode="native-blur"]::after {
         -webkit-backdrop-filter: blur(2px) saturate(1.08);
         backdrop-filter: blur(2px) saturate(1.08);
-        -webkit-mask-image: linear-gradient(to left, #000, transparent 28px);
-        mask-image: linear-gradient(to left, #000, transparent 28px);
+        -webkit-mask-image: linear-gradient(to left,
+            #000 0, rgba(0, 0, 0, 0.8965) 24px,
+            rgba(0, 0, 0, 0.5) 48px, rgba(0, 0, 0, 0.1035) 72px, transparent 96px);
+        mask-image: linear-gradient(to left,
+            #000 0, rgba(0, 0, 0, 0.8965) 24px,
+            rgba(0, 0, 0, 0.5) 48px, rgba(0, 0, 0, 0.1035) 72px, transparent 96px);
     }
 
     .edwinos-drawer-glass[data-edwinos-drawer-mode="native-blur"]
@@ -5365,16 +5321,15 @@ body.is-home-profile-page
         box-shadow: none !important;
     }
 
-    /* Native opaque child panels used to cover the parent's foreground. Keep
-       their replacement transparent without showing or focusing ancestor rows;
-       hide only a panel's own controls, never its nested navigation canvas. */
-    .md-sidebar--primary.edwinos-drawer-glass
-    .md-nav:has(> .md-nav__list > .md-nav__item > .md-nav__toggle:checked)
+    /* Only the active section's full-height root remains a native panel. Its
+       ancestors have no visible controls; descendants keep their rows visible. */
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section]
     > :is(.md-nav__title, .md-nav__source),
-    .md-sidebar--primary.edwinos-drawer-glass
-    .md-nav:has(> .md-nav__list > .md-nav__item > .md-nav__toggle:checked)
+    .md-sidebar--primary
+    .md-nav--primary[data-edwinos-drawer-section]
     > .md-nav__list > .md-nav__item > .md-nav__link {
-        visibility: hidden !important;
+        display: none !important;
     }
 
     .md-sidebar--primary
@@ -5383,88 +5338,140 @@ body.is-home-profile-page
         line-height: 1.3;
     }
 
+    /* Inline tree groups have a single grid child, so 0fr to 1fr follows
+       actual content height without measuring or translating nested panels. */
     .md-sidebar--primary
-    .md-nav--primary[data-edwinos-drawer-section]
-    .md-nav__link .md-nav__icon {
-        flex: 0 0 0.9rem;
-        width: 0.9rem;
-        height: 0.9rem;
+    .edwinos-drawer-section-nav .edwinos-drawer-tree-group {
+        position: static !important;
+        inset: auto !important;
+        display: grid !important;
+        grid-template-rows: 0fr;
+        width: auto !important;
+        height: auto !important;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        opacity: 1 !important;
+        transform: none !important;
+        visibility: hidden;
+        transition: grid-template-rows 220ms cubic-bezier(0.22, 0.68, 0, 1),
+            visibility 0s 220ms !important;
+    }
+
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .edwinos-drawer-tree-group[aria-expanded="true"] {
+        grid-template-rows: 1fr;
+        visibility: visible;
+        transition: grid-template-rows 220ms cubic-bezier(0.22, 0.68, 0, 1),
+            visibility 0s !important;
+    }
+
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .edwinos-drawer-tree-group > .md-nav__title {
+        display: none !important;
+    }
+
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .edwinos-drawer-tree-group > .md-nav__list {
+        min-height: 0;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 0 0 12px !important;
+    }
+
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .md-nav__list > .md-nav__item > .md-nav__link,
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .md-nav__list > .md-nav__item
+    > .md-nav__link:is(:hover, :focus-visible, .md-nav__link--active) {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0.6rem 0.8rem !important;
+        background: transparent !important;
+        transform: none !important;
+    }
+
+    /* Keep the current article's outline accessible inside the same tree.
+       Its duplicate native article anchor remains hidden on this route. */
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .md-nav__link[for="__toc"] {
+        display: flex !important;
+    }
+
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .md-nav__link[for="__toc"] + a.md-nav__link {
+        display: none !important;
+    }
+
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .md-nav--secondary
+    .md-nav:not(.edwinos-drawer-tree-group) {
+        position: static !important;
+        inset: auto !important;
+        display: block !important;
+        width: auto !important;
+        height: auto !important;
+        opacity: 1 !important;
+        transform: none !important;
+        visibility: inherit !important;
+    }
+
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .md-nav--secondary
+    .md-nav:not(.edwinos-drawer-tree-group) > .md-nav__list {
+        margin: 0 !important;
+        padding: 0 0 0 12px !important;
+    }
+
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .md-nav__list
+    > .md-nav__item > .md-nav__link[href] {
+        padding-left: calc(0.8rem + 24px) !important;
+    }
+
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .md-nav__container > .md-nav__link {
+        align-items: center;
+        padding: 0 !important;
+        background: transparent !important;
+        transform: none !important;
+    }
+
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .md-nav__container > .edwinos-drawer-tree-toggle {
+        order: -1;
+        flex: 0 0 16px;
+    }
+
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .edwinos-drawer-tree-toggle {
+        cursor: pointer;
+    }
+
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .edwinos-drawer-tree-toggle > .md-nav__icon {
+        order: -1;
+        flex: 0 0 16px;
         align-self: center;
+        width: 16px;
+        height: 16px;
+        margin: 0;
         background: transparent;
     }
 
     .md-sidebar--primary
-    .md-nav--primary[data-edwinos-drawer-section]
-    .md-nav__link .md-nav__icon::after {
+    .edwinos-drawer-section-nav .edwinos-drawer-tree-toggle > .md-nav__icon::after {
         -webkit-mask-image: var(--edwinos-drawer-chevron);
         mask-image: var(--edwinos-drawer-chevron);
-        transition: transform 240ms cubic-bezier(0.22, 0.68, 0, 1.01);
+        transform: rotate(0deg);
+        transition: transform 180ms cubic-bezier(0.22, 0.68, 0, 1);
     }
 
     .md-sidebar--primary
-    .md-nav--primary[data-edwinos-drawer-section]
-    .edwinos-drawer-section-nav .md-nav__title {
-        border-bottom: 0 !important;
-        box-shadow: none !important;
-    }
-
-    .md-sidebar--primary
-    .md-nav--primary[data-edwinos-drawer-section]
-    .edwinos-drawer-section-nav .md-nav__title ~ .md-nav__list {
-        box-shadow: none !important;
-    }
-
-    .md-sidebar--primary
-    .md-nav--primary[data-edwinos-drawer-section]
     .edwinos-drawer-section-nav
-    > .md-nav__list
-    > .md-nav__item
-    > .md-nav__link:not(.md-nav__container):is(
-        :hover,
-        :focus-visible,
-        .md-nav__link--active
-    ),
-    .md-sidebar--primary
-    .md-nav--primary[data-edwinos-drawer-section]
-    .edwinos-drawer-section-nav
-    .md-nav:not(.md-nav--secondary)
-    > .md-nav__list
-    > .md-nav__item
-    > .md-nav__link:not(.md-nav__container):is(
-        :hover,
-        :focus-visible,
-        .md-nav__link--active
-    ) {
-        padding-left: 0.8rem !important;
-        background: transparent !important;
-        transform: none !important;
-    }
-
-    .md-sidebar--primary
-    .md-nav--primary[data-edwinos-drawer-section]
-    .edwinos-drawer-section-nav
-    .md-nav__container:is(
-        :hover,
-        :focus-visible,
-        .md-nav__link--active
-    ) {
-        padding-left: 0.8rem !important;
-        background: transparent !important;
-        transform: none !important;
-    }
-
-    .md-sidebar--primary
-    .md-nav--primary[data-edwinos-drawer-section]
-    .edwinos-drawer-section-nav
-    .md-nav__container
-    > .md-nav__link:is(
-        :hover,
-        :focus-visible,
-        .md-nav__link--active
-    ) {
-        padding-left: 0 !important;
-        background: transparent !important;
-        transform: none !important;
+    .edwinos-drawer-tree-toggle[aria-expanded="true"] > .md-nav__icon::after {
+        transform: rotate(90deg);
     }
 
     body[data-md-color-scheme="default"]
@@ -5488,11 +5495,12 @@ body.is-home-profile-page
     }
 }
 
-@media screen and (max-width: 76.1875em) and (prefers-reduced-motion: reduce) {
+@media screen and (max-width: 76.234375em) and (prefers-reduced-motion: reduce) {
     .md-sidebar--primary.edwinos-drawer-glass,
     .md-sidebar--primary
-    .md-nav--primary[data-edwinos-drawer-section]
-    .md-nav__link .md-nav__icon::after {
+    .edwinos-drawer-section-nav .edwinos-drawer-tree-group,
+    .md-sidebar--primary
+    .edwinos-drawer-section-nav .edwinos-drawer-tree-toggle > .md-nav__icon::after {
         transition: none !important;
     }
 }
@@ -7095,6 +7103,9 @@ body:has(.academic-home-layout) .academic-content > .academic-section:first-of-t
 
 body.is-homepage .academic-content > .academic-section:first-of-type > p,
 body:has(.academic-home-layout) .academic-content > .academic-section:first-of-type > p {
+    max-width: 76ch;
+    font-size: 15px;
+    line-height: 1.75;
     margin-bottom: 0 !important;
 }
 
@@ -7189,6 +7200,13 @@ body[data-md-color-scheme="slate"]:has(.academic-home-layout) .academic-content 
 }
 .academic-home-layout .overview-education-logo { width: 200px; }
 .academic-home-layout .overview-education-logo img { display: block; width: 180px; max-width: 100%; height: auto; object-fit: contain; }
+/* Preserve the university's blue artwork on a quiet light field at night.
+   The painted surround does not change image dimensions or preload geometry. */
+body[data-md-color-scheme="slate"] .academic-home-layout .overview-education-logo img {
+    background: #edf2f7;
+    border-radius: 4px;
+    box-shadow: 0 0 0 7px #edf2f7;
+}
 .academic-home-layout .overview-education-content { display: grid; gap: 3px; min-width: 0; }
 .academic-home-layout .overview-education-school { font-size: 17px; font-weight: 500; line-height: 1.65; }
 .academic-home-layout .overview-education-school a,
@@ -7419,7 +7437,7 @@ body:has(.academic-home-layout) .news-text {
 .academic-home-layout .overview-publication {
     position: relative;
     display: grid !important;
-    grid-template-columns: 8.75rem minmax(0, 1fr) !important;
+    grid-template-columns: 9.5rem minmax(0, 1fr) !important;
     gap: 1rem !important;
     align-items: center !important;
     margin: 0 !important;
@@ -7453,7 +7471,7 @@ body:has(.academic-home-layout) .news-text {
 
 .academic-home-layout .overview-publication__media {
     display: flex;
-    width: 8.75rem;
+    width: 100%;
     align-items: center;
     justify-content: center;
     overflow: hidden;
@@ -7468,6 +7486,62 @@ body:has(.academic-home-layout) .news-text {
     height: auto;
     margin: 0 !important;
     object-fit: contain;
+}
+
+/* Optional motion stays above the existing native image, never in its place. */
+.academic-home-layout .overview-publication__media--preview {
+    position: relative;
+    isolation: isolate;
+}
+
+.academic-home-layout .overview-publication__preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: var(--academic-soft);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+}
+
+.academic-home-layout .is-preview-playing > .overview-publication__preview {
+    opacity: 1;
+}
+
+.academic-home-layout .overview-publication__preview-toggle {
+    position: absolute;
+    z-index: 1;
+    right: 5px;
+    bottom: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 4px 9px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 999px;
+    background: rgba(20, 26, 34, 0.84);
+    color: #fff;
+    font: 500 11px/1.2 var(--edwinos-font-reading-sans);
+    cursor: pointer;
+}
+
+.academic-home-layout .overview-publication__preview-toggle[hidden] {
+    display: none;
+}
+
+.academic-home-layout .overview-publication__preview-toggle:focus-visible {
+    outline: 2px solid var(--academic-accent);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .academic-home-layout .overview-publication__preview {
+        transition: none;
+    }
 }
 
 .academic-home-layout .overview-publication__media--placeholder {
@@ -7497,7 +7571,7 @@ body:has(.academic-home-layout) .news-text {
     font-family: var(--edwinos-font-reading-sans) !important;
     font-size: 16px !important;
     font-weight: 500 !important;
-    line-height: 1.3 !important;
+    line-height: 1.42 !important;
     letter-spacing: -0.015em !important;
 }
 
@@ -7675,14 +7749,14 @@ body.is-homepage .academic-home-layout .overview-publication__links a:hover {
 
 @media screen and (max-width: 42.5rem) {
     .academic-home-layout .overview-publication {
-        grid-template-columns: 6rem minmax(0, 1fr) !important;
+        grid-template-columns: 6.5rem minmax(0, 1fr) !important;
         gap: 12px !important;
         align-items: center !important;
         padding: 12px 8px !important;
     }
 
     .academic-home-layout .overview-publication__media {
-        width: 6rem;
+        width: 100%;
     }
 
     .academic-home-layout .md-typeset .overview-publication__title,
@@ -7702,13 +7776,13 @@ body.is-homepage .academic-home-layout .overview-publication__links a:hover {
 
 @media screen and (max-width: 26.25rem) {
     .academic-home-layout .overview-publication {
-        grid-template-columns: 5rem minmax(0, 1fr) !important;
+        grid-template-columns: 5.75rem minmax(0, 1fr) !important;
         gap: 10px !important;
         padding: 10px 0 !important;
     }
 
     .academic-home-layout .overview-publication__media {
-        width: 5rem;
+        width: 100%;
     }
 
 }
@@ -8218,7 +8292,7 @@ body .md-content__inner.md-typeset
     h6,
     .intro-card-grid > ul > li > p:first-child strong,
     .admonition-title
-),
+):where(:not(.landing-route > h3)),
 html:has(> head > link[rel="canonical"][href$="/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/"])
 body .md-content__inner.md-typeset
 :is(
@@ -8230,7 +8304,7 @@ body .md-content__inner.md-typeset
     h6,
     .intro-card-grid > ul > li > p:first-child strong,
     .admonition-title
-) {
+):where(:not(.landing-route > h3)) {
     font-family: var(--edwinos-font-hand) !important;
     font-weight: 700 !important;
     letter-spacing: 0 !important;
@@ -9634,6 +9708,25 @@ body.is-archive-navigating::after {
    Content Hubs
    ========================================================================== */
 
+/* Match Overview's blank pending state. Seed it before the runtime arrives,
+   then let independent headings/paragraphs/cards own their entrance. No
+   opacity transition may reveal a waiting unit before its WAAPI effect. */
+html.edwinos-hub-reveal-enabled .md-sidebar--primary .md-nav__list
+.md-nav__link.is-hub-reveal-unit {
+    /* The entrance owns opacity; native link hover still owns its colors. */
+    transition-property: color, background-color !important;
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+    html.edwinos-hub-reveal-enabled
+    .notes-landing:not([data-hub-reveal-ready]) [data-hub-reveal],
+    html.edwinos-hub-reveal-enabled .is-hub-reveal-pending {
+        opacity: 0;
+        pointer-events: none;
+        transition: none !important;
+    }
+}
+
 @media screen and (min-width: 76.25em) {
     html:has(> head > link[rel="canonical"][href*="/OsdNotes/"])
     body .md-sidebar--primary
@@ -9716,6 +9809,291 @@ body[data-md-color-scheme="slate"]
 
     .md-typeset .intro-card-grid > ul > li:last-child:nth-child(odd) {
         grid-column: auto;
+    }
+}
+
+/* Landing pages offer reading routes without changing child article styles. */
+.md-content__inner:has(> .notes-landing) {
+    animation: none;
+}
+
+.md-typeset .notes-landing {
+    max-width: 50rem;
+    margin-inline: auto;
+    color: var(--md-default-fg-color);
+    font-size: 0.8rem;
+    line-height: 1.7;
+}
+
+.md-typeset .notes-landing > h1 {
+    margin-bottom: 0.55rem;
+}
+
+.md-typeset .landing-intro {
+    max-width: 66ch;
+    margin-bottom: 1rem;
+    font-size: 0.84rem;
+    line-height: 1.75;
+}
+
+.md-typeset .landing-intro p {
+    margin: 0;
+}
+
+.md-typeset .landing-routes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin-block: 0 1rem;
+}
+
+.md-typeset .landing-route {
+    position: relative;
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid rgba(60, 60, 67, 0.16);
+    border-radius: 0.8rem;
+    background: rgba(246, 248, 250, 0.2);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.75),
+        inset 0 -1px 0 rgba(31, 35, 40, 0.06),
+        0 3px 14px rgba(31, 35, 40, 0.055);
+    -webkit-backdrop-filter: blur(4px) saturate(1.12);
+    backdrop-filter: blur(4px) saturate(1.12);
+}
+
+/* Share Back to Top's rounded lens; filter the backdrop, leaving text sharp. */
+.md-typeset .landing-route.edwinos-landing-route-refraction {
+    -webkit-backdrop-filter: var(--edwinos-landing-route-filter) saturate(1.12);
+    backdrop-filter: var(--edwinos-landing-route-filter) saturate(1.12);
+}
+
+.md-typeset .landing-route > .edwinos-landing-route-glass__highlight {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow:
+        inset 1px 0 rgba(255, 255, 255, 0.32),
+        inset -1px 0 rgba(255, 255, 255, 0.18);
+    pointer-events: none;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .landing-route {
+    border-color: rgba(240, 246, 252, 0.18);
+    background: rgba(25, 29, 37, 0.26);
+    box-shadow:
+        inset 0 1px 0 rgba(240, 246, 252, 0.22),
+        inset 0 -1px 0 rgba(1, 4, 9, 0.2),
+        0 3px 14px rgba(1, 4, 9, 0.18);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .landing-route > .edwinos-landing-route-glass__highlight {
+    box-shadow:
+        inset 1px 0 rgba(240, 246, 252, 0.12),
+        inset -1px 0 rgba(240, 246, 252, 0.06);
+}
+
+.md-typeset .landing-route h3 {
+    margin: 0 0 0.5rem;
+    color: var(--md-typeset-a-color);
+    font-family: var(--edwinos-font-reading-sans);
+    font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.md-typeset .landing-route p {
+    margin: 0;
+    font-size: 0.74rem;
+    line-height: 1.7;
+}
+
+.md-typeset .notes-landing :is(.landing-route, .landing-reading-list) h3 a,
+.md-typeset .notes-landing .landing-feature h2 a {
+    font-family: var(--edwinos-font-reading-sans);
+    font-weight: 500;
+    line-height: 1.5;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.md-typeset .notes-landing :is(h2, h3) a {
+    border-bottom: 0;
+}
+
+.md-typeset .notes-landing :is(h2, h3) a:is(:hover, :focus-visible) {
+    border-bottom: 0;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+}
+
+.md-typeset .notes-landing .landing-title-translation {
+    display: inline-block;
+    max-width: calc(100% - 0.5em);
+    margin-inline-start: 0.5em;
+    color: var(--md-default-fg-color);
+    font-family: var(--edwinos-font-reading-sans);
+    font-size: 0.88em;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.5;
+    cursor: default;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.md-typeset .notes-landing a:focus-visible {
+    outline: 2px solid var(--md-typeset-a-color);
+    outline-offset: 4px;
+    border-radius: 2px;
+}
+
+.md-typeset .notes-landing > h2,
+.md-typeset .landing-selection > h2,
+.md-typeset .landing-group > h2 {
+    margin: 0 0 0.8rem;
+}
+
+.md-typeset .landing-reading-entry {
+    display: flow-root;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .landing-reading-entry:first-child {
+    border-top: 0;
+    padding-top: 0.25rem;
+}
+
+.md-typeset .landing-reading-entry > h3 {
+    margin: 0;
+    font-size: 0.84rem;
+}
+
+.md-typeset .landing-reading-entry > p {
+    max-width: 72ch;
+    margin: 0.32rem 0 1rem;
+    font-size: 0.75rem;
+    line-height: 1.7;
+}
+
+/* The next section/footer owns its gap; do not stack a trailing note margin. */
+.md-typeset .landing-reading-entry:last-child > p:last-child {
+    margin-bottom: 0;
+}
+
+.md-typeset .notes-landing .landing-language {
+    display: inline-block;
+    margin-left: 0.28rem;
+    color: var(--md-default-fg-color--light);
+    font-family: var(--edwinos-font-reading-sans);
+    font-size: 0.62rem;
+    font-weight: 400;
+    white-space: nowrap;
+    cursor: default;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.md-typeset .landing-feature {
+    margin-block: 0 1.8rem;
+    padding: 1.1rem 1.25rem;
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-left: 3px solid var(--md-typeset-a-color);
+    border-radius: 0 0.8rem 0.8rem 0;
+    background: color-mix(in srgb, var(--md-typeset-a-color) 3%, transparent);
+}
+
+.md-typeset .landing-feature .landing-kicker {
+    margin: 0 0 0.5rem;
+    color: var(--md-default-fg-color--light);
+    font-size: 0.66rem;
+}
+
+.md-typeset .landing-feature h2 {
+    margin: 0 0 0.6rem;
+    padding-bottom: 0;
+    border-bottom: 0;
+    font-size: 1.05rem;
+}
+
+.md-typeset .landing-feature > p:last-child {
+    max-width: 72ch;
+    margin: 0;
+    font-size: 0.76rem;
+    line-height: 1.75;
+}
+
+.md-typeset .landing-groups {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1rem 2rem;
+    align-items: start;
+}
+
+.md-typeset .landing-group {
+    min-width: 0;
+}
+
+.md-typeset .landing-group:first-child {
+    grid-column: 1 / -1;
+}
+
+.md-typeset .landing-footer {
+    max-width: 76ch;
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--md-default-fg-color--lightest);
+    color: var(--md-default-fg-color--light);
+    font-size: 0.7rem;
+    line-height: 1.75;
+}
+
+.md-typeset .landing-footer p {
+    margin: 0 0 0.4rem;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .md-typeset .landing-route {
+        transition: transform 240ms cubic-bezier(.2, .7, .3, 1);
+    }
+
+    .md-typeset .landing-route:hover {
+        transform: translateY(-3px);
+    }
+}
+
+@media screen and (max-width: 59.984375em) {
+    .md-typeset .landing-routes {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.65rem;
+    }
+
+    .md-typeset .landing-route {
+        padding: 0.8rem 0.9rem;
+    }
+}
+
+@media screen and (max-width: 34em) {
+    .md-typeset .landing-groups {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1rem;
+    }
+
+    .md-typeset .landing-feature {
+        padding: 0.85rem 0.9rem;
+    }
+
+    .md-typeset .notes-landing :is(h2, h3) > a:not(.headerlink) {
+        display: inline-block;
+        max-width: 100%;
+    }
+
+    .md-typeset .notes-landing .landing-title-translation {
+        display: block;
+        max-width: 100%;
+        margin: 0.15em 0 0;
     }
 }
 
@@ -9828,7 +10206,20 @@ body[data-md-color-scheme="slate"]
    Visitor Footer
    ========================================================================== */
 
-.academic-home-layout .academic-content .visitor-meta-footer {
+.edwinos-notes-footer .edwinos-footer-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 1rem;
+    max-width: 100%;
+    min-width: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.academic-home-layout .academic-content .visitor-meta-footer,
+.edwinos-notes-footer {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -9844,7 +10235,8 @@ body[data-md-color-scheme="slate"]
     border-top: 1px solid var(--academic-card-border);
 }
 
-.academic-home-layout .academic-content .visitor-meta-footer__signature {
+.academic-home-layout .academic-content .visitor-meta-footer__signature,
+.edwinos-notes-footer .visitor-meta-footer__signature {
     display: flex;
     flex: 0 0 auto;
     flex-wrap: nowrap;
@@ -9873,7 +10265,8 @@ body[data-md-color-scheme="slate"]
     min-width: 0;
 }
 
-.academic-home-layout .academic-content .visitor-meta-footer__license {
+.academic-home-layout .academic-content .visitor-meta-footer__license,
+.edwinos-notes-footer .visitor-meta-footer__license {
     margin: 0;
     color: var(--academic-muted);
     font-family: var(--edwinos-font-reading-sans);
@@ -9883,7 +10276,8 @@ body[data-md-color-scheme="slate"]
     line-height: 1.45;
 }
 
-.academic-home-layout .academic-content .visitor-meta-footer__separator {
+.academic-home-layout .academic-content .visitor-meta-footer__separator,
+.edwinos-notes-footer .visitor-meta-footer__separator {
     color: var(--academic-card-border);
 }
 
@@ -9960,7 +10354,8 @@ body[data-md-color-scheme="slate"]
 }
 
 @media screen and (max-width: 36rem) {
-    .academic-home-layout .academic-content .visitor-meta-footer {
+    .academic-home-layout .academic-content .visitor-meta-footer,
+    .edwinos-notes-footer {
         flex-direction: column;
         align-items: center;
         row-gap: 0.75rem;
@@ -9976,7 +10371,8 @@ body[data-md-color-scheme="slate"]
         text-align: center;
     }
 
-    .academic-home-layout .academic-content .visitor-meta-footer__signature {
+    .academic-home-layout .academic-content .visitor-meta-footer__signature,
+    .edwinos-notes-footer .visitor-meta-footer__signature {
         justify-content: center;
         gap: 0.32rem;
         font-size: 12px;

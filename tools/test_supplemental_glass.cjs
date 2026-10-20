@@ -54,9 +54,18 @@ class Node {
   }
   querySelectorAll(selector) {
     const result = [];
-    const parts = selector.split('>').map(part => part.trim());
+    const branches = selector.split(',').map(branch => branch.replace(/>/g, ' > ').trim().split(/\s+/));
+    const matchesChain = (node, parts, index = parts.length - 1) => {
+      if (!node || !node.matches(parts[index])) return false;
+      if (index === 0) return true;
+      if (parts[index - 1] === '>') return matchesChain(node.parentNode, parts, index - 2);
+      for (let ancestor = node.parentNode; ancestor; ancestor = ancestor.parentNode) {
+        if (matchesChain(ancestor, parts, index - 1)) return true;
+      }
+      return false;
+    };
     const visit = node => node.children.forEach(child => {
-      if (child.matches(parts.at(-1)) && (parts.length === 1 || child.parentNode.matches(parts[0]))) result.push(child);
+      if (branches.some(parts => matchesChain(child, parts))) result.push(child);
       visit(child);
     });
     visit(this); return result;
@@ -81,7 +90,7 @@ function harness({userAgent = 'Chrome/143.0', mobile = true, reduced = false, in
       const node = new Node(tag);
       if (tag === 'canvas') {
         node.encodes = 0; canvases.push(node);
-        node.getContext = () => ({createImageData: (width, height) => ({width, height, data: new Uint8ClampedArray(width * height * 4)}), putImageData() {}});
+        node.getContext = () => ({createImageData: (width, height) => ({width, height, data: new Uint8ClampedArray(width * height * 4)}), putImageData(pixels) {node.lastPixels = pixels;}});
         node.toDataURL = () => { node.encodes++; return 'data:image/png;base64,map-' + canvases.indexOf(node) + '-' + node.encodes; };
       }
       return node;
@@ -133,25 +142,69 @@ function harness({userAgent = 'Chrome/143.0', mobile = true, reduced = false, in
 // displacement vectors or alpha. Sample an actual physical cross-section.
 {
   const h = harness();
-  const pixels = {width: 288, height: 208, data: new Uint8ClampedArray(288 * 208 * 4)};
+  const pixels = {width: 288, height: 288, data: new Uint8ClampedArray(288 * 288 * 4)};
   h.context.testPixels = pixels;
-  vm.runInContext('fillRoundedGlassDisplacementMap(testPixels, 240, 160, 24, 16, 10)', h.context);
+  vm.runInContext('fillRoundedGlassDisplacementMap(testPixels, 240, 240, 24, 16, 10)', h.context);
   const displacement = pixels.data.slice();
-  vm.runInContext('fillGlassBlurWeights(testPixels, 240, 160, 24, 16, 28)', h.context);
+  vm.runInContext('fillGlassBlurWeights(testPixels, 240, 240, 24, 16, 96)', h.context);
   for (let i = 0; i < pixels.data.length; i += 4) {
     assert.equal(pixels.data[i], displacement[i], 'blur mask preserves X displacement');
     assert.equal(pixels.data[i + 1], displacement[i + 1], 'blur mask preserves Y displacement');
     assert.equal(pixels.data[i + 3], displacement[i + 3], 'blur mask preserves source alpha');
   }
-  const row = 104, weights = [];
-  for (let x = 24; x < 104; x++) weights.push(pixels.data[(row * pixels.width + x) * 4 + 2]);
+  const row = 144, weights = [];
+  for (let x = 24; x < 136; x++) weights.push(pixels.data[(row * pixels.width + x) * 4 + 2]);
   assert.equal(weights[0], 0, 'silhouette starts with the clear edge weight');
   assert.equal(weights.at(-1), 255, 'deep center uses the full frosted weight');
   for (let i = 1; i < weights.length; i++) {
     assert(weights[i] >= weights[i - 1], 'edge-to-center mask is monotonic');
-    assert(weights[i] - weights[i - 1] <= 15, 'mask has no abrupt regional seam');
+    assert(weights[i] - weights[i - 1] <= 5, 'wider blend limits the per-pixel slope');
   }
-  assert(weights.filter(value => value > 0 && value < 255).length >= 25, 'blend occupies a continuous broad band');
+  assert(weights.filter(value => value > 0 && value < 255).length >= 80, 'blend occupies a continuous broad band');
+}
+// A flush-left drawer has only one free optical edge. Its blur ramp depends
+// on horizontal depth, so neither the left edge nor top/bottom corners create
+// another sharp/blur boundary. Other glass keeps the rounded default field.
+{
+  const h = harness();
+  const width = 240, height = 640, padding = 24;
+  const pixels = {width: width + padding * 2, height: height + padding * 2,
+    data: new Uint8ClampedArray((width + padding * 2) * (height + padding * 2) * 4)};
+  h.context.testPixels = pixels;
+  vm.runInContext("fillRoundedGlassDisplacementMap(testPixels, 240, 640, 24, 16, 10, 'right')", h.context);
+  const displacement = pixels.data.slice();
+  vm.runInContext("fillGlassBlurWeights(testPixels, 240, 640, 24, 16, 96, 'right')", h.context);
+  const pixel = (x, y) => [...pixels.data.slice((y * pixels.width + x) * 4, (y * pixels.width + x) * 4 + 4)];
+  for (let i = 0; i < pixels.data.length; i += 4) {
+    assert.equal(pixels.data[i], displacement[i], 'right-edge blur preserves X displacement');
+    assert.equal(pixels.data[i + 1], displacement[i + 1], 'right-edge blur preserves Y displacement');
+    assert.equal(pixels.data[i + 3], displacement[i + 3], 'right-edge blur preserves alpha');
+  }
+  for (const y of [24, 25, 344, 662, 663]) {
+    for (const x of [24, 25, 80, 144]) {
+      assert.deepEqual(pixel(x, y), [128, 128, 255, 255], 'left and top/bottom outside the right zone stay neutral and fully frosted');
+    }
+  }
+  const weights = [];
+  for (let x = 264; x >= 152; x--) weights.push(pixel(x, 344)[2]);
+  assert.equal(weights[0], 0, 'right silhouette begins with lightly blurred edge');
+  assert.equal(weights.at(-1), 255, '96px inward ramp reaches fully frosted center');
+  assert(weights.filter(value => value > 0 && value < 255).length >= 80, 'right-only ramp has a wide continuous blend');
+  for (let i = 1; i < weights.length; i++) {
+    assert(weights[i] >= weights[i - 1], 'right-to-center blur weight is monotonic');
+    assert(weights[i] - weights[i - 1] <= 5, 'right ramp has a bounded comfortable per-pixel slope');
+  }
+  for (const x of [152, 180, 216, 240, 250, 263, 264]) {
+    const weight = pixel(x, 344)[2];
+    for (const y of [0, 24, 25, 662, 663, 687]) assert.equal(pixel(x, y)[2], weight, 'right-edge blur has no vertical corner falloff');
+  }
+  assert(pixel(263, 344)[0] > 128, 'right silhouette retains live X refraction');
+  assert.notEqual(pixel(251, 24)[1], 128, 'right rounded corner retains Y refraction');
+  vm.runInContext('fillRoundedGlassDisplacementMap(testPixels, 240, 640, 24, 16, 10)', h.context);
+  assert(pixel(24, 344)[0] < 128, 'omitting edge still preserves left refraction for ordinary rounded glass');
+  vm.runInContext('fillGlassBlurWeights(testPixels, 240, 640, 24, 16, 96)', h.context);
+  assert.equal(pixel(24, 344)[2], 0, 'omitting edge still preserves symmetric rounded blur falloff');
+  assert.equal(pixel(144, 24)[2], 0, 'ordinary rounded glass still falls off at its top silhouette');
 }
 // The optional pipeline forms complementary premultiplied images, then adds
 // them. Its combined alpha stays one, including mixed-color transition pixels.
@@ -207,6 +260,13 @@ function harness({userAgent = 'Chrome/143.0', mobile = true, reduced = false, in
   const h = harness(); h.call('setupDrawerGlass');
   assert.equal(h.canvases.length, 0, 'closed drawer creates no map');
   h.open(true); h.step(16);
+  const drawerPixels = h.canvases[0].lastPixels;
+  const expectedPixels = {width: drawerPixels.width, height: drawerPixels.height,
+    data: new Uint8ClampedArray(drawerPixels.data.length)};
+  h.context.expectedDrawerPixels = expectedPixels;
+  vm.runInContext("fillRoundedGlassDisplacementMap(expectedDrawerPixels, 240, 640, 24, 16, 10, 'right'); fillGlassBlurWeights(expectedDrawerPixels, 240, 640, 24, 16, 96, 'right')", h.context);
+  assert.deepEqual(drawerPixels.data, expectedPixels.data, 'actual drawer options and map pipeline use right-only refraction and the 96px horizontal blur ramp');
+  assert.equal(h.body.querySelector('feGaussianBlur').getAttribute('stdDeviation'), '14', 'drawer retains its frosted center');
   const start = h.gain(), reads = h.sidebar.reads;
   h.step(80); const peak = h.gain();
   assert(peak > start && peak <= 12, 'gain evolves continuously within bounded strength');
@@ -334,6 +394,89 @@ function contentFixture(h) {
   h.fontCallbacks.forEach(fn => fn()); h.settle();
   assert.equal(h.filters().length, 0); assert.equal(h.window.listenerCount('resize'), 0);
   assert.equal(h.canvases.reduce((sum, canvas) => sum + canvas.encodes, 0), encodes, 'disposed font callbacks cannot rebuild maps');
+}
+function landingFixture(h) {
+  const content = h.body.appendChild(new Node('article', 'md-content__inner'));
+  const landing = content.appendChild(new Node('div', 'notes-landing'));
+  const routes = landing.appendChild(new Node('div', 'landing-routes'));
+  const cards = Array.from({length: 3}, (_, index) => {
+    const card = routes.appendChild(new Node('div', 'landing-route'));
+    card.box = {left: index * 320, top: 100, width: 300, height: 180, right: index * 320 + 300, bottom: 280};
+    card.radius = '16px';
+    const heading = card.appendChild(new Node('h3'));
+    heading.appendChild(new Node('a'));
+    card.appendChild(new Node('p'));
+    return card;
+  });
+  const outside = content.appendChild(new Node('div', 'landing-route'));
+  return {content, cards, outside};
+}
+// Landing cards share the visibility lifecycle without eagerly allocating maps
+// or turning ordinary scroll movement into layout reads and PNG encoding.
+{
+  const h = harness(); const first = landingFixture(h); h.document.content = first.content;
+  h.call('setupContentGlass');
+  const visibility = h.intersections[0];
+  assert.equal(visibility.targets.size, 3, 'only cards inside the landing are observed');
+  assert(!visibility.targets.has(first.outside), 'similarly named elements outside the landing stay unchanged');
+  assert.equal(h.canvases.length, 0, 'landing maps wait for visibility');
+  first.cards.forEach(card => visibility.deliver(card, true)); h.settle();
+  assert.equal(h.filters().length, 3, 'all three visible cards hold independent maps');
+  const originalIds = h.filters().map(filter => filter.getAttribute('id'));
+  assert.equal(new Set(originalIds).size, 3, 'cards cannot reuse a filter ID');
+  first.cards.forEach(card => {
+    assert.equal(card.dataset.edwinosControlGlassMode, 'refraction');
+    assert.equal(card.dataset.edwinosControlGlassBuilds, '1');
+    assert.equal(card.children.length, 3, 'one decorative layer preserves authored heading and paragraph');
+    assert.equal(card.children.at(-1).getAttribute('aria-hidden'), 'true');
+  });
+  const encodes = () => h.canvases.reduce((sum, canvas) => sum + canvas.encodes, 0);
+  const initialReads = first.cards.map(card => card.reads);
+  for (let index = 0; index < 5; index++) { h.window.fire('scroll'); h.document.fire('scroll'); h.step(100); }
+  assert.equal(encodes(), 3, 'idle and scrolling do not encode maps again');
+  assert.deepEqual(first.cards.map(card => card.reads), initialReads, 'scrolling does not measure card geometry');
+  h.window.fire('resize'); h.fontCallbacks.forEach(callback => callback()); h.settle();
+  assert.equal(encodes(), 3, 'unchanged layout and font callbacks reuse maps');
+  const resized = first.cards[1];
+  resized.box = {...resized.box, width: 480, right: resized.box.left + 480};
+  h.resizes.find(observer => observer.targets.has(resized)).deliver(); h.settle();
+  assert.equal(encodes(), 4, 'a genuine card size change rebuilds only its map');
+  assert.equal(resized.dataset.edwinosControlGlassBuilds, '2');
+  const resizedFilter = h.filters().find(filter => filter.getAttribute('id') === originalIds[1]);
+  assert.equal(resizedFilter.getAttribute('width'), '504', 'sampling covers the changed width and padding');
+  visibility.deliver(first.cards[0], false);
+  assert.equal(h.filters().length, 2, 'offscreen card releases its filter');
+  assert.equal(first.cards[0].children.length, 2, 'offscreen disposal removes only its decorative layer');
+  assert.equal(first.cards[0].style.values.has('--edwinos-landing-route-filter'), false);
+  visibility.deliver(first.cards[0], true); h.settle();
+  assert.equal(h.filters().length, 3);
+  assert(!originalIds.includes(h.filters().at(-1).getAttribute('id')), 'reentry uses a fresh filter ID');
+  const second = landingFixture(h); first.content.remove(); h.document.content = second.content;
+  h.call('setupContentGlass'); h.settle();
+  assert.equal(visibility.disconnects, 1, 'page replacement disconnects the old visibility observer');
+  assert.equal(h.filters().length, 0, 'page replacement releases all old card optics');
+  visibility.deliver(first.cards[0], true); h.fontCallbacks.forEach(callback => callback()); h.settle();
+  assert.equal(h.filters().length, 0, 'stale callbacks cannot resurrect replaced cards');
+  h.intersections[1].deliver(second.cards[2], true); h.settle();
+  assert.equal(h.filters().length, 1);
+  const beforeDispose = encodes();
+  h.context.contentGlassRuntime.destroy();
+  h.window.fire('resize'); h.fontCallbacks.forEach(callback => callback()); h.settle();
+  assert.equal(encodes(), beforeDispose, 'disposed callbacks cannot encode more maps');
+  assert.equal(h.filters().length, 0);
+  assert.equal(h.window.listenerCount('resize'), 0, 'card resize listeners are released');
+}
+// Safari uses the same cards and cleanup, with native blur rather than a fake
+// SVG-refraction claim or an unnecessary canvas allocation.
+{
+  const h = harness({userAgent: 'Version/18.0 Safari/605.1.15'});
+  const fixture = landingFixture(h); h.document.content = fixture.content;
+  h.call('setupContentGlass');
+  fixture.cards.forEach(card => h.intersections[0].deliver(card, true)); h.settle();
+  assert.equal(h.canvases.length, 0); assert.equal(h.filters().length, 0);
+  fixture.cards.forEach(card => assert.equal(card.dataset.edwinosControlGlassMode, 'native-blur'));
+  h.context.contentGlassRuntime.destroy();
+  fixture.cards.forEach(card => assert.equal(card.children.length, 2));
 }
 // Older browsers initialize only controls in the current viewport.
 {

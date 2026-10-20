@@ -6,38 +6,95 @@ hide:
   - toc
 ---
 
-# Introduction
+<div class="notes-landing" markdown="1">
 
-Here is more about the things that do not fit neatly into conventional course notes: problems I have debugged, experiments I have run, and moments worth revisiting. Rather than presenting only polished answers, this section records what happened, what I tried, what failed, and what eventually worked.
+# More {data-hub-reveal="title"}
 
-<div class="grid cards intro-card-grid" markdown>
+<div class="landing-intro" data-hub-reveal="intro" markdown="1">
 
--   :material-tools: **TECH**
-
-    Troubleshooting notes and practical guides drawn from real software, hardware, networking, and development-environment problems.
-
-    [Read the first TECH guide →](关于Ubuntu系统下Codex无法在VS%20Code中打开的问题.md)
-
--   :material-robot-industrial: **Phi Lab**
-
-    Hands-on logs from my work in embodied AI, including model training, hyperparameter tuning, environment setup, experimental failures, and the decisions behind each iteration.
-
-    [Browse Phi Lab notes →](Phi%20Lab/WBC/补充插件：Tensorboard%20%26%20WandB.md)
-
--   :material-calendar-refresh: **Annual Reviews**
-
-    Personal reflections on the choices, changes, and lessons that shaped each year.
-
-    [Read the 2025 Annual Review →](年终总结/2025年终总结：Be%20Global.%20Be%20Active..md)
+Experiments, technical detours, and life beyond coursework. This is where I record what I tried, what changed, and what I want to remember.
 
 </div>
 
-## Why keep these records?
+<div class="landing-groups" markdown="1">
 
-Solutions are easier to reuse when the reasoning behind them is preserved. Experiments become more valuable when failed attempts are documented alongside successful ones. Reflections gain meaning when they can be revisited with the perspective of another year.
+<div class="landing-group" markdown="1">
 
-This section is therefore both a practical logbook and a record of growth—written for my future self, and shared in case it helps someone facing a similar problem.
+## Selected Lab Notes {#lab-notes data-hub-reveal="lab-notes-title"}
 
-!!! tip "Find it helpful and thought-provoking?"
+<div class="landing-reading-list" markdown="1">
 
-    If these experiences resonated with you or helped you in some way—and you would like to keep following along or simply stop by from time to time—please consider giving the GitHub repository in the upper-right corner a [Star 🌟](https://github.com/SPIRAL-EDWIN/edwinjing_blog_personal-website){ target="_blank" rel="noopener" }. Your Star would be the greatest encouragement for me to keep documenting, sharing, and updating this collection.
+<div class="landing-reading-entry" data-hub-reveal="note-1" markdown="1">
+
+### [Diffusion Policy 数据训练流程](Phi%20Lab/Diffusion%20Policy/Diffusion%20Policy数据训练流程.md) <span class="landing-title-translation" lang="en">Diffusion Policy: Data &amp; Training Workflow <span class="landing-language">· In Chinese</span></span> {#diffusion-policy-diffusion-policy-data-training-workflow}
+
+From data pairing and conversion to smoke tests, training runs, and checkpoint management.
+
+</div>
+
+<div class="landing-reading-entry" data-hub-reveal="note-2" markdown="1">
+
+### [Diffusion Policy checkpoint 数值与可视化评估流程](Phi%20Lab/Diffusion%20Policy/Diffusion%20Policy%20checkpoint%20数值与可视化评估流程.md) <span class="landing-title-translation" lang="en">Diffusion Policy: Numerical &amp; Visual Checkpoint Evaluation <span class="landing-language">· In Chinese</span></span> {#diffusion-policy-checkpoint-diffusion-policy-numerical-visual-checkpoint-evaluation}
+
+Compare checkpoints using held-out numerical errors and prediction-versus-demonstration videos.
+
+</div>
+
+<div class="landing-reading-entry" data-hub-reveal="note-3" markdown="1">
+
+### [Sim2Sim配置与训练](Phi%20Lab/WBC/Sim2Sim配置与训练.md) <span class="landing-title-translation" lang="en">Sim2Sim Setup &amp; Policy Validation <span class="landing-language">· In Chinese</span></span> {#sim2sim-sim2sim-setup-policy-validation}
+
+Validate an Isaac Lab policy in MuJoCo using exported ONNX models: inference checks before deployment.
+
+</div>
+
+</div>
+
+</div>
+
+<div class="landing-group" markdown="1">
+
+## Recommended TECH Notes {#tech data-hub-reveal="tech-title"}
+
+<div class="landing-reading-list" markdown="1">
+
+<div class="landing-reading-entry" data-hub-reveal="note-4" markdown="1">
+
+### [Ubuntu 下 Codex 无法在 VS Code 中打开：TUN 代理问题排查与修复](关于Ubuntu系统下Codex无法在VS%20Code中打开的问题.md) <span class="landing-title-translation" lang="en">Codex in VS Code on Ubuntu: TUN Proxy Troubleshooting <span class="landing-language">· In Chinese</span></span> {#ubuntu-codex-vs-code-tun-codex-in-vs-code-on-ubuntu-tun-proxy-troubleshooting}
+
+Tracing a local extension failure through proxy variables, loopback routing, and desktop launch settings.
+
+</div>
+
+</div>
+
+</div>
+
+<div class="landing-group" markdown="1">
+
+## Selected Reflections {#life-reflections data-hub-reveal="life-reflections-title"}
+
+<div class="landing-reading-list" markdown="1">
+
+<div class="landing-reading-entry" data-hub-reveal="note-5" markdown="1">
+
+### [2025年终总结：Be Global. Be Active.](年终总结/2025年终总结：Be%20Global.%20Be%20Active..md) <span class="landing-title-translation" lang="en">2025 Year in Review: Be Global. Be Active. <span class="landing-language">· In Chinese</span></span> {#2025be-global-be-active-2025-year-in-review-be-global-be-active}
+
+On leaving high school, starting university, and learning to meet a wider world.
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="landing-footer" markdown="1">
+
+I keep the reasoning alongside the results, so these records remain useful when I return to them. Thoughts and questions are welcome through [Overview](../index.md); a [GitHub Star](https://github.com/SPIRAL-EDWIN/edwinjing_blog_personal-website){ target="_blank" rel="noopener" } is appreciated if they help you too.
+{: data-hub-reveal="footer-1"}
+
+</div>
+
+</div>

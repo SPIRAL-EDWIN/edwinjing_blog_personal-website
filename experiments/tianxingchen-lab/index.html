@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="通过独立示例学习陈天行个人网页的渐进模糊导航、响应式布局与原生交互。">
+  <title>陈天行网页 · 机制学习示例</title>
+  <link rel="stylesheet" href="lab.css">
+  <script src="lab.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到学习内容</a>
+  <header class="site-header" id="site-nav">
+    <div class="progressive-glass" aria-hidden="true">
+      <span class="glass-layer glass-3"></span><span class="glass-layer glass-6"></span>
+      <span class="glass-layer glass-10"></span><span class="glass-layer glass-16"></span>
+      <span class="glass-layer glass-22"></span><span class="glass-fade"></span>
+    </div>
+    <nav class="wrap nav-bar" aria-label="学习章节">
+      <a class="wordmark" href="#overview"><span class="wordmark-dot" aria-hidden="true"></span> WEB / STUDY</a>
+      <button class="nav-toggle" type="button" aria-label="Open navigation · 打开导航" aria-expanded="false" aria-controls="section-links"><span></span><span></span></button>
+      <div class="nav-links" id="section-links">
+        <a href="#overview" class="active" aria-current="location">总览</a>
+        <a href="#glass">渐进模糊</a>
+        <a href="#structure">信息层次</a>
+        <a href="#interaction">动态交互</a>
+        <a href="#news">News 示例</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero section" id="overview" aria-labelledby="page-title">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">PERSONAL WEBSITE / MECHANISM LAB</p>
+          <h1 id="page-title">陈天行网页<br><span>机制学习示例</span></h1>
+          <p class="hero-intro">从页面效果走到实现原理：一个固定导航、一组响应式比例，再加上几处克制的交互，怎样组成清晰的个人主页？</p>
+          <p class="muted">这是独立的学习实验，使用原创示例内容与 CSS 插画。你可以滚动、调整窗口和点击控件，观察每个机制如何工作。</p>
+          <div class="hero-actions"><a class="primary-link" href="#glass">开始拆解 <span aria-hidden="true">↘</span></a><a href="https://tianxingchen.github.io/" target="_blank" rel="noopener noreferrer">查看原站 <span aria-hidden="true">↗</span></a></div>
+          <div class="source-note">参考源码 <a href="https://github.com/TianxingChen/tianxingchen.github.io/blob/b92ce6cd97835ce5a63028a37b0edc27eef02cfd/index.html" target="_blank" rel="noopener noreferrer">index.html · b92ce6c ↗</a></div>
+        </div>
+        <figure class="hero-portrait">
+          <div class="sample-portrait" role="img" aria-label="原创 CSS 插画：蓝色圆形、橙色弧线和网格组成的抽象研究卡片">
+            <span class="portrait-label">LAYOUT<br>IN MOTION</span><span class="portrait-orbit"></span><span class="portrait-disc"></span><span class="portrait-line"></span><span class="portrait-index">01 / 05</span>
+          </div>
+          <figcaption>4:5 示例插画 · 小屏移到正文之前</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section section-tint" id="glass" aria-labelledby="glass-title">
+      <div class="wrap">
+        <div class="section-heading reveal"><p class="eyebrow">01 / OPTICS</p><h2 id="glass-title">让模糊沿边缘淡出</h2><p class="section-intro">把下面的色块和文字滚到导航背后。靠近顶端的内容模糊更强，向下逐渐恢复清晰；这层玻璃本身不拦截点击。</p></div>
+        <div class="color-study reveal" aria-label="用于观察导航模糊的彩色样本">
+          <div class="color-tile tile-blue"><span>BLUE</span><strong>Aa</strong><small>文字、颜色与层次</small></div>
+          <div class="color-tile tile-orange"><span>ORANGE</span><strong>012</strong><small>滚动到导航下面</small></div>
+          <div class="color-tile tile-violet"><span>VIOLET</span><strong>光</strong><small>观察渐变的边缘</small></div>
+        </div>
+        <p class="mechanism-caption">五层遮罩分别控制 3、6、10、16、22px 模糊，再叠加白色渐变。效果来自 CSS backdrop-filter，无需持续运行的动画。</p>
+      </div>
+    </section>
+
+    <section class="section" id="structure" aria-labelledby="structure-title">
+      <div class="wrap">
+        <div class="section-heading reveal"><p class="eyebrow">02 / STRUCTURE</p><h2 id="structure-title">内容有层次，布局有比例</h2><p class="section-intro">宽屏采用正文与插画两列，平板收紧间距，手机切成单列。学习的是网格与内容顺序，插画不使用原站人物照片。</p></div>
+        <div class="structure-grid reveal">
+          <div class="proportion-card"><div class="proportion-diagram" aria-hidden="true"><span>正文</span><span>插画</span></div><h3>先确定阅读区域</h3><p>容器最大宽度 1120px，内边距随屏幕调整。窄屏插画固定为 200 × 250px，正文自然铺满可用宽度。</p></div>
+          <div class="details-card"><details><summary>为什么用原生 details？</summary><div class="details-copy"><p>把次要解释折叠起来，读者需要时再展开。浏览器直接提供键盘操作和展开语义，禁用 JavaScript 也可使用。</p><p>这里的加号随 open 属性变为减号，只需 CSS，内容仍由 HTML 承载。</p></div></details><details><summary>应该从源码中学什么？</summary><div class="details-copy"><p>对照页面确认组件边界，再追踪结构、样式和事件。先理解“为什么这样写”，然后使用自己的内容与视觉素材。</p></div></details><p class="mechanism-caption">点击标题或用 Tab 聚焦后按 Enter，观察原生展开行为。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-tint" id="interaction" aria-labelledby="interaction-title">
+      <div class="wrap">
+        <div class="section-heading reveal"><p class="eyebrow">03 / INTERACTION</p><h2 id="interaction-title">少量事件，明确反馈</h2><p class="section-intro">滚动时，导航下划线会跟随当前章节。窄屏打开菜单后，可以按 Escape 关闭，再回到菜单按钮。</p></div>
+        <div class="interaction-grid reveal">
+          <article><span class="feature-number">01</span><h3>原生锚点</h3><p>链接保留真实的 #章节。浏览器负责跳转与历史记录；脚本只计算当前位置，更新选中状态。</p></article>
+          <article><span class="feature-number">02</span><h3>移动导航</h3><p>860px 以下折叠成菜单。展开状态同步到按钮的 aria-expanded，点击章节后自动收起。</p></article>
+          <article><span class="feature-number">03</span><h3>一次入场</h3><p>章节进入视口时轻轻显现一次。减少动态效果设置会关闭位移和顺滑滚动；无脚本也能阅读全部内容。</p></article>
+        </div>
+        <p class="mechanism-caption">滚动测量通过 requestAnimationFrame 合并；每个章节只在首次出现时触发入场。</p>
+      </div>
+    </section>
+
+    <section class="section" id="news" aria-labelledby="news-title">
+      <div class="wrap">
+        <div class="section-heading reveal"><p class="eyebrow">04 / DISCLOSURE</p><h2 id="news-title">News：先展示八条</h2><p class="section-intro">以下是虚构的学习日志。较长列表先露出八条，读者可以主动展开剩余内容。</p></div>
+        <ol class="news-list reveal" id="news-list">
+          <li><span class="news-date">STEP 12</span><span>整理组件来源与学习记录，保留可复查的源码链接。</span></li>
+          <li><span class="news-date">STEP 11</span><span>检查 1440、768、390px 三种窗口宽度的布局。</span></li>
+          <li><span class="news-date">STEP 10</span><span>为菜单加入 Escape 关闭和焦点恢复。</span></li>
+          <li><span class="news-date">STEP 09</span><span>测试无 JavaScript 时的内容和折叠说明。</span></li>
+          <li><span class="news-date">STEP 08</span><span>使列表展开按钮同步 aria-expanded 状态。</span></li>
+          <li><span class="news-date">STEP 07</span><span>滚到文档底部，观察导航选中最后一个章节。</span></li>
+          <li><span class="news-date">STEP 06</span><span>给滚动处理增加一帧内的测量合并。</span></li>
+          <li><span class="news-date">STEP 05</span><span>尝试原生 details，把辅助解释放进折叠区域。</span></li>
+          <li><span class="news-date">STEP 04</span><span>用色块和文字观察五层渐进模糊的区别。</span></li>
+          <li><span class="news-date">STEP 03</span><span>设置正文与插画的网格比例及手机内容顺序。</span></li>
+          <li><span class="news-date">STEP 02</span><span>将宽度、内边距和字体尺寸从实际页面映射到样式。</span></li>
+          <li><span class="news-date">STEP 01</span><span>从公开源码开始，确认结构、样式与事件的边界。</span></li>
+        </ol>
+        <button class="news-toggle" type="button" aria-expanded="false" aria-controls="news-list">Show more <span aria-hidden="true">↓</span></button>
+        <p class="mechanism-caption">所有条目预先写在 HTML 中。脚本只切换列表状态，关闭脚本后会显示完整列表。</p>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="wrap"><p>独立机制学习示例 · 非原站镜像</p><p>参考 <a href="https://tianxingchen.github.io/">陈天行个人网页</a> 与 <a href="https://github.com/TianxingChen/tianxingchen.github.io/blob/b92ce6cd97835ce5a63028a37b0edc27eef02cfd/index.html">公开源码</a>。示例内容与插画为本实验原创。</p></div></footer>
+</body>
+</html>

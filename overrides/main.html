@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% set edwinos_notes_footer = page and page.file and (page.file.src_uri.startswith("OsdNotes/") or page.file.src_uri.startswith("经验分享/")) %}
 
 {% block htmltitle %}
   {% if page.url == "" %}
@@ -9,7 +10,21 @@
 {% endblock %}
 
 {% block extrahead %}
-  <script>document.documentElement.classList.replace("no-js", "js");</script>
+  <script>
+    (function () {
+      var html = document.documentElement;
+      html.classList.replace('no-js', 'js');
+      if (window.IntersectionObserver && typeof Element.prototype.animate === 'function' &&
+          !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        html.classList.add('edwinos-hub-reveal-enabled');
+        // Fail open if the main runtime cannot load or initialize. No-JS and
+        // reduced-motion readers never receive the pre-paint opacity gate.
+        window.__edwinosHubRevealBootTimer = window.setTimeout(function () {
+          html.classList.remove('edwinos-hub-reveal-enabled');
+        }, 4000);
+      }
+    })();
+  </script>
   {% include "partials/image-previews.html" %}
   {% if page.url in ["", "index.html"] %}
   {% for image in page.edwinos_home_image_preloads | default([]) %}
@@ -95,8 +110,15 @@
   {{ super() }}
 {% endblock %}
 
+{% block content %}
+  {{ super() }}
+  {% if edwinos_notes_footer %}
+    {% include "partials/notes-footer.html" %}
+  {% endif %}
+{% endblock %}
+
 {% block footer %}
-  {% if page.url not in ["", "index.html"] %}
+  {% if page.url not in ["", "index.html"] and not edwinos_notes_footer %}
     {{ super() }}
   {% endif %}
 {% endblock %}
