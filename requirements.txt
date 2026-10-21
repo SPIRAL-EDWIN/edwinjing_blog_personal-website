@@ -16,6 +16,9 @@ jieba
 mkdocs-callouts
 mkdocs-roamlinks-plugin
 mkdocs-glightbox
+# Match the verified local parser; selectolax 1.x drops images when wrapped
+# by mkdocs-glightbox 0.5.2 (including the homepage avatar).
+selectolax==0.4.10
 
 # 与线上 CI (.github/workflows/deploy.yml) 安装列表对齐
 # 目前未在 mkdocs.yml plugins 中启用，仅为环境可复现而保留
