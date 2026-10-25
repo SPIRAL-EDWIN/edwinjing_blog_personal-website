@@ -1429,7 +1429,7 @@
       glass.className = "edwinos-header-glass";
       glass.setAttribute("aria-hidden", "true");
 
-      for (var layerIndex = 1; layerIndex <= 5; layerIndex += 1) {
+      for (var layerIndex = 1; layerIndex <= 7; layerIndex += 1) {
         var layer = document.createElement("div");
         layer.className = "edwinos-header-glass__layer edwinos-header-glass__layer--" + layerIndex;
         glass.appendChild(layer);

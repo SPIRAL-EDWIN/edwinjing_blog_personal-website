@@ -2,19 +2,24 @@
 # Add a new entry anywhere in this list; the build sorts entries newest-first.
 # Use quoted YYYY-MM-DD dates. An optional inline_link can link one exact
 # phrase inside text; optional links appear after the text.
+# Celebrate good news: end every announcement with ! (also enforced at build time).
 
 settings:
   visible_count: 5
 
 entries:
+  # Month-only announcement; the first day is used only for chronological sorting.
+  - date: "2026-11-01"
+    text: "Awarded the Zhejiang Provincial Government Scholarship!"
+
   - date: "2026-10-01"
-    text: "Honored as Outstanding Student, Pacesetter in Academic Excellence, and Pacesetter in International Exchange by Zhejiang University for the 2025–2026 academic year."
+    text: "Honored as Outstanding Student, Pacesetter in Academic Excellence, and Pacesetter in International Exchange by Zhejiang University!"
 
   - date: "2026-09-16"
-    text: "🎉Our short paper was accepted for a 2-minute spotlight presentation at the MoMA.v5 Workshop at IROS 2026."
+    text: "🎉Our short paper was accepted for a 2-minute spotlight presentation at the MoMA.v5 Workshop at IROS 2026!"
     inline_link:
       label: "MoMA.v5 Workshop at IROS 2026"
       url: "https://mobile-manipulation.net/events/moma-iros26/"
 
   - date: "2026-07-13"
-    text: "Released EdwinOS 2.1.2 on July 13, 2026, further refining the GitHub-inspired experience for the personal website."
+    text: "Released EdwinOS 2.1.2 on July 13, 2026, further refining the GitHub-inspired experience for the personal website!"

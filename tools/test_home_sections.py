@@ -194,7 +194,7 @@ class HomeSectionsTests(unittest.TestCase):
         })
         self.assertIn(
             '<a class="overview-news-inline-link" href="https://example.com/workshop" '
-            'target="_blank" rel="noopener noreferrer">MoMA.v5 Workshop at IROS 2026</a>.',
+            'target="_blank" rel="noopener noreferrer">MoMA.v5 Workshop at IROS 2026</a>!',
             markup,
         )
         self.assertNotIn("overview-news-links", markup)

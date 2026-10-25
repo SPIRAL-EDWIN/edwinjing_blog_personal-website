@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-10-20
+Last updated: 2026-10-22
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -68,6 +68,11 @@ Image hints, responsive preloads and native readiness remain unchanged.
 Initial
 HOME route classes are seeded before the header; the Header partial renders
 progressive glass and the Source partial renders the complete facts row.
+The header has seven static masked blur layers: the reference-shaped five
+(3/6/10/16/22px), with low-alpha 1px and 4.5px detail bridges. Its 52px extension and 74% transparent
+boundary stay fixed; low-radius layers bridge detail into the clear reading
+area. Keep the template's seven layers and `ensureHeaderGlass` fallback count
+in sync; no scroll-frame blur updates are needed.
 Runtime setup reuses those nodes. The avatar is eager/high priority. The logo,
 first real publication and first Workshop thumbnail use eager/sync hints at
 normal priority. `home_sections.py` derives matching homepage-only image
@@ -153,6 +158,21 @@ Star/fork SVG masks have one token pair in the Header owner:
 `--edwinos-star-icon` and `--edwinos-fork-icon`. Header and drawer source facts
 consume these same assets; separate mask aliases are unnecessary.
 
+### Palette and retired UI
+
+The default Material background token references `--github-frame-light-bg` /
+`--github-frame-dark-bg`, keeping formula recovery, PDF buttons and Material
+surfaces aligned with the visible frame. The legacy ivory value is removed.
+Code Blocks alone defines its body-scoped background/foreground palette.
+
+The 2026-10-22 cleanup removed old About focus lists, project/tag cards,
+education cards, the former timeline/marker/description, and hover-lift selectors
+with no authored, generated or runtime consumers. Current `overview-education-*`
+and CV row classes remain. Shared selector lists retain their live members;
+no components were reordered. Explicitly proven dead declarations are deleted,
+while responsive variants and compatibility fallbacks with active consumers stay.
+See `docs/research/components/legacy-ui-cleanup.spec.md` for evidence and limits.
+
 ### Overview prose defaults
 
 The final `Overview Prose` owner sets inherited type on the homepage content
@@ -165,7 +185,14 @@ These levels follow the measured Tianxing Chen reference, with a deliberate
 
 The short About introduction is a local reading exception: 15px / 1.75 and a
 76ch maximum measure in the About Me owner. General future prose and bilingual
-details retain the defaults above. Publication thumbnails use a slightly larger
+details retain the defaults above. About's size-contained background spans only
+the heading and direct introductory paragraph in Grid. Its top/right-anchored
+background window follows their combined height. The right-anchored panorama
+keeps a 900px horizontal frame with `cover` at `right 36%`: wide/short introductions
+crop the top and bottom, while narrower/taller introductions reveal more of the
+source vertically. The outer wrapper clips horizontal overflow. Native Detailed
+Profile occupies a separate row and never sizes the photo. The theme
+veil remains below the crisp copy, with no right/bottom fade. Publication thumbnails use a slightly larger
 responsive column while retaining each image's original aspect ratio. At night,
 the university artwork has a light painted surround without changing dimensions.
 

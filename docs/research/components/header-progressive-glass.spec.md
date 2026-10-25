@@ -2,7 +2,7 @@
 
 ## Overview
 
-- Target files: `docs/javascripts/ui-perf.js` and `docs/stylesheets/edwinos.css`
+- Target files: `overrides/partials/header.html`, `docs/javascripts/ui-perf.js` and `docs/stylesheets/edwinos.css`
 - Reference: <https://tianxingchen.github.io/>
 - Reference source: `TianxingChen/tianxingchen.github.io`, `index.html` lines 64–124 and 1720–1744
 - Interaction model: fixed visual treatment; no scroll-triggered blur changes
@@ -13,7 +13,7 @@ The header itself should feel like translucent glass with no visible bottom edge
 moves upward, it must progressively lose contrast and detail before disappearing underneath the
 header. Do not render a visibly separate blurred sheet below the header.
 
-## Reference DOM Structure
+## Original Five-Layer DOM Pattern
 
 The reference uses a dedicated, non-interactive sibling behind the navigation contents:
 
@@ -28,8 +28,9 @@ The reference uses a dedicated, non-interactive sibling behind the navigation co
 </div>
 ```
 
-Inject this once as the first child of `.md-header`. It must be idempotent across Material instant
-navigation. The glass container and its descendants use `pointer-events: none`.
+The original pattern uses five layers. Current EdwinOS renders seven before first paint
+in the header partial, with an idempotent runtime fallback. The glass container
+and its descendants use `pointer-events: none`.
 
 ## Exact Reference Mechanism
 
@@ -50,9 +51,9 @@ navigation. The glass container and its descendants use `pointer-events: none`.
 At the 70px EdwinOS header bottom, the fade must already be weak and the blur masks must cross
 the boundary. There must be no color or blur discontinuity at exactly 70px.
 
-## Current Regression to Remove
+## Historical Regression Guardrails
 
-- Delete/disable the current `.md-header::before` and `.md-header::after` glass implementation.
+- Keep `.md-header::before` and `.md-header::after` glass disabled.
   Its 24px core and 48–68px tail create a visible sheet outside the header.
 - The historical baseline zone in `edwinos.css` gives `.md-tabs` an opaque dark background. Because `.md-header__inner` currently
   creates a lower stacking context, the tabs rectangle paints over the central search form.
@@ -77,3 +78,41 @@ the boundary. There must be no color or blur discontinuity at exactly 70px.
 - Search and navigation remain clickable.
 - No horizontal overflow or console errors.
 - `mkdocs build --strict`, unit tests, and `git diff --check` pass.
+
+## Superseded eight-layer refinement (2026-10-21)
+
+The reference above remains a five-layer observation. EdwinOS adapts it to eight
+static layers at 0.6, 1.2, 2.5, 4, 7, 11, 16 and 22px. Mask opacity uses
+intermediate 0.15/0.5/0.85 stops so each endpoint approaches transparency gently.
+The smallest radii bridge the former 3px lower band; strongest layers recede
+higher in the header. The color fade reaches zero at 64%, while the weakest
+blur reaches zero at the existing 74% boundary of the 122px desktop glass field.
+This keeps the title/drawer clearance and controls at their existing geometry.
+
+The header partial renders all eight before paint. `ensureHeaderGlass` uses the
+same count only if the markup is missing. No scroll-frame updates or second
+glass owner are introduced. Validate the 8-layer count, transparent header,
+unchanged control rectangles, light/dark scroll passage and search interaction.
+
+## Final restrained refinement (2026-10-22)
+
+Rechecked both live page and GitHub source: the reference still uses five
+3/6/10/16/22px layers with masks described above. REA passive evidence:
+`ev_5f566333b88bf0225c053734727ff5e2193c7710559e16ea00e140fc548767d6`.
+The eight-layer experiment shifted middle-radius fields upward and reduced
+bottom-edge blur, concentrating visible loss of detail near the search box.
+
+Current seven layers preserve the local HEAD five-layer mask shapes verbatim.
+The 3px layer keeps its existing safety adaptation: transparent0–24%, opaque
+44–56%, transparent74%. New low-alpha layers are inserted at1px (peak .55
+at64%, zero at74%) and4.5px (peak .5 at44%, zero at66%). Existing 6/10/16/22px
+masks retain the reference positions. Tint returns to .9@0%, .55@28%,
+.18@52%, then .08@62%, .015@70%, zero74%. No height or control geometry changes.
+The template and runtime fallback both render seven; Article TOC stays unchanged.
+
+Validation: strict MkDocs build passed; 32 cold/reload first-paint states passed,
+including delayed runtime/fonts and search animation. Independent Edge checks
+covered Overview/Friends/ENotes/More at1280/768/390px, both palettes: one header,
+seven intended blur radii, transparent header,52px extension, no overflow; search
+open/query/close passed in six width/theme states. Scroll passage screenshots
+were reviewed. No Safari/iOS equivalence or GPU performance claim is made.

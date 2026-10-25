@@ -60,9 +60,14 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
   </aside>
 
   <main class="academic-content">
-    <section class="academic-section animate-slide-up" style="--anim-delay: 0.1s;">
-      <h2 class="section-title"><span class="title-dash"></span>About Me</h2>
+    <section class="academic-section about-section animate-slide-up" style="--anim-delay: 0.1s;">
+      <h2 class="section-title about-heading"><span class="title-dash"></span>About Me</h2>
       <p>Undergraduate researcher at <strong><a href="https://physicalintelligence-lab.github.io/" target="_blank" rel="noopener">Physical Intelligence Lab</a></strong>, ZJU, advised by <a href="https://rvclab.github.io/author/liangjing-yang/" target="_blank" rel="noopener">Prof. Liangjing Yang</a> and previously by <a href="https://physicalintelligence-lab.github.io/author/hua-chen/" target="_blank" rel="noopener">Prof. Hua Chen</a>. Research on embodied AI, focusing on legged locomotion and whole-body loco-manipulation. Recipient of <strong>Gold Medal &amp; First Prize</strong> at the World Robot Contest Finals (WRCF) and <strong>Outstanding Student</strong> of Zhejiang University (2025–2026). Maintainer of <strong><a href="OsdNotes/">ENotes</a></strong>, an open notebook on robotics, embodied AI, and university coursework, with research notes and personal logs under <strong><a href="经验分享/">More</a></strong> (mostly in Chinese).</p>
+      <div class="about-background">
+      <picture class="about-photo">
+        <img class="off-glb" src="assets/images/about/chen-jing-photography-outpaint-v1-480.webp" srcset="assets/images/about/chen-jing-photography-outpaint-v1-480.webp 480w, assets/images/about/chen-jing-photography-outpaint-v1-960.webp 960w, assets/images/about/chen-jing-photography-outpaint-v1-1600.webp 1600w" sizes="900px" alt="Chen Jing holding a camera toward the evening landscape" width="1914" height="822" loading="eager" decoding="async">
+      </picture>
+      </div>
       <details class="about-profile-details">
       <summary>Detailed profile (详细个人介绍)</summary>
       <div class="about-profile-body">
@@ -164,6 +169,7 @@ description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Eng
     <section class="academic-section" data-overview-reveal="honors">
       <h2 class="section-title"><span class="title-dash"></span>Honors &amp; Awards</h2>
       <ul class="award-list">
+        <li><span class="award-year">11/2026</span><span class="award-copy"><strong>Zhejiang Provincial Government Scholarship</strong> <span class="award-separator">·</span> <span class="award-name">CNY 6,000</span></span></li>
         <li><span class="award-year">10/2026</span><span class="award-copy"><strong>Outstanding Student</strong> <span class="award-separator">·</span> <span class="award-name">Zhejiang University</span></span></li>
         <li><span class="award-year">10/2026</span><span class="award-copy"><strong>Pacesetter in Academic Excellence</strong> <span class="award-separator">·</span> <span class="award-name">Zhejiang University, CNY 10,000</span></span></li>
         <li><span class="award-year">10/2026</span><span class="award-copy"><strong>Pacesetter in International Exchange</strong> <span class="award-separator">·</span> <span class="award-name">Zhejiang University</span></span></li>

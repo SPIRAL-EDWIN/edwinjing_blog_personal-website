@@ -144,6 +144,8 @@ def _render_news_item(entry: Mapping[str, Any], index: int) -> tuple[date, str]:
     published = _date_value(entry.get("date"), f"news.entries[{index}].date")
     display_date = published.strftime("%m/%Y")
     plain_text = _text(entry.get("text"), f"news.entries[{index}].text")
+    # News announcements consistently celebrate good news, including future entries.
+    plain_text = plain_text.rstrip(".!?。！？…") + "!"
     inline_link = entry.get("inline_link")
     if inline_link in (None, ""):
         body = html.escape(plain_text)

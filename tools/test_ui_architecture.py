@@ -73,6 +73,29 @@ class UiArchitectureContractTests(unittest.TestCase):
         self.assertIn("Historical Material and site baseline", stylesheet)
         self.assertIn("EdwinOS final component layer", stylesheet)
 
+    def test_palette_tokens_have_single_current_owners(self):
+        stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")
+        def definitions(name):
+            return re.findall(r"(?m)^\s*" + re.escape(name) + r":\s*([^;]+);", stylesheet)
+        self.assertEqual(definitions("--md-default-bg-color"), [
+            "var(--github-frame-light-bg)", "var(--github-frame-dark-bg)",
+        ])
+        self.assertEqual(definitions("--md-code-bg-color"), ["#f2f2f2", "#242424"])
+        self.assertEqual(definitions("--md-code-fg-color"), ["#2e3338", "#dcddde"])
+        self.assertNotIn("#FAF7F0", stylesheet)
+
+    def test_retired_overview_components_do_not_regain_css(self):
+        stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")
+        retired = (
+            "about-focus-list", "grid-cards", "project-card", "proj-header", "proj-year",
+            "proj-tags", "education-card", "education-logo", "education-info",
+            "education-school", "education-degree", "education-time", "timeline-cv",
+            "cv-marker", "cv-desc", "hover-lift",
+        )
+        for selectors, _ in qualified_rules(stylesheet):
+            for name in retired:
+                self.assertNotRegex(selectors, r"\." + re.escape(name) + r"(?![\w-])")
+
     def test_migrated_components_have_one_final_owner(self):
         stylesheet = EDWINOS_PATH.read_text(encoding="utf-8")
         final_zone = final_zone_start(stylesheet)

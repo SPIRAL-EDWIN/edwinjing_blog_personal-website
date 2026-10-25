@@ -120,6 +120,10 @@ plugins:
       archive: true          # 开启归档功能
       categories: true       # 开启分类功能
 
+# 首页结构化内容位于 docs 外，也需触发本地预览重建。
+watch:
+  - data/homepage
+
 # 构建时根据内容文件和 Git 历史生成 HOME/Archive 页面
 hooks:
   - hooks/archive.py
@@ -196,10 +200,10 @@ extra_javascript:
   # 必须在 docs/javascripts/ 目录下创建 mathjax.js 文件 (内容见报告正文)
   - javascripts/mathjax.js?v=20261011b
   - javascripts/block-links.js?v=20261010a  # Obsidian 风格块引用链接支持
-  - javascripts/ui-perf.js?v=20261020m
+  - javascripts/ui-perf.js?v=20261025a
 
 extra_css:
-  - stylesheets/edwinos.css?v=20261020l  # Unified EdwinOS cascade
+  - stylesheets/edwinos.css?v=20261025a  # Unified EdwinOS cascade
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。

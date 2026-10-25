@@ -1,6 +1,6 @@
 # Project Memory for AI Agents
 
-Last updated: 2026-10-20
+Last updated: 2026-10-22
 
 This repository contains Edwin Jing's personal MkDocs website. The current UI
 system is named **EdwinOS**. Before making UI-related changes, read this file
@@ -32,6 +32,12 @@ Current stylesheet policy:
   of the baseline contract. Keep all four Fragment rules in that single owner.
 - Do not recreate `extra.css`, `edwinos-overrides.css`, or another tail-patch
   stylesheet.
+- Theme background tokens must reference the current GitHub frame palette.
+  Keep code-block palette tokens solely in the Code Blocks owner. Do not restore
+  the retired ivory background or old Overview project/education/timeline classes.
+  Delete proven duplicate declarations and retired selectors after source-consumer
+  review and rendered equivalence checks; historical location alone is not a
+  reason to keep a verified dead rule.
 - Overview Prose owns inherited homepage defaults (14px/1.65, 10px paragraph
   gaps); About details use 1.7 leading and captions use a 12px token. Keep
   the short About introduction's component-owned 15px/1.75, 76ch reading measure;
@@ -78,7 +84,10 @@ Current stylesheet policy:
   Initial Overview/Archive/Friends body classes are seeded by
   `overrides/main.html` before the header paints; runtime route classification
   owns later navigation. Header glass and repository fact rows are rendered
-  by the existing template partials before first paint. `hooks/home_sections.py`
+  by the existing template partials before first paint. Keep its seven static
+  blur layers synchronized between the header partial and `ensureHeaderGlass`
+  fallback, with the eased low-radius bridge and existing 52px/74% boundary.
+  `hooks/home_sections.py`
   renders HOME subpage profile shells from the authored homepage aside, with
   rebased local URLs and `data-search-exclude`; do not recreate runtime wrappers
   or a duplicate profile markup source. Homepage article/section entrance motion
@@ -120,6 +129,9 @@ Current stylesheet policy:
   hide their glyph fill only after the source is ready, refresh font/palette/
   hover/focus changes, and bypass displacement at rest. This narrow adapter
   does not sample the article background or duplicate page content.
+- All Recent News announcements end with an ASCII `!` to convey good news.
+  Author this in `data/homepage/news.yml`; `hooks/home_sections.py` also normalizes
+  terminal sentence punctuation at build time for future entries.
 - `docs/index.md` and related markdown files own content and semantic structure.
   Avoid moving content into CSS or JS.
 - Homepage logo and Workshop images use responsive local thumbnails and tiny
