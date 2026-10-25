@@ -6630,6 +6630,9 @@ body:has(.academic-home-layout) .academic-home-layout:not(.academic-home-layout-
     contain: size;
     overflow: hidden;
     pointer-events: none;
+    /* Keep the fade attached to the visible field, not the cropped photo. */
+    -webkit-mask-image: linear-gradient(to right, transparent 0% 8%, rgb(0 0 0 / 5%) 14%, rgb(0 0 0 / 22%) 22%, rgb(0 0 0 / 53%) 32%, rgb(0 0 0 / 80%) 44%, rgb(0 0 0 / 95%) 58%, rgb(0 0 0 / 99.5%) 74%, #000 88% 100%);
+    mask-image: linear-gradient(to right, transparent 0% 8%, rgb(0 0 0 / 5%) 14%, rgb(0 0 0 / 22%) 22%, rgb(0 0 0 / 53%) 32%, rgb(0 0 0 / 80%) 44%, rgb(0 0 0 / 95%) 58%, rgb(0 0 0 / 99.5%) 74%, #000 88% 100%);
 }
 
 .academic-home-layout .about-background::after {

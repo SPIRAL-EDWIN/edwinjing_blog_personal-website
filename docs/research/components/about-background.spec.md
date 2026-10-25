@@ -147,3 +147,29 @@ overflow, fixed top/right anchoring, background bottom equals intro bottom,
 constant horizontal frame, correct cover math, visible face center and stable
 Details open/close size. Left blur fields, frame-colored veil,7-layer header
 and the absence of a right/bottom fade are retained.
+
+## Visible left-edge fade (2026-10-25)
+
+The fixed900px picture's original mask is photo-relative. At narrower article
+widths, the background wrapper clips away the photo's transparent left portion,
+leaving a nontransparent image/veil against the article's left boundary. This
+caused the reported hard vertical edge even though the picture still had a mask.
+
+The background wrapper now also owns a standard/WebKit horizontal alpha mask in
+its own visible coordinates. It is fully transparent through8%, then reaches
+alpha .05@14%, .22@22%, .53@32%, .8@44%, .95@58%, .995@74%,1@88%. The curve
+preserves more face contrast around the middle of small phone windows while
+keeping the visible left edge exactly equal to the surrounding frame. This
+mask applies only to the background, including its veil and photo blur fields;
+heading/intro/details are separate unmasked siblings. The existing picture mask
+still serves its own intrinsic left edge on wide windows, so both have distinct
+roles rather than competing overrides. No right/bottom fade was added.
+
+Validation covered20 widths320–1920px in both palettes. At1024/390px, the old
+left-edge RGB was233/232/235 and229/225/225 in light mode; it now matches the
+page246/248/250 exactly. Dark equivalents now both match13/17/23. A uniform-field
+probe confirmed a monotonic gradient with at most3 RGB levels between adjacent
+pixels at390px. Existing crop geometry,900px horizontal frame, top/right anchor,
+intro-only height, Details independence, text opacity/filter and no-overflow
+checks passed. Screenshots include320/390px face visibility in both palettes.
+Diagnostic captures are under `/tmp/edwinos-about-left-edge/`.

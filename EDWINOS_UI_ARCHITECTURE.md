@@ -1,6 +1,6 @@
 # EdwinOS UI Architecture
 
-Last updated: 2026-10-22
+Last updated: 2026-10-25
 
 This document is the source of truth for the website's UI ownership and load
 order. EdwinOS is intentionally maintained as one rendered system, not as a
@@ -190,7 +190,10 @@ the heading and direct introductory paragraph in Grid. Its top/right-anchored
 background window follows their combined height. The right-anchored panorama
 keeps a 900px horizontal frame with `cover` at `right 36%`: wide/short introductions
 crop the top and bottom, while narrower/taller introductions reveal more of the
-source vertically. The outer wrapper clips horizontal overflow. Native Detailed
+source vertically. The outer wrapper clips horizontal overflow and owns a
+separate left alpha fade in its visible coordinates: its first8% stays fully
+transparent, so narrowing cannot crop away the blend at the article edge. The
+photo-local mask still softens the photo's own left boundary. Native Detailed
 Profile occupies a separate row and never sizes the photo. The theme
 veil remains below the crisp copy, with no right/bottom fade. Publication thumbnails use a slightly larger
 responsive column while retaining each image's original aspect ratio. At night,
