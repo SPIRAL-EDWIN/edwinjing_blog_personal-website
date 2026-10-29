@@ -400,6 +400,31 @@
         });
       }
       filter.appendChild(displacement);
+      if (options.dispersion) {
+        // Separate RGB sampling offsets bend the same real backdrop at the rim.
+        // Neutral map center stays aligned. No colored outline is painted.
+        var channels = [];
+        ['R', 'G', 'B'].forEach(function (channel, index) {
+          var sample = displacement.cloneNode(false);
+          sample.setAttribute('scale', String(options.strength + (index - 1) * options.dispersion));
+          sample.setAttribute('result', prefix + '-channel-' + index);
+          filter.appendChild(sample);
+          var isolate = document.createElementNS(svgNS, 'feColorMatrix');
+          isolate.setAttribute('in', prefix + '-channel-' + index);
+          isolate.setAttribute('type', 'matrix');
+          var matrix = new Array(20).fill(0); matrix[index * 6] = 1; matrix[18] = 1;
+          isolate.setAttribute('values', matrix.join(' '));
+          isolate.setAttribute('result', prefix + '-rgb-' + index);
+          filter.appendChild(isolate); channels.push(prefix + '-rgb-' + index);
+        });
+        [1, 2].forEach(function (index) {
+          var add = document.createElementNS(svgNS, 'feComposite');
+          add.setAttribute('in', index === 1 ? channels[0] : prefix + '-rgb-pair');
+          add.setAttribute('in2', channels[index]); add.setAttribute('operator', 'arithmetic');
+          add.setAttribute('k2', '1'); add.setAttribute('k3', '1');
+          add.setAttribute('result', index === 1 ? prefix + '-rgb-pair' : prefix + '-spectrum'); filter.appendChild(add);
+        });
+      }
       defs.appendChild(filter);
       definitions.appendChild(defs);
       document.body.appendChild(definitions);
@@ -508,6 +533,16 @@
       }
     };
   }
+
+  window.EdwinOSGlass = { mount: function (element) {
+    controlGlassSequence += 1;
+    return setupLayoutControlGlass(element, {
+      prefix: 'edwinos-surface', filterId: 'edwinos-surface-' + controlGlassSequence,
+      filterVariable: '--edwinos-surface-filter', datasetMode: 'edwinosControlGlassMode',
+      datasetBuilds: 'edwinosControlGlassBuilds', blur: 1.5, strength: 20,
+      dispersion: .8, padding: 24, pixelRatio: 1
+    });
+  } };
 
   /* Safari cannot apply SVG displacement to a live CSS backdrop. This narrow
      alternative draws only the three existing navigation labels into one SVG
@@ -995,6 +1030,7 @@
 
     function initialize(record) {
       if (disposed || record.optics || !record.element.isConnected) return;
+      if (record.name === 'surface') { record.optics = window.EdwinOSGlass.mount(record.element); return; }
       var name = record.name;
       var prefix = 'edwinos-' + name;
       controlGlassSequence += 1;
@@ -1037,8 +1073,8 @@
     content.querySelectorAll('.profile-actions > .btn-github-action').forEach(function (element) {
       register(element, 'profile-action', 3.5, 10);
     });
-    content.querySelectorAll('.blog-home [data-blog-home-play]').forEach(function (element) {
-      register(element, 'blog-action', 6, 10);
+    content.querySelectorAll('.blog-home .edwinos-glass').forEach(function (element) {
+      register(element, 'surface', 1.5, 20);
     });
     content.querySelectorAll('.archive-hero__stats > span').forEach(function (element) {
       register(element, 'archive-stat', 5, 10);

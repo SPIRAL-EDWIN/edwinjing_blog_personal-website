@@ -15,7 +15,7 @@ description: "Notes on robotics, embodied AI, coursework, and practical experime
       <p class="blog-home-author">Chen Jing <span lang="zh">(经宸)</span> · Working notebook</p>
       <p>I’m Chen Jing. This notebook follows my work in robotics: coordinate transforms, simulation checks, reward tuning—and the tools I use along the way.</p>
       <nav class="blog-home-actions" aria-label="Explore the notebook">
-        <a class="blog-home-action" href="OsdNotes/">Browse the notes</a>
+        <a class="blog-home-action edwinos-glass" href="OsdNotes/">Browse the notes</a>
         <a href="%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/">Lab notes &amp; experience</a>
         <a href="https://edwinjing.github.io/">Academic homepage <span aria-hidden="true">↗</span></a>
       </nav>
@@ -23,7 +23,7 @@ description: "Notes on robotics, embodied AI, coursework, and practical experime
     <figure class="blog-home-feature">
       <div class="blog-home-feature__media">
         <video data-blog-home-video src="assets/media/blog-home-robot.mp4" poster="assets/images/blog-home-robot.webp" muted loop playsinline preload="metadata" width="480" height="854" aria-label="Autonomous robot demonstration, source footage at five times speed"></video>
-        <button type="button" data-blog-home-play aria-label="Play robot preview" aria-pressed="false">Play preview</button>
+        <button class="edwinos-glass" type="button" data-blog-home-play aria-label="Play robot preview" aria-pressed="false">Play preview</button>
       </div>
       <figcaption>Robot demonstration · 5× speed</figcaption>
     </figure>
@@ -32,7 +32,7 @@ description: "Notes on robotics, embodied AI, coursework, and practical experime
   <section class="blog-home-section" aria-labelledby="recent-updates">
     <div class="blog-home-section-heading">
       <h2 class="section-title" id="recent-updates"><span class="title-dash"></span>Recent Updates</h2>
-      <a href="HOME/Archive/">View archive</a>
+      <a class="edwinos-glass blog-home-archive" href="HOME/Archive/">View archive</a>
     </div>
     <!-- BLOG_HOME_UPDATES -->
   </section>
@@ -43,17 +43,17 @@ description: "Notes on robotics, embodied AI, coursework, and practical experime
 
     </div>
     <div class="blog-home-cards">
-      <a class="blog-home-card" data-blog-home-reveal href="OsdNotes/Embodied%20AI/%E3%80%90Hand-Eye%20Calibration%E3%80%91%20%E6%89%8B%E7%9C%BC%E6%A0%87%E5%AE%9A%E7%90%86%E8%AE%BA%E4%B8%8E%E5%AE%9E%E8%B7%B5/">
+      <a class="blog-home-card edwinos-glass" href="OsdNotes/Embodied%20AI/%E3%80%90Hand-Eye%20Calibration%E3%80%91%20%E6%89%8B%E7%9C%BC%E6%A0%87%E5%AE%9A%E7%90%86%E8%AE%BA%E4%B8%8E%E5%AE%9E%E8%B7%B5/">
         <span class="blog-home-card__eyebrow">PERCEPTION</span>
         <h3>Connecting camera and robot</h3>
         <p>Follow the coordinate frames, solve AX = XB, and check what a calibration actually tells you.</p>
       </a>
-      <a class="blog-home-card" data-blog-home-reveal href="%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/Phi%20Lab/WBC/Sim2Sim%E9%85%8D%E7%BD%AE%E4%B8%8E%E8%AE%AD%E7%BB%83/">
+      <a class="blog-home-card edwinos-glass" href="%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/Phi%20Lab/WBC/Sim2Sim%E9%85%8D%E7%BD%AE%E4%B8%8E%E8%AE%AD%E7%BB%83/">
         <span class="blog-home-card__eyebrow">SIMULATION</span>
         <h3>From Isaac Lab to MuJoCo</h3>
         <p>ONNX exports, joint order, and deployment checks for a policy running in a second simulator.</p>
       </a>
-      <a class="blog-home-card" data-blog-home-reveal href="OsdNotes/Github%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/Git%20with%20gh/">
+      <a class="blog-home-card edwinos-glass" href="OsdNotes/Github%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/Git%20with%20gh/">
         <span class="blog-home-card__eyebrow">TOOLBOX</span>
         <h3>Git, without losing the thread</h3>
         <p>Branches, forks, and pull requests: a reference for everyday collaboration.</p>

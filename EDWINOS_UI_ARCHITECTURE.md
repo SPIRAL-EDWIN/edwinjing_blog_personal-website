@@ -559,3 +559,17 @@ them silently into a pixel-equivalent CSS cleanup.
 ## Blog Reading Desk
 
 The root `.blog-home` replaces academic Overview only in this blog checkout. Content stays in docs/index.md, recent rows in archive.py, English display mapping in data/homepage/blog-titles.yml. The shared HOME profile source is data/homepage/profile-sidebar.html; old Overview remains nonpublished. Blog Home owns scoped CSS and setupBlogHome owns reveal/media lifecycle. Video is an explicit-play 10-second local derivative with retained source-speed labeling. Future changes must verify root, Friends, Archive, ENotes and More; publishing still requires authorization.
+
+## October 29 Reading Desk refinement
+User-authorized layout redesign keeps the fonts/type scale and exact footer.
+The Home owner now has an intrinsic portrait media frame, an asymmetric curated
+reading group, one primary action, and plain secondary links. Internal links do
+not use external arrows or underlines. All Home button surfaces use the shared
+`.edwinos-glass` primitive, without a blue hover rim or solid fill.
+`window.EdwinOSGlass.mount(element)` delegates to the existing layout-only optical
+map owner. Optional RGB dispersion is enabled only for new surfaces. Content
+surfaces initialize near the viewport and release maps offscreen. Native blur,
+highlight and tinted transparency remain the Safari/Firefox fallback; reduced
+transparency and increased contrast use an opaque accessible surface.
+The 28px substrate is scoped to Start Here, not reading pages. The first-visit
+intro may reuse it; page content and fonts remain same-origin and in the DOM.
