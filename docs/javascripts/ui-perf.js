@@ -1037,7 +1037,7 @@
     content.querySelectorAll('.profile-actions > .btn-github-action').forEach(function (element) {
       register(element, 'profile-action', 3.5, 10);
     });
-    content.querySelectorAll('.blog-home-actions a, .blog-home [data-blog-home-play]').forEach(function (element) {
+    content.querySelectorAll('.blog-home [data-blog-home-play]').forEach(function (element) {
       register(element, 'blog-action', 6, 10);
     });
     content.querySelectorAll('.archive-hero__stats > span').forEach(function (element) {
@@ -5086,6 +5086,11 @@
     var animations = new Set(), pending = new Set();
     var video = root.querySelector('[data-blog-home-video]');
     var play = root.querySelector('[data-blog-home-play]');
+    var media = root.querySelector('.blog-home-feature__media');
+    var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    var saveData = !!(navigator.connection && navigator.connection.saveData);
+    var playGeneration = 0;
+    if (video && saveData) { video.dataset.src = video.getAttribute('src'); video.removeAttribute('src'); video.preload = 'none'; video.load(); }
     function show(element, animate) {
       pending.delete(element);
       element.style.removeProperty('opacity');
@@ -5114,21 +5119,28 @@
     }
     function label() {
       if (!play || !video) return;
-      play.textContent = video.paused ? 'Play preview' : 'Pause preview';
+      play.textContent = video.paused ? (finePointer.matches && !motion.matches && !saveData ? 'Hover to play' : 'Play preview') : 'Pause preview';
       play.setAttribute('aria-label', video.paused ? 'Play robot preview' : 'Pause robot preview');
       play.setAttribute('aria-pressed', video.paused ? 'false' : 'true');
     }
-    function toggleVideo() {
+    function startVideo() {
       if (!video || !play) return;
-      if (!video.paused) { video.pause(); return; }
+      var generation = ++playGeneration;
       if (!video.getAttribute('src') && video.dataset.src) video.src = video.dataset.src;
       var result = video.play();
-      if (result && result.catch) result.catch(function () {
-        if (disposed) return;
+      if (result && result.then) result.then(function () {
+        if (disposed || generation !== playGeneration) video.pause();
+      }).catch(function (error) {
+        if (disposed || generation !== playGeneration || error.name === 'AbortError') return;
         play.textContent = 'Retry preview'; play.setAttribute('aria-label', 'Retry robot preview');
       });
     }
-    function visibility() { if (document.hidden && video) video.pause(); }
+    function pauseVideo() { playGeneration += 1; if (video) video.pause(); }
+    function toggleVideo() { if (video && !video.paused) pauseVideo(); else startVideo(); }
+    function enterVideo(event) {
+      if (event.pointerType !== 'touch' && finePointer.matches && !motion.matches && !saveData) startVideo();
+    }
+    function visibility() { if (document.hidden) pauseVideo(); }
     function reduceMotion() {
       if (!motion.matches) return;
       pending.forEach(function (element) { show(element, false); });
@@ -5138,11 +5150,13 @@
     root.addEventListener('focusin', focus);
     if (play && video) {
       play.addEventListener('click', toggleVideo);
+      media.addEventListener('pointerenter', enterVideo);
+      media.addEventListener('pointerleave', pauseVideo);
       video.addEventListener('play', label); video.addEventListener('pause', label);
       document.addEventListener('visibilitychange', visibility);
       if ('IntersectionObserver' in window) {
         mediaObserver = new IntersectionObserver(function (entries) {
-          if (entries.some(function (entry) { return !entry.isIntersecting; })) video.pause();
+          if (entries.some(function (entry) { return !entry.isIntersecting; })) pauseVideo();
         });
         mediaObserver.observe(video);
       }
@@ -5159,6 +5173,7 @@
       motion.removeEventListener('change', reduceMotion);
       document.removeEventListener('visibilitychange', visibility);
       if (play) play.removeEventListener('click', toggleVideo);
+      if (media) { media.removeEventListener('pointerenter', enterVideo); media.removeEventListener('pointerleave', pauseVideo); }
       if (video) { video.pause(); video.removeEventListener('play', label); video.removeEventListener('pause', label); }
     } };
   }

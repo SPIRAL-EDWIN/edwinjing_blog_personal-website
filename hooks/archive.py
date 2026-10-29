@@ -352,16 +352,13 @@ def _render_home_updates(entries, config):
         title = metadata.get("title_en") or translations.get(entry.src_uri) or entry.title
         if re.search(r"[\u3400-\u9fff]", title):
             raise PluginError(f"English homepage title required for {entry.src_uri}; add title_en or blog-titles.yml entry")
-        category = "ENotes" if entry.src_uri.startswith("OsdNotes/") else "More"
-        status = "Updated" if entry.is_updated else "New article"
         activity = entry.activity_date.isoformat()
         display_date = entry.activity_date.strftime("%b %d, %Y").replace(" 0", " ")
         rows.append(
             f'<a class="blog-home-update" data-blog-home-reveal href="{html.escape(entry.page_url, quote=True)}">'
             f'<time datetime="{activity}">{display_date}</time>'
-            f'<span class="blog-home-update__status">{status}</span>'
             f'<strong class="blog-home-update__title">{html.escape(title)}</strong>'
-            f'<span class="blog-home-update__category">{category} <span aria-hidden="true">↗</span></span></a>'
+            '</a>'
         )
     return '<div class="blog-home-updates">' + "\n".join(rows) + '</div>'
 
