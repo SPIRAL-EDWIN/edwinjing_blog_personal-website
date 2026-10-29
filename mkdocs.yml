@@ -10,7 +10,7 @@
 site_name: "Chen Jing (经宸) | Zhejiang University"  # 网站标题，将显示在浏览器标签页
 site_url: https://edwinjing-blog.com/  # 生产环境的域名，用于生成 SEO 规范链接 (Canonical URL) [13]
 site_author: "Chen Jing (经宸)"
-site_description: "Personal academic homepage of Chen Jing (经宸), a Mechanical Engineering undergraduate at Zhejiang University, working on embodied AI and robot learning."
+site_description: "Notes on robotics, embodied AI, coursework, and practical experiments by Chen Jing (经宸)."
 exclude_docs: |
   research/
 copyright: >-
@@ -209,7 +209,7 @@ extra_css:
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。
 # ENotes/More 同级目录先文件夹、后笔记；栏目 Introduction/index 入口保留首位。
 nav:
-  - Overview:
+  - Home:
     - index.md
     - Archive: HOME/Archive/index.md
     - Friends: HOME/friends.md

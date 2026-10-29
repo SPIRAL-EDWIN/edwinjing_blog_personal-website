@@ -88,7 +88,7 @@ Current stylesheet policy:
   blur layers synchronized between the header partial and `ensureHeaderGlass`
   fallback, with the eased low-radius bridge and existing 52px/74% boundary.
   `hooks/home_sections.py`
-  renders HOME subpage profile shells from the authored homepage aside, with
+  renders HOME subpage profile shells from the authored shared profile aside, with
   rebased local URLs and `data-search-exclude`; do not recreate runtime wrappers
   or a duplicate profile markup source. Homepage article/section entrance motion
   must not translate the profile or prose during refresh/scroll restoration.
@@ -346,3 +346,9 @@ For JS/runtime changes:
 
 Keep commits scoped. Do not mix broad refactors with small visual fixes unless
 the user explicitly asks for that combined work.
+
+## Blog Reading Desk (2026-10-29)
+
+Blog root is `.blog-home`, English except Chen Jing (经宸); do not modify the separate academic homepage. `hooks/archive.py` renders six recent article updates from the Archive model; homepage-only titles use `title_en` or `data/homepage/blog-titles.yml`. Add an English title when a new non-English article enters the latest six. Do not translate source articles.
+Shared Friends/Archive profile markup now lives in `data/homepage/profile-sidebar.html`, read by `hooks/home_sections.py`. Old Overview is retained outside published docs at `data/homepage/overview-before-reading-desk.md`. Do not restore extraction from the new root.
+Blog Home CSS owns layout; `setupBlogHome` owns one-time row/card reveals and intent-only video loading, offscreen pause and lifecycle disposal. Preserve original portrait framing and source 5× speed caption. No video request before explicit playback. Keep shared search, glass, local fonts and responsive visitor footer.

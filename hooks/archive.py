@@ -19,6 +19,9 @@ from pathlib import Path, PurePosixPath
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 from urllib.parse import quote, unquote, urlsplit
 
+import yaml
+from mkdocs.exceptions import PluginError
+
 
 log = logging.getLogger("mkdocs.archive")
 
@@ -338,6 +341,31 @@ def _collect_entries(config, files: Iterable[object], page) -> List[ArchiveEntry
     return sorted(entries, key=lambda entry: (entry.activity_date, entry.title.casefold()), reverse=True)
 
 
+def _render_home_updates(entries, config):
+    """Use the Archive activity model, with English display copy only on Home."""
+    root = Path(getattr(config, "config_file_path", "mkdocs.yml")).resolve().parent
+    translations = yaml.safe_load((root / "data/homepage/blog-titles.yml").read_text(encoding="utf-8")) or {}
+    rows = []
+    for entry in entries[:6]:
+        source = (Path(config["docs_dir"]) / entry.src_uri).read_text(encoding="utf-8")
+        metadata, _ = _plain_front_matter(source)
+        title = metadata.get("title_en") or translations.get(entry.src_uri) or entry.title
+        if re.search(r"[\u3400-\u9fff]", title):
+            raise PluginError(f"English homepage title required for {entry.src_uri}; add title_en or blog-titles.yml entry")
+        category = "ENotes" if entry.src_uri.startswith("OsdNotes/") else "More"
+        status = "Updated" if entry.is_updated else "New article"
+        activity = entry.activity_date.isoformat()
+        display_date = entry.activity_date.strftime("%b %d, %Y").replace(" 0", " ")
+        rows.append(
+            f'<a class="blog-home-update" data-blog-home-reveal href="{html.escape(entry.page_url, quote=True)}">'
+            f'<time datetime="{activity}">{display_date}</time>'
+            f'<span class="blog-home-update__status">{status}</span>'
+            f'<strong class="blog-home-update__title">{html.escape(title)}</strong>'
+            f'<span class="blog-home-update__category">{category} <span aria-hidden="true">↗</span></span></a>'
+        )
+    return '<div class="blog-home-updates">' + "\n".join(rows) + '</div>'
+
+
 def _card(entry: ArchiveEntry) -> str:
     title = html.escape(entry.title)
     author = html.escape(entry.author)
@@ -634,6 +662,8 @@ def on_page_markdown(markdown, page, config, files, **kwargs):
     markdown = _normalize_obsidian_marks(markdown)
     markdown = _add_obsidian_block_anchors(markdown)
     src_uri = getattr(page.file, "src_uri", getattr(page.file, "src_path", ""))
+    if src_uri == "index.md" and "<!-- BLOG_HOME_UPDATES -->" in markdown:
+        return markdown.replace("<!-- BLOG_HOME_UPDATES -->", _render_home_updates(_collect_entries(config, files, page), config))
     if src_uri != ARCHIVE_PAGE or ARCHIVE_MARKER not in markdown:
         return markdown
 

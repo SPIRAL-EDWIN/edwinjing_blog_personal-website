@@ -555,3 +555,7 @@ cleanup:
 
 Fix these as scoped follow-up migrations with their own baselines; do not fold
 them silently into a pixel-equivalent CSS cleanup.
+
+## Blog Reading Desk
+
+The root `.blog-home` replaces academic Overview only in this blog checkout. Content stays in docs/index.md, recent rows in archive.py, English display mapping in data/homepage/blog-titles.yml. The shared HOME profile source is data/homepage/profile-sidebar.html; old Overview remains nonpublished. Blog Home owns scoped CSS and setupBlogHome owns reveal/media lifecycle. Video is an explicit-play 10-second local derivative with retained source-speed labeling. Future changes must verify root, Friends, Archive, ENotes and More; publishing still requires authorization.

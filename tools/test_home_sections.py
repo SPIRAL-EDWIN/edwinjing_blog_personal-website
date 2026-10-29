@@ -66,7 +66,7 @@ def publication_data(authors, **entry_overrides):
 
 class HomeSectionsTests(unittest.TestCase):
     def test_profile_preserves_all_authored_personal_information(self):
-        home = (HOOK_PATH.parents[1] / "docs/index.md").read_text(encoding="utf-8")
+        home = (HOOK_PATH.parents[1] / "data/homepage/profile-sidebar.html").read_text(encoding="utf-8")
         authored = Markup(HOME_SECTIONS._ProfileMarkup(home).sidebars[0])
         copied = Markup(HOME_SECTIONS.render_profile_sidebar(home, "HOME/friends/"))
         self.assertEqual(copied.text, authored.text)
@@ -121,10 +121,11 @@ class HomeSectionsTests(unittest.TestCase):
     def test_profile_build_wraps_only_intended_subpages_once_and_preserves_content(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / "index.md").write_text(
+            (root / "data/homepage").mkdir(parents=True)
+            (root / "data/homepage/profile-sidebar.html").write_text(
                 '<aside class="academic-sidebar"><p>Authored profile</p></aside>', encoding="utf-8"
             )
-            config = {"docs_dir": str(root)}
+            config = {"docs_dir": str(root), "config_file_path": str(root / "mkdocs.yml")}
             content = '<h1 id="friends">Friends</h1>\n<p>Body &amp; links</p>'
             for path, url in (("HOME/friends.md", "HOME/friends/"),
                               ("HOME/Archive/index.md", "HOME/Archive/")):

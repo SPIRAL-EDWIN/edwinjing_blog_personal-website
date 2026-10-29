@@ -676,7 +676,7 @@ def on_page_content(html_content, page, config, files, **kwargs):
     if _ProfileMarkup(html_content).has_subpage:
         return html_content
     try:
-        home = (Path(config["docs_dir"]) / HOME_PAGE).read_text(encoding="utf-8")
+        home = (_repo_root(config) / "data/homepage/profile-sidebar.html").read_text(encoding="utf-8")
         sidebar = render_profile_sidebar(home, page.url)
     except (OSError, HomeSectionError) as exc:
         raise PluginError(f"HOME profile error: {exc}") from exc
@@ -692,7 +692,7 @@ def on_page_content(html_content, page, config, files, **kwargs):
 def on_page_markdown(markdown, page, config, files, **kwargs):
     """Inject the two generated homepage sections before Markdown rendering."""
     src_uri = getattr(page.file, "src_uri", getattr(page.file, "src_path", ""))
-    if src_uri != HOME_PAGE:
+    if src_uri != HOME_PAGE or 'class="blog-home"' in markdown:
         return markdown
     missing = [marker for marker in (NEWS_MARKER, PUBLICATIONS_MARKER) if marker not in markdown]
     if missing:

@@ -43,6 +43,7 @@
   var searchHighlightScopeObserver = null;
   var articleSearchHighlightMotion = null;
   var overviewRevealRuntime = null;
+  var blogHomeRuntime = null;
   var contentHubRevealRuntime = null;
   var publicationPreviewRuntime = null;
   // Remains document-local across Material visits; a reload starts a fresh read.
@@ -1036,6 +1037,9 @@
     content.querySelectorAll('.profile-actions > .btn-github-action').forEach(function (element) {
       register(element, 'profile-action', 3.5, 10);
     });
+    content.querySelectorAll('.blog-home-actions a, .blog-home [data-blog-home-play]').forEach(function (element) {
+      register(element, 'blog-action', 6, 10);
+    });
     content.querySelectorAll('.archive-hero__stats > span').forEach(function (element) {
       register(element, 'archive-stat', 5, 10);
     });
@@ -1399,7 +1403,7 @@
     document.body.classList.toggle("is-home-profile-page", route.isHomeProfilePage);
 
     if (route.isHomepage) {
-      document.title = "Chen Jing (经宸) | Zhejiang University";
+      document.title = document.querySelector(".blog-home") ? "Chen Jing (经宸) | Notes & Experiments" : "Chen Jing (经宸) | Zhejiang University";
     }
   }
 
@@ -3255,7 +3259,7 @@
 
   function setupVisitorBadge() {
     var containers = document.querySelectorAll(
-      ".academic-home-layout .academic-content .visitor-container"
+      ".academic-home-layout .academic-content .visitor-container, .blog-home .visitor-container"
     );
 
     containers.forEach(function (container) {
@@ -5061,6 +5065,104 @@
     else if (motion && motion.addListener) motion.addListener(onMotionChange);
   }
 
+  // Reading desk: content remains readable without JS; only offscreen items
+  // enter once. Media is fetched only after explicit reader intent.
+  function setupBlogHome() {
+    var root = document.querySelector('.blog-home');
+    if (blogHomeRuntime && blogHomeRuntime.root === root) return;
+    if (blogHomeRuntime) blogHomeRuntime.dispose();
+    blogHomeRuntime = null;
+    if (!root) return;
+    var localizedLabels = [];
+    document.querySelectorAll('.md-header [title], .md-header [aria-label]').forEach(function (element) {
+      ['title', 'aria-label'].forEach(function (attribute) {
+        var original = element.getAttribute(attribute);
+        var english = { '切换至深色模式': 'Switch to dark mode', '切换至浅色模式': 'Switch to light mode' }[original];
+        if (english) { localizedLabels.push([element, attribute, original]); element.setAttribute(attribute, english); }
+      });
+    });
+    var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var observer = null, mediaObserver = null, disposed = false;
+    var animations = new Set(), pending = new Set();
+    var video = root.querySelector('[data-blog-home-video]');
+    var play = root.querySelector('[data-blog-home-play]');
+    function show(element, animate) {
+      pending.delete(element);
+      element.style.removeProperty('opacity');
+      if (observer) observer.unobserve(element);
+      if (animate && !motion.matches && element.animate) {
+        var effect = element.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 280, easing: 'cubic-bezier(.2,.7,.3,1)' });
+        animations.add(effect);
+        effect.onfinish = function () { animations.delete(effect); };
+      }
+    }
+    if ('IntersectionObserver' in window && !motion.matches) {
+      observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting && pending.has(entry.target)) show(entry.target, true);
+        });
+      }, { threshold: .12 });
+      root.querySelectorAll('[data-blog-home-reveal]').forEach(function (element) {
+        var rect = element.getBoundingClientRect();
+        if (rect.top >= window.innerHeight && !element.contains(document.activeElement)) {
+          element.style.opacity = '0'; pending.add(element); observer.observe(element);
+        }
+      });
+    }
+    function focus(event) {
+      pending.forEach(function (element) { if (element.contains(event.target)) show(element, false); });
+    }
+    function label() {
+      if (!play || !video) return;
+      play.textContent = video.paused ? 'Play preview' : 'Pause preview';
+      play.setAttribute('aria-label', video.paused ? 'Play robot preview' : 'Pause robot preview');
+      play.setAttribute('aria-pressed', video.paused ? 'false' : 'true');
+    }
+    function toggleVideo() {
+      if (!video || !play) return;
+      if (!video.paused) { video.pause(); return; }
+      if (!video.getAttribute('src') && video.dataset.src) video.src = video.dataset.src;
+      var result = video.play();
+      if (result && result.catch) result.catch(function () {
+        if (disposed) return;
+        play.textContent = 'Retry preview'; play.setAttribute('aria-label', 'Retry robot preview');
+      });
+    }
+    function visibility() { if (document.hidden && video) video.pause(); }
+    function reduceMotion() {
+      if (!motion.matches) return;
+      pending.forEach(function (element) { show(element, false); });
+      animations.forEach(function (animation) { animation.finish(); });
+      if (video) video.pause();
+    }
+    root.addEventListener('focusin', focus);
+    if (play && video) {
+      play.addEventListener('click', toggleVideo);
+      video.addEventListener('play', label); video.addEventListener('pause', label);
+      document.addEventListener('visibilitychange', visibility);
+      if ('IntersectionObserver' in window) {
+        mediaObserver = new IntersectionObserver(function (entries) {
+          if (entries.some(function (entry) { return !entry.isIntersecting; })) video.pause();
+        });
+        mediaObserver.observe(video);
+      }
+      label();
+    }
+    motion.addEventListener('change', reduceMotion);
+    blogHomeRuntime = { root: root, dispose: function () {
+      disposed = true;
+      localizedLabels.forEach(function (item) { item[0].setAttribute(item[1], item[2]); });
+      if (observer) observer.disconnect(); if (mediaObserver) mediaObserver.disconnect();
+      pending.forEach(function (element) { show(element, false); });
+      animations.forEach(function (animation) { animation.cancel(); });
+      root.removeEventListener('focusin', focus);
+      motion.removeEventListener('change', reduceMotion);
+      document.removeEventListener('visibilitychange', visibility);
+      if (play) play.removeEventListener('click', toggleVideo);
+      if (video) { video.pause(); video.removeEventListener('play', label); video.removeEventListener('pause', label); }
+    } };
+  }
+
   function runAll() {
     finishArchiveNavigationFeedback();
     setupArticleSearchHighlightScope();
@@ -5073,6 +5175,7 @@
     enhancedHeader = header;
     updateHomepageClass();
     setupOverviewReveal();
+    setupBlogHome();
     ensureHeaderGlass();
     ensureTocGlass();
     setupHeaderSearchTransition();

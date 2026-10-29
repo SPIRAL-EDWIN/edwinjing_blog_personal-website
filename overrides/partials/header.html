@@ -1,3 +1,4 @@
+{% if page and page.url == "" %}{% import "partials/languages/en.html" as lang %}{% endif %}
 {# Material header contract; EdwinOS renders its progressive glass before paint.
    Keep controls and their data-md-component attributes aligned with Material. #}
 {% set class = "md-header" %}
