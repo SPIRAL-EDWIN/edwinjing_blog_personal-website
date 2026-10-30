@@ -26,6 +26,7 @@ class RuntimeUiContractTests(unittest.TestCase):
         template = (ROOT / "overrides" / "main.html").read_text(encoding="utf-8")
         environment = Environment(loader=DictLoader({
             "main.html": template,
+            "partials/intro-loader.html": "",
             "base.html": '{% block header %}<header>Header</header>{% endblock %}',
         }))
         environment.filters["url"] = lambda value: value

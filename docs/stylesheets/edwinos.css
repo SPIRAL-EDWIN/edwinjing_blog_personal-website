@@ -1468,6 +1468,8 @@ body[data-md-color-scheme="slate"]
     }
 }
 
+.blog-home .section-title { color: var(--academic-ink) !important; margin: 0 !important; }
+
 /* ==========================================================================
    Markdown Lists
    ========================================================================== */
@@ -6674,7 +6676,7 @@ body.is-homepage .academic-home-layout:not(.academic-home-layout--subpage)
 .blog-home-section { margin: 0 0 36px; }
 .blog-home-section-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 14px; }
 .blog-home-section-heading > a { font-size: 12px; }
-.blog-home .section-title { color: var(--academic-ink) !important; margin: 0 !important; }
+
 .blog-home .title-dash { width: 26px; height: 2px; background: var(--academic-card-border); flex: 0 0 26px; }
 .blog-home-updates { border-top: 1px solid var(--academic-card-border); }
 .blog-home-update { display: grid; grid-template-columns: 112px minmax(0,1fr); gap: 14px; align-items: baseline; padding: 15px 8px; border-bottom: 1px solid var(--academic-card-border); color: var(--academic-ink) !important; text-decoration: none !important; transition: background-color 180ms; }
