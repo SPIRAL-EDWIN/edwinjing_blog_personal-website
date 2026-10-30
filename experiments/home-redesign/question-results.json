@@ -1,0 +1,19 @@
+{
+  "count": 32,
+  "maxLength": 58,
+  "seen": [
+    "When should progress give way to precision?",
+    "Is reaching a target the same as holding it steadily?",
+    "How do we know what we think we know?",
+    "Why can more calibration poses still give a worse result?",
+    "Is the general will just the sum of private wishes?",
+    "Does convergence mean we found the best solution?",
+    "Is your reward responding to time, or to distance?",
+    "Why can more calibration poses still give a worse result?",
+    "Where is the gripper tip relative to the flange?",
+    "How does a longer action horizon change your samples?",
+    "What changes when the same policy meets another simulator?",
+    "Does passing through every point make a better model?"
+  ],
+  "unique": 11
+}

@@ -573,3 +573,9 @@ highlight and tinted transparency remain the Safari/Firefox fallback; reduced
 transparency and increased contrast use an opaque accessible surface.
 The 28px substrate is scoped to Start Here, not reading pages. The first-visit
 intro may reuse it; page content and fonts remain same-origin and in the DOM.
+
+### First-entry opening and clip group (2026-10-30)
+
+`intro-loader.html` seeds a pre-paint gate and an independent seven-second watchdog. `intro-loader.js` owns the bounded no-skip motion, inert/focus restoration, resource outcomes and disposal; `intro-questions.js` owns authored body-grounded questions. `extra.loader` controls mode, entry scope and storage scope. No route subscription. Cross-origin avatars/badges are nonessential and excluded from readiness. The First-entry Opening CSS section uses the shared glass primitive; reduced motion removes typing, bobbing and the curtain.
+
+Blog Home owns the portrait frame, caption and three glass clip choices. One player changes source on explicit selection. `setupBlogHome` assigns only the active source after Save-Data checks; inactive clips never preload. Preserve source rate labels, local lightweight posters, hover/explicit controls and offscreen/hidden pause. No video source in parser markup.

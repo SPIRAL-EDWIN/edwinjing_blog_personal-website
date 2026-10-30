@@ -1,0 +1,91 @@
+[
+  {
+    "kind": "desktop",
+    "before": [
+      "blog-home-robot.mp4"
+    ],
+    "requests": [
+      "blog-home-robot.mp4",
+      "blog-home-banana.mp4",
+      "blog-home-board.mp4"
+    ],
+    "banana": {
+      "width": 480,
+      "height": 854,
+      "duration": 22
+    },
+    "board": {
+      "width": 480,
+      "height": 854,
+      "duration": 16
+    },
+    "errors": [],
+    "offscreenPaused": true
+  },
+  {
+    "kind": "touch",
+    "before": [
+      "blog-home-robot.mp4"
+    ],
+    "requests": [
+      "blog-home-robot.mp4",
+      "blog-home-banana.mp4",
+      "blog-home-board.mp4"
+    ],
+    "banana": {
+      "width": 480,
+      "height": 854,
+      "duration": 22
+    },
+    "board": {
+      "width": 480,
+      "height": 854,
+      "duration": 16
+    },
+    "errors": [],
+    "offscreenPaused": true
+  },
+  {
+    "kind": "save-data",
+    "before": [],
+    "requests": [
+      "blog-home-banana.mp4",
+      "blog-home-board.mp4"
+    ],
+    "banana": {
+      "width": 480,
+      "height": 854,
+      "duration": 22
+    },
+    "board": {
+      "width": 480,
+      "height": 854,
+      "duration": 16
+    },
+    "errors": [],
+    "offscreenPaused": true
+  },
+  {
+    "kind": "reduced",
+    "before": [
+      "blog-home-robot.mp4"
+    ],
+    "requests": [
+      "blog-home-robot.mp4",
+      "blog-home-banana.mp4",
+      "blog-home-board.mp4"
+    ],
+    "banana": {
+      "width": 480,
+      "height": 854,
+      "duration": 22
+    },
+    "board": {
+      "width": 480,
+      "height": 854,
+      "duration": 16
+    },
+    "errors": [],
+    "offscreenPaused": true
+  }
+]

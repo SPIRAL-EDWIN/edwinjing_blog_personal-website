@@ -5102,7 +5102,7 @@
   }
 
   // Reading desk: content remains readable without JS; only offscreen items
-  // enter once. Media is fetched only after explicit reader intent.
+  // enter once. Only the selected clip warms metadata; Save-Data waits for intent.
   function setupBlogHome() {
     var root = document.querySelector('.blog-home');
     if (blogHomeRuntime && blogHomeRuntime.root === root) return;
@@ -5122,11 +5122,32 @@
     var animations = new Set(), pending = new Set();
     var video = root.querySelector('[data-blog-home-video]');
     var play = root.querySelector('[data-blog-home-play]');
-    var media = root.querySelector('.blog-home-feature__media');
+    var media = root.querySelector('.blog-home-feature');
     var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
     var saveData = !!(navigator.connection && navigator.connection.saveData);
     var playGeneration = 0;
-    if (video && saveData) { video.dataset.src = video.getAttribute('src'); video.removeAttribute('src'); video.preload = 'none'; video.load(); }
+    var clips = Array.from(root.querySelectorAll('[data-blog-home-clip]'));
+    var clipGroup = root.querySelector('.blog-home-clips');
+    var caption = root.querySelector('[data-blog-home-caption]');
+    var speed = root.querySelector('[data-blog-home-speed]');
+    // Authored data-src avoids parser downloads before the Save-Data guard.
+    if (video) {
+      video.preload = saveData ? 'none' : 'metadata';
+      if (!saveData && !video.getAttribute('src') && video.dataset.src) video.src = video.dataset.src;
+    }
+    function selectClip(event) {
+      var button = event.currentTarget;
+      if (!video || button.getAttribute('aria-pressed') === 'true') return;
+      pauseVideo();
+      video.removeAttribute('src'); video.load();
+      video.dataset.src = button.dataset.src;
+      video.poster = button.dataset.poster;
+      video.setAttribute('aria-label', button.dataset.caption + ', ' + button.dataset.speed);
+      caption.textContent = button.dataset.caption; speed.textContent = button.dataset.speed;
+      clips.forEach(function (clip) { clip.setAttribute('aria-pressed', clip === button ? 'true' : 'false'); });
+      // Switching is explicit playback intent; no inactive clip is warmed.
+      startVideo();
+    }
     function show(element, animate) {
       pending.delete(element);
       element.style.removeProperty('opacity');
@@ -5164,9 +5185,7 @@
       var generation = ++playGeneration;
       if (!video.getAttribute('src') && video.dataset.src) video.src = video.dataset.src;
       var result = video.play();
-      if (result && result.then) result.then(function () {
-        if (disposed || generation !== playGeneration) video.pause();
-      }).catch(function (error) {
+      if (result && result.catch) result.catch(function (error) {
         if (disposed || generation !== playGeneration || error.name === 'AbortError') return;
         play.textContent = 'Retry preview'; play.setAttribute('aria-label', 'Retry robot preview');
       });
@@ -5196,6 +5215,8 @@
         });
         mediaObserver.observe(video);
       }
+      if (clipGroup) clipGroup.hidden = false;
+      clips.forEach(function (clip) { clip.addEventListener('click', selectClip); });
       label();
     }
     motion.addEventListener('change', reduceMotion);
@@ -5208,6 +5229,7 @@
       root.removeEventListener('focusin', focus);
       motion.removeEventListener('change', reduceMotion);
       document.removeEventListener('visibilitychange', visibility);
+      clips.forEach(function (clip) { clip.removeEventListener('click', selectClip); });
       if (play) play.removeEventListener('click', toggleVideo);
       if (media) { media.removeEventListener('pointerenter', enterVideo); media.removeEventListener('pointerleave', pauseVideo); }
       if (video) { video.pause(); video.removeEventListener('play', label); video.removeEventListener('pause', label); }

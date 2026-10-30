@@ -1,0 +1,58 @@
+[
+  {
+    "config": {
+      "mode": "off"
+    },
+    "applied": {
+      "mode": "off",
+      "entryScope": "any",
+      "storageScope": "session"
+    },
+    "path": "",
+    "active": false,
+    "reload": false,
+    "newTab": false
+  },
+  {
+    "config": {
+      "mode": "always"
+    },
+    "applied": {
+      "mode": "always",
+      "entryScope": "any",
+      "storageScope": "session"
+    },
+    "path": "",
+    "active": true,
+    "reload": true,
+    "newTab": true
+  },
+  {
+    "config": {
+      "entryScope": "home-only"
+    },
+    "applied": {
+      "mode": "first-visit",
+      "entryScope": "home-only",
+      "storageScope": "session"
+    },
+    "path": "HOME/friends/",
+    "active": false,
+    "reload": false,
+    "newTab": false
+  },
+  {
+    "config": {
+      "storageScope": "local"
+    },
+    "applied": {
+      "mode": "first-visit",
+      "entryScope": "any",
+      "storageScope": "local"
+    },
+    "path": "",
+    "active": true,
+    "reload": false,
+    "newTab": false
+  }
+]

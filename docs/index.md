@@ -22,10 +22,18 @@ description: "Notes on robotics, embodied AI, coursework, and practical experime
     </div>
     <figure class="blog-home-feature">
       <div class="blog-home-feature__media">
-        <video data-blog-home-video src="assets/media/blog-home-robot.mp4" poster="assets/images/blog-home-robot.webp" muted loop playsinline preload="metadata" width="480" height="854" aria-label="Autonomous robot demonstration, source footage at five times speed"></video>
-        <button class="edwinos-glass" type="button" data-blog-home-play aria-label="Play robot preview" aria-pressed="false">Play preview</button>
+        <video data-blog-home-video data-src="assets/media/blog-home-robot.mp4" poster="assets/images/blog-home-robot.webp" muted loop playsinline preload="metadata" width="480" height="854" aria-label="Autonomous robot demonstration, source footage at five times speed"></video>
       </div>
-      <figcaption>Robot demonstration · 5× speed</figcaption>
+      <figcaption>
+        <span class="blog-home-feature__caption"><span data-blog-home-caption>Autonomous rollout</span><span data-blog-home-speed>Source footage · 5× speed</span></span>
+        <button class="edwinos-glass" type="button" data-blog-home-play aria-label="Play robot preview" aria-pressed="false">Play preview</button>
+      </figcaption>
+      <div class="blog-home-clips" role="group" aria-label="Choose a robot demonstration" hidden>
+        <button class="edwinos-glass" type="button" data-blog-home-clip data-src="assets/media/blog-home-robot.mp4" data-poster="assets/images/blog-home-robot.webp" data-caption="Autonomous rollout" data-speed="Source footage · 5× speed" aria-pressed="true">Rollout</button>
+        <button class="edwinos-glass" type="button" data-blog-home-clip data-src="assets/media/blog-home-board.mp4" data-poster="assets/images/blog-home-board.webp" data-caption="Board wiping" data-speed="Lab footage · original speed" aria-pressed="false">Board</button>
+        <button class="edwinos-glass" type="button" data-blog-home-clip data-src="assets/media/blog-home-banana.mp4" data-poster="assets/images/blog-home-banana.webp" data-caption="Banana grasp" data-speed="Lab footage · original speed" aria-pressed="false">Banana</button>
+      </div>
+      <noscript><a href="assets/media/blog-home-robot.mp4">Watch the robot demonstration</a></noscript>
     </figure>
   </section>
 
@@ -44,17 +52,14 @@ description: "Notes on robotics, embodied AI, coursework, and practical experime
     </div>
     <div class="blog-home-cards">
       <a class="blog-home-card edwinos-glass" href="OsdNotes/Embodied%20AI/%E3%80%90Hand-Eye%20Calibration%E3%80%91%20%E6%89%8B%E7%9C%BC%E6%A0%87%E5%AE%9A%E7%90%86%E8%AE%BA%E4%B8%8E%E5%AE%9E%E8%B7%B5/">
-        <span class="blog-home-card__eyebrow">PERCEPTION</span>
         <h3>Connecting camera and robot</h3>
         <p>Follow the coordinate frames, solve AX = XB, and check what a calibration actually tells you.</p>
       </a>
       <a class="blog-home-card edwinos-glass" href="%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/Phi%20Lab/WBC/Sim2Sim%E9%85%8D%E7%BD%AE%E4%B8%8E%E8%AE%AD%E7%BB%83/">
-        <span class="blog-home-card__eyebrow">SIMULATION</span>
         <h3>From Isaac Lab to MuJoCo</h3>
         <p>ONNX exports, joint order, and deployment checks for a policy running in a second simulator.</p>
       </a>
       <a class="blog-home-card edwinos-glass" href="OsdNotes/Github%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/Git%20with%20gh/">
-        <span class="blog-home-card__eyebrow">TOOLBOX</span>
         <h3>Git, without losing the thread</h3>
         <p>Branches, forks, and pull requests: a reference for everyday collaboration.</p>
       </a>

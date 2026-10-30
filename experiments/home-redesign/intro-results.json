@@ -1,0 +1,180 @@
+[
+  {
+    "case": "forced",
+    "width": 375,
+    "during": {
+      "active": true,
+      "hidden": false,
+      "resources": "ready",
+      "inert": 9,
+      "overflow": false
+    },
+    "after": {
+      "active": false,
+      "hidden": true,
+      "reason": "ready",
+      "elapsed": "4493",
+      "resources": "ready",
+      "inert": 0,
+      "overflow": false
+    },
+    "errors": []
+  },
+  {
+    "case": "same-tab-visited",
+    "width": 375,
+    "after": {
+      "active": false,
+      "hidden": true,
+      "inert": 0,
+      "overflow": false
+    }
+  },
+  {
+    "case": "forced",
+    "width": 768,
+    "during": {
+      "active": true,
+      "hidden": false,
+      "resources": "ready",
+      "inert": 9,
+      "overflow": false
+    },
+    "after": {
+      "active": false,
+      "hidden": true,
+      "reason": "ready",
+      "elapsed": "4516",
+      "resources": "ready",
+      "inert": 0,
+      "overflow": false
+    },
+    "errors": []
+  },
+  {
+    "case": "same-tab-visited",
+    "width": 768,
+    "after": {
+      "active": false,
+      "hidden": true,
+      "inert": 0,
+      "overflow": false
+    }
+  },
+  {
+    "case": "forced",
+    "width": 1440,
+    "during": {
+      "active": true,
+      "hidden": false,
+      "resources": "ready",
+      "inert": 9,
+      "overflow": false
+    },
+    "after": {
+      "active": false,
+      "hidden": true,
+      "reason": "ready",
+      "elapsed": "4480",
+      "resources": "ready",
+      "inert": 0,
+      "overflow": false
+    },
+    "errors": []
+  },
+  {
+    "case": "same-tab-visited",
+    "width": 1440,
+    "after": {
+      "active": false,
+      "hidden": true,
+      "inert": 0,
+      "overflow": false
+    }
+  },
+  {
+    "case": "first-visit",
+    "state": {
+      "active": true,
+      "hidden": false,
+      "resources": "ready",
+      "inert": 9,
+      "overflow": false
+    }
+  },
+  {
+    "case": "escape-does-not-skip",
+    "state": {
+      "active": true,
+      "hidden": false,
+      "resources": "ready",
+      "inert": 9,
+      "overflow": false
+    }
+  },
+  {
+    "case": "reload",
+    "state": {
+      "active": false,
+      "hidden": true,
+      "inert": 0,
+      "overflow": false
+    }
+  },
+  {
+    "case": "new-tab",
+    "state": {
+      "active": true,
+      "hidden": false,
+      "resources": "ready",
+      "inert": 9,
+      "overflow": false
+    }
+  },
+  {
+    "case": "force-off",
+    "state": {
+      "active": false,
+      "hidden": true,
+      "inert": 0,
+      "overflow": false
+    }
+  },
+  {
+    "case": "hard-deadline",
+    "state": {
+      "active": false,
+      "hidden": true,
+      "reason": "deadline",
+      "elapsed": "7003",
+      "resources": "timeout",
+      "inert": 0,
+      "overflow": false
+    }
+  },
+  {
+    "case": "note-direct",
+    "state": {
+      "active": false,
+      "hidden": true,
+      "reason": "ready",
+      "elapsed": "4569",
+      "resources": "ready",
+      "inert": 0,
+      "overflow": false
+    },
+    "video": 0
+  },
+  {
+    "case": "reduced",
+    "state": {
+      "active": true,
+      "hidden": false,
+      "resources": "ready",
+      "inert": 9,
+      "overflow": false
+    },
+    "question": "How to fill the gap between sim2sim and sim2real?",
+    "animations": []
+  }
+]

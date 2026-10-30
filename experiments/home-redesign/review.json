@@ -1,0 +1,62 @@
+[
+  {
+    "width": 375,
+    "colorScheme": "light",
+    "errors": [],
+    "metrics": {
+      "cls": 0.000008232,
+      "lcp": 112
+    },
+    "overflow": false
+  },
+  {
+    "width": 375,
+    "colorScheme": "dark",
+    "errors": [],
+    "metrics": {
+      "cls": 0.000012,
+      "lcp": 88
+    },
+    "overflow": false
+  },
+  {
+    "width": 768,
+    "colorScheme": "light",
+    "errors": [],
+    "metrics": {
+      "cls": 0.000059718750000000005,
+      "lcp": 88
+    },
+    "overflow": false
+  },
+  {
+    "width": 768,
+    "colorScheme": "dark",
+    "errors": [],
+    "metrics": {
+      "cls": 0.000064453125,
+      "lcp": 88
+    },
+    "overflow": false
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "errors": [],
+    "metrics": {
+      "cls": 0.000024525462962962962,
+      "lcp": 72
+    },
+    "overflow": false
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "errors": [],
+    "metrics": {
+      "cls": 0.00002689525462962963,
+      "lcp": 68
+    },
+    "overflow": false
+  }
+]
