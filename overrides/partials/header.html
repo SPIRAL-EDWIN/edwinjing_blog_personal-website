@@ -64,9 +64,15 @@
         {% include "partials/search.html" %}
       {% endif %}
     {% endif %}
+    <a class="edwinos-header-academic edwinos-glass" href="https://edwinjing.github.io/" aria-label="Academic homepage" title="Academic homepage">
+      <span class="edwinos-header-academic__icon md-icon" aria-hidden="true">{% include ".icons/material/school-outline.svg" %}</span>
+      <span class="edwinos-header-academic__text">Academic homepage</span>
+    </a>
     {% if config.repo_url %}
       <div class="md-header__source">
-        {% include "partials/source.html" %}
+        {% with edwinos_source_icon_only = true %}
+          {% include "partials/source.html" %}
+        {% endwith %}
       </div>
     {% endif %}
   </nav>

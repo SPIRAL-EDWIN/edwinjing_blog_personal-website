@@ -67,7 +67,12 @@ viewport with no pending sections; dispose all resources on content replacement.
 Image hints, responsive preloads and native readiness remain unchanged.
 Initial
 HOME route classes are seeded before the header; the Header partial renders
-progressive glass and the Source partial renders the complete facts row.
+progressive glass. Header source is icon-only; the Source partial retains the
+complete repository facts row for the drawer. The Academic homepage link sits
+before search, with a text glass capsule on desktop and a labelled school icon
+on narrow screens. Its optics reuse `setupContentGlass`; header layout reserves
+its width separately from search, GitHub and palette controls. Keep search-to-
+GitHub and GitHub-to-palette spacing fixed across viewport widths.
 The header has seven static masked blur layers: the reference-shaped five
 (3/6/10/16/22px), with low-alpha 1px and 4.5px detail bridges. Its 52px extension and 74% transparent
 boundary stay fixed; low-radius layers bridge detail into the clear reading
@@ -155,8 +160,8 @@ forgiving `:is()` list so older browsers retain the original selector-list
 failure behavior. Do not replace this with `:where()` (zero specificity).
 
 Star/fork SVG masks have one token pair in the Header owner:
-`--edwinos-star-icon` and `--edwinos-fork-icon`. Header and drawer source facts
-consume these same assets; separate mask aliases are unnecessary.
+`--edwinos-star-icon` and `--edwinos-fork-icon`. Drawer source facts consume
+these assets; the header does not render repository text or statistics.
 
 ### Palette and retired UI
 

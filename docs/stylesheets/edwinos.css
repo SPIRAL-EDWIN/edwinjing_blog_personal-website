@@ -3224,9 +3224,8 @@ html.edwinos-search-transitioning .md-header .md-search {
 }
 
 /*
- * Header controls share one coordinate system and collapse in two ordered
- * stages. The search capsule contracts to a circle first, then the GitHub
- * icon wipes a stationary repository label as the remaining space contracts.
+ * Header controls share one coordinate system. Search contracts to a circle;
+ * Academic homepage uses a compact icon on narrow screens. GitHub stays icon-only.
  */
 :root {
     --edwinos-header-edge: clamp(8px, 2vw, 32px);
@@ -3237,7 +3236,9 @@ html.edwinos-search-transitioning .md-header .md-search {
         var(--compact-header-height, 3.5rem)
     );
     --edwinos-header-control-size: 44px;
-    --edwinos-header-control-gap: 4px;
+    --edwinos-header-control-gap: 8px;
+    --edwinos-header-academic-width: 174px;
+    --edwinos-header-academic-gap: 8px;
     --edwinos-header-tabs-search-gap: clamp(
         2px,
         calc((100vw - 360px) / 20),
@@ -3251,11 +3252,7 @@ html.edwinos-search-transitioning .md-header .md-search {
         )
         / 2
     );
-    --edwinos-header-search-source-gap: clamp(
-        10px,
-        calc(3.75vw - 5.75px),
-        16px
-    );
+    --edwinos-header-search-source-gap: 16px;
     --edwinos-header-tabs-left: calc(
         var(--edwinos-header-edge)
         + var(--edwinos-mobile-drawer-space, 0px)
@@ -3266,6 +3263,8 @@ html.edwinos-search-transitioning .md-header .md-search {
         var(--edwinos-header-tabs-left)
         + var(--edwinos-header-tabs-width)
         + var(--edwinos-header-tabs-search-gap)
+        + var(--edwinos-header-academic-width)
+        + var(--edwinos-header-academic-gap)
     );
     --edwinos-header-source-max-width: 138.4px;
     --edwinos-header-source-right: calc(
@@ -3280,14 +3279,7 @@ html.edwinos-search-transitioning .md-header .md-search {
         + var(--edwinos-header-source-icon-inset)
         - var(--edwinos-header-search-source-gap)
     );
-    --edwinos-header-source-width: clamp(
-        var(--edwinos-header-control-size),
-        calc(
-            var(--edwinos-header-compression-budget)
-            - var(--edwinos-header-control-size)
-        ),
-        var(--edwinos-header-source-max-width)
-    );
+    --edwinos-header-source-width: var(--edwinos-header-control-size);
     --edwinos-header-search-width: max(
         var(--edwinos-header-control-size),
         calc(
@@ -3352,6 +3344,8 @@ html.edwinos-search-transitioning .md-header .md-search {
     right: calc(
         var(--edwinos-header-search-right)
         + var(--edwinos-header-control-size)
+        + var(--edwinos-header-academic-width)
+        + var(--edwinos-header-academic-gap)
         + var(--edwinos-header-tabs-search-gap)
     ) !important;
     bottom: auto !important;
@@ -3576,6 +3570,30 @@ body:not(.is-home-profile-page)[data-md-color-scheme="slate"]
     padding: 0 !important;
 }
 
+.md-header .edwinos-header-academic {
+    position: absolute; top: calc((var(--edwinos-header-height) - var(--edwinos-header-control-size)) / 2);
+    right: calc(var(--edwinos-header-search-right) + var(--edwinos-header-search-width) + var(--edwinos-header-academic-gap));
+    z-index: 26; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    width: var(--edwinos-header-academic-width); height: var(--edwinos-header-control-size);
+    padding: 0 12px; margin: 0; box-sizing: border-box; font-family: var(--edwinos-font-reading-sans); font-size: 13px; font-weight: 500; white-space: nowrap;
+    color: var(--md-default-fg-color); text-decoration: none !important;
+}
+.edwinos-header-academic__icon { display: none; }
+.md-header .edwinos-header-academic:hover { color: var(--md-default-fg-color); }
+.md-header .edwinos-header-academic:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+@media screen and (max-width: 48em) {
+    :root { --edwinos-header-academic-width: var(--edwinos-header-control-size); }
+    .md-header .edwinos-header-academic { padding: 0; }
+    .edwinos-header-academic__text { display: none; }
+    .edwinos-header-academic__icon { display: flex; }
+    .edwinos-header-academic__icon svg { width: 24px; height: 24px; }
+}
+
+@media screen and (max-width: 26em) {
+    .md-header .md-tabs .md-tabs__link { padding-inline: 6px !important; }
+    .md-header .md-tabs .md-tabs__list { gap: 4px !important; }
+}
+
 .md-header .md-header__source {
     position: absolute !important;
     top: calc(
@@ -3624,12 +3642,8 @@ body:not(.is-home-profile-page)[data-md-color-scheme="slate"]
         background-color 160ms ease !important;
 }
 
-[data-md-color-scheme="default"] .md-header .md-source__icon {
-    background: var(--github-frame-light-bg, #f6f8fa) !important;
-}
-
-[data-md-color-scheme="slate"] .md-header .md-source__icon {
-    background: var(--github-frame-dark-bg, #0d1117) !important;
+.md-header .md-source__icon {
+    background: transparent !important;
 }
 
 .md-header .md-source__icon {
@@ -3744,6 +3758,7 @@ body:not(.is-home-profile-page)[data-md-color-scheme="slate"]
 
 /* Covered header controls remain visually static behind the expanding search
    capsule. Disable interaction so clicks cannot pass through to navigation. */
+[data-md-toggle="search"]:checked ~ .md-header .edwinos-header-academic,
 [data-md-toggle="search"]:checked ~ .md-header .md-tabs,
 [data-md-toggle="search"]:checked ~ .md-header .md-header__source,
 [data-md-toggle="search"]:checked ~ .md-header .md-header__option {
@@ -3871,6 +3886,8 @@ body:not(.is-home-profile-page)[data-md-color-scheme="slate"]
         right: calc(
             var(--edwinos-header-search-right)
             + var(--edwinos-header-control-size)
+            + var(--edwinos-header-academic-width)
+            + var(--edwinos-header-academic-gap)
             + var(--edwinos-header-tabs-search-gap)
         ) !important;
     }
@@ -3942,6 +3959,8 @@ body:not(.is-home-profile-page)[data-md-color-scheme="slate"]
         right: calc(
             var(--edwinos-header-search-right)
             + var(--edwinos-header-control-size)
+            + var(--edwinos-header-academic-width)
+            + var(--edwinos-header-academic-gap)
             + var(--edwinos-header-tabs-search-gap)
         ) !important;
     }
@@ -6695,7 +6714,7 @@ body.is-homepage .academic-home-layout:not(.academic-home-layout--subpage)
 .blog-home .blog-home-archive { padding: 10px 16px; min-height: 40px; display: inline-flex; align-items: center; border-radius: 18px; }
 .blog-home-cards { position: relative; padding: 28px 0; }
 .blog-home-cards::before { content: ''; position: absolute; pointer-events: none; inset: -28px 0; z-index: -1;
-    background: radial-gradient(ellipse at 20% 40%,rgb(44 204 228 / .11),transparent 55%),radial-gradient(ellipse at 85% 60%,rgb(88 166 255 / .12),transparent 50%),linear-gradient(var(--edwinos-grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--edwinos-grid-line) 1px,transparent 1px); background-size: auto,auto,28px 28px,28px 28px; mask-image: radial-gradient(ellipse,black 40%,transparent 75%); }
+    background: linear-gradient(var(--edwinos-grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--edwinos-grid-line) 1px,transparent 1px); background-size: 28px 28px,28px 28px; mask-image: radial-gradient(ellipse,black 40%,transparent 75%); }
 .blog-home-cards { z-index: 0; }
 .blog-home .blog-home-card:active { transform: scale(.992,.985); }
 

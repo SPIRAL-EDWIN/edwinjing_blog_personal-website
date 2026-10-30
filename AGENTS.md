@@ -83,8 +83,11 @@ Current stylesheet policy:
   makes Chromium move the document while typing into the sticky search input.
   Initial Overview/Archive/Friends body classes are seeded by
   `overrides/main.html` before the header paints; runtime route classification
-  owns later navigation. Header glass and repository fact rows are rendered
-  by the existing template partials before first paint. Keep its seven static
+  owns later navigation. Header glass and drawer repository fact rows are rendered
+  by the existing template partials before first paint. Header GitHub is icon-only;
+  Academic homepage is a separate glass link before search (labelled school icon
+  on narrow screens), using `setupContentGlass`. Preserve fixed search/GitHub/palette
+  spacing and reserve the academic link width in the tab rail. Keep its seven static
   blur layers synchronized between the header partial and `ensureHeaderGlass`
   fallback, with the eased low-radius bridge and existing 52px/74% boundary.
   `hooks/home_sections.py`

@@ -17,7 +17,6 @@ description: "Notes on robotics, embodied AI, coursework, and practical experime
       <nav class="blog-home-actions" aria-label="Explore the notebook">
         <a class="blog-home-action edwinos-glass" href="OsdNotes/">Browse the notes</a>
         <a href="%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/">Lab notes &amp; experience</a>
-        <a href="https://edwinjing.github.io/">Academic homepage <span aria-hidden="true">↗</span></a>
       </nav>
     </div>
     <figure class="blog-home-feature">

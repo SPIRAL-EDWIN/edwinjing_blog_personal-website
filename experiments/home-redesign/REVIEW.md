@@ -5,13 +5,13 @@ Blog only, branch `codex/redesign-home`. No push or production deployment. Acade
 
 ## Result
 
-A: one primary reading action, two text links, simpler dated updates, asymmetric
+A: one primary reading action, one secondary text link, simpler dated updates, asymmetric
 Start Here group, and portrait media without dead black sidebars. No internal ↗
 or duplicate card links. Source typography and exact footer markup preserved.
 
 B: transparent rounded controls and Start Here surfaces reuse EdwinOS optics.
-Neutral highlights replace blue hover rims. Subtle grid and blue/cyan substrate
-is local to Start Here/opening. Chromium enables displacement with restrained
+Neutral highlights replace blue hover rims. Start Here retains only the subtle
+grid; its blue/cyan glow was removed. Opening styling remains independent. Chromium enables displacement with restrained
 RGB dispersion; Safari uses native blur/highlights. No new framework/font/CDN.
 All homepage links suppress underlines; keyboard focus outlines remain.
 
@@ -39,7 +39,9 @@ Byline: “Chen Jing (经宸) · Working notebook”
 Introduction: “I’m Chen Jing. This notebook follows my work in robotics:
 coordinate transforms, simulation checks, reward tuning—and the tools I use
 along the way.”
-Actions: “Browse the notes”, “Lab notes & experience”, “Academic homepage”.
+Hero actions: “Browse the notes”, “Lab notes & experience”.
+“Academic homepage” now lives in the shared header, as text on desktop and a
+labelled school icon on narrow screens. GitHub is icon-only in the header.
 Section headings: “Recent Updates”, “Start Here”; archive action: “View archive”.
 
 - “Connecting camera and robot” — “Follow the coordinate frames, solve AX = XB, and check what a calibration actually tells you.”
@@ -112,3 +114,12 @@ No third-party glass implementation was copied; existing EdwinOS optics extended
 - A/B/C have independent commits; subsequent media/polish and prompt expansion
   are separate follow-up commits. No commit contains original large MOV files or
   unrelated photography assets.
+
+## Header follow-up — 2026-10-30
+
+- Shared header GitHub name/statistics omitted at render time; drawer facts retained.
+- Academic homepage moved from hero to existing glass system in the header.
+- Fixed search/GitHub/palette spacing; narrow navigation retains horizontal scrolling.
+- 320/375/768/1024/1440 checks across Home, Friends and ENotes: no page overflow or runtime errors.
+- Light/dark visuals, search opening/closing and Friends-to-Home replacement checked.
+- Strict build passed; current preview remains on port8000. Local only, no push.

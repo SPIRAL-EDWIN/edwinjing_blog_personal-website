@@ -1073,6 +1073,9 @@
     content.querySelectorAll('.profile-actions > .btn-github-action').forEach(function (element) {
       register(element, 'profile-action', 3.5, 10);
     });
+    document.querySelectorAll('.edwinos-header-academic').forEach(function (element) {
+      register(element, 'surface', 1.5, 20);
+    });
     content.querySelectorAll('.blog-home .edwinos-glass').forEach(function (element) {
       register(element, 'surface', 1.5, 20);
     });

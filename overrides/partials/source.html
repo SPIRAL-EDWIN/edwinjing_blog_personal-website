@@ -1,9 +1,10 @@
 {# EdwinOS owns repository facts; avoid Material fetching the same API twice. #}
-<a href="{{ config.repo_url }}" title="{{ lang.t('source') }}" class="md-source">
+<a href="{{ config.repo_url }}" title="{{ lang.t('source') }}" class="md-source" aria-label="GitHub repository">
   <div class="md-source__icon md-icon">
     {% set icon = config.theme.icon.repo or "fontawesome/brands/git-alt" %}
     {% include ".icons/" ~ icon ~ ".svg" %}
   </div>
+  {% if not edwinos_source_icon_only | default(false) %}
   <div class="md-source__repository md-source__repository--active">
     {{ config.repo_name }}
     {% set facts = config.extra.edwinos_github_repo_facts | default({}) %}
@@ -12,4 +13,5 @@
       <li class="md-source__fact md-source__fact--forks" data-source-fact="forks">{{ facts.forks | default('—') }}</li>
     </ul>
   </div>
+  {% endif %}
 </a>

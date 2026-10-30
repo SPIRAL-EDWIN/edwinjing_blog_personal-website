@@ -14,3 +14,5 @@
 - C committed aacee99. Latest decision changes every opening to random; pool expanded to32 grounded questions, including PHIL206 self-questions and CS101 conceptual examples.
 - Media complete: Rollout10s, Board16s, Banana22s; all local portrait H.264. Save-Data and inactive clips have no unsolicited MP4 requests. Fixed stale play promise pausing a newly selected source.
 - Final strict build +22 hook tests passed. Viewport/theme matrix, opening/failure lifecycle and media tests passed. Safari native light fallback inspected; native Safari dark not established. Review report records detector and performance limits.
+
+- Header follow-up complete locally: GitHub icon-only; Academic homepage moved to shared header glass (compact school icon on narrow screens); Start Here blue/cyan glow removed, grid retained. Strict build and responsive/search/instant-navigation checks passed. No push.
