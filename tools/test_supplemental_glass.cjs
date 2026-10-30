@@ -80,6 +80,10 @@ function harness({userAgent = 'Chrome/143.0', mobile = true, reduced = false, in
   sidebar.box = {left: 0, top: 0, width: 240, height: 640, right: 240, bottom: 640};
   const toggle = events({checked: false});
   const document = events({body, hidden: false, content: null, sidebar, toggle, fonts: {ready: {then: fn => fontCallbacks.push(fn)}},
+    querySelectorAll(selector) {
+      if (selector === '.edwinos-header-academic') return [];
+      throw new Error('Unexpected document selector '+ selector);
+    },
     querySelector(selector) {
       if (selector === '.md-content__inner') return this.content;
       if (selector === '.md-sidebar--primary') return this.sidebar;
