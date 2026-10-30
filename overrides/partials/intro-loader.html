@@ -1,0 +1,45 @@
+{% if edwinos_intro_phase == "head" %}
+<script>
+(function () {
+  var defaults = {mode: 'first-visit', entryScope: 'any', storageScope: 'session'};
+  var config = Object.assign(defaults, {{ config.extra.loader | default({}) | tojson }});
+  var root = document.documentElement;
+  var boot = window.__edwinosIntroBoot = {config: config, started: performance.now(), active: false};
+  var query = new URLSearchParams(location.search).get('intro');
+  var isHome = {{ (page.url in ["", "index.html"]) | tojson }};
+  var seen = false;
+  try {
+    var storage = config.storageScope === 'local' ? localStorage : sessionStorage;
+    seen = storage.getItem('edwinos:intro:v1') === 'seen';
+  } catch (_) { /* Storage denial must never prevent access to the page. */ }
+  var navigation = performance.getEntriesByType('navigation')[0];
+  var repeatedDocument = navigation && (navigation.type === 'reload' || navigation.type === 'back_forward');
+  boot.active = query === '1' || (query !== '0' && config.mode !== 'off' &&
+    (config.entryScope !== 'home-only' || isHome) &&
+    (config.mode === 'always' || (!seen && !repeatedDocument)));
+  if (!boot.active) return;
+  try { storage.setItem('edwinos:intro:v1', 'seen'); } catch (_) {}
+  root.classList.add('edwinos-intro-pending');
+  // Independent fail-open: even a missing runtime or script error cannot trap a reader.
+  boot.timer = setTimeout(function () {
+    root.classList.remove('edwinos-intro-pending');
+    var shell = document.getElementById('edwinos-intro');
+    if (shell) shell.hidden = true;
+    if (window.EdwinOSIntro) window.EdwinOSIntro.dismiss('deadline');
+  }, 7000);
+})();
+</script>
+{% else %}
+<div class="edwinos-intro" id="edwinos-intro" hidden role="dialog" aria-modal="true" tabindex="-1" aria-label="Opening Edwin's notebook" aria-hidden="true" data-search-exclude>
+  <div class="edwinos-intro__scene">
+    <div class="edwinos-intro__box edwinos-glass">
+      <p class="edwinos-intro__question" aria-hidden="true"><span data-intro-question></span><span class="edwinos-intro__cursor">|</span></p>
+      <svg class="edwinos-intro__icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <g class="edwinos-intro__search"><circle cx="13" cy="13" r="7.5"/><path d="m19 19 7 7"/></g>
+        <g class="edwinos-intro__success"><circle cx="16" cy="16" r="13" pathLength="100"/><path d="m9.5 16 4.5 4.5 8.5-9" pathLength="100"/></g>
+      </svg>
+    </div>
+    <p class="edwinos-intro__status" role="status" aria-live="polite">Opening the notebook…</p>
+  </div>
+</div>
+{% endif %}

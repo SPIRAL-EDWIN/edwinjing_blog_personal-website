@@ -10,6 +10,8 @@
 {% endblock %}
 
 {% block extrahead %}
+  {% set edwinos_intro_phase = "head" %}
+  {% include "partials/intro-loader.html" %}
   <script>
     (function () {
       var html = document.documentElement;
@@ -104,6 +106,8 @@
 {% endblock %}
 
 {% block header %}
+  {% set edwinos_intro_phase = "body" %}
+  {% include "partials/intro-loader.html" %}
   {# Classify the initial document before the header can paint. ui-perf.js
      remains the route owner after Material replaces a document. #}
   <script>document.body.classList.toggle("is-homepage", {{ (page.url in ["", "index.html"]) | tojson }});document.body.classList.toggle("is-home-profile-page", {{ (page.url in ["HOME/Archive/", "HOME/friends/", "HOME/Archive/index.html", "HOME/friends/index.html"]) | tojson }});</script>

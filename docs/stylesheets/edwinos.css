@@ -6561,6 +6561,45 @@ body.is-homepage .academic-home-layout:not(.academic-home-layout--subpage)
 }
 @media (prefers-reduced-motion: reduce) { .blog-home .blog-home-card { transform: none !important; transition: none; } }
 
+/* First-entry Opening — one bounded, optional runtime and shared glass. */
+.edwinos-intro { display: none; position: fixed; inset: 0; z-index: 10000; color: var(--md-default-fg-color); background: var(--md-default-bg-color); font: 400 15px/1.65 var(--edwinos-font-reading-sans); isolation: isolate; }
+.edwinos-intro-pending .edwinos-intro { display: grid; place-items: center; }
+.edwinos-intro::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(color-mix(in srgb,var(--md-default-fg-color) 6%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--md-default-fg-color) 6%,transparent) 1px,transparent 1px); background-size: 28px 28px; mask-image: radial-gradient(ellipse,black 15%,transparent 76%); }
+.edwinos-intro__scene { width: min(560px,88vw); text-align: center; }
+.edwinos-intro__box { position: relative; display: flex; align-items: center; gap: 16px; width: 100%; min-height: 94px; box-sizing: border-box; padding: 22px 24px; text-align: left; border-radius: 26px; transform: translateY(24px) scale(.96); opacity: 0; filter: blur(7px); transition: opacity 400ms,filter 550ms; }
+.edwinos-intro.is-entered .edwinos-intro__box { transform: none; opacity: 1; filter: none; animation: intro-surface-arrive 720ms both; }
+.edwinos-intro.is-typing .edwinos-intro__box { animation: intro-surface-breathe 1900ms ease-in-out infinite; }
+.edwinos-intro.is-success .edwinos-intro__box { animation: none; transform: none; transition: transform 280ms ease-out; }
+.edwinos-intro.is-sinking .edwinos-intro__box { animation: intro-surface-sink 420ms cubic-bezier(.5,0,.8,.4) forwards; }
+.edwinos-intro.is-sinking .edwinos-intro__status { opacity: 0; transition: opacity 180ms; }
+@keyframes intro-surface-arrive {
+  0% { transform: translateY(64px) scale(.94); opacity: 0; filter: blur(7px); }
+  58% { transform: translateY(-9px) scale(1.014,.992); opacity: 1; filter: none; }
+  80% { transform: translateY(3px) scale(.997,1.006); }
+  100% { transform: none; opacity: 1; filter: none; }
+}
+@keyframes intro-surface-breathe {
+  0%,100% { transform: translateY(0) rotate(0deg) scale(1); }
+  50% { transform: translateY(-5px) rotate(var(--intro-tilt,.4deg)) scale(1.006); }
+}
+@keyframes intro-surface-sink { to { transform: translateY(90px) scale(.95) rotate(-.7deg); opacity: 0; } }
+@keyframes intro-curtain { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
+.edwinos-intro__question { flex: 1; min-width: 0; margin: 0; font: inherit; min-height: 50px; display: block; overflow-wrap: anywhere; }
+.edwinos-intro__icon { flex: 0 0 30px; width: 30px; height: 30px; }
+.edwinos-intro__success { opacity: 0; color: #248a3d; }
+[data-md-color-scheme="slate"] .edwinos-intro__success { color: #30d158; }
+.edwinos-intro__success circle,.edwinos-intro__success path { stroke-dasharray: 100; stroke-dashoffset: 0; }
+.edwinos-intro.is-success .edwinos-intro__search { opacity: 0; }
+.edwinos-intro.is-success .edwinos-intro__success { opacity: 1; }
+.edwinos-intro__cursor { animation: intro-caret 800ms steps(2,end) infinite; color: var(--md-typeset-a-color); }
+.edwinos-intro.is-success .edwinos-intro__cursor { visibility: hidden; }
+.edwinos-intro__status { color: var(--md-default-fg-color--light); font-size: 12px; margin: 24px 0 8px; }
+.edwinos-intro.is-leaving { animation: intro-curtain 580ms cubic-bezier(.65,0,.35,1) forwards; pointer-events: none; }
+@keyframes intro-caret { to { opacity: 0; } }
+@media(max-width: 480px) { .edwinos-intro__box { padding: 20px; gap: 12px; } .edwinos-intro__question { min-height: 75px; } }
+@media(prefers-reduced-motion: reduce) { .edwinos-intro .edwinos-intro__box { transform: none !important; filter: none !important; animation: none !important; transition: opacity 120ms; } .edwinos-intro__cursor { animation: none; } .edwinos-intro.is-leaving { animation: none; opacity: 0; transition: opacity 100ms; } }
+
+
 /* ==========================================================================
    Blog Home
    A reading desk: shared EdwinOS type/glass, independently scoped content.

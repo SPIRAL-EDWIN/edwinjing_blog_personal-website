@@ -134,6 +134,10 @@ hooks:
 
 extra:
   generator: false
+  loader:
+    mode: first-visit  # first-visit | always | off
+    entryScope: any  # any | home-only
+    storageScope: session  # session | local
   archive:
     default_author: "Chen Jing (经宸)"
     # 首页、目录页与纯 UI 页面不进入内容归档；单篇文章也可设置 archive: false
@@ -201,6 +205,8 @@ extra_javascript:
   - javascripts/mathjax.js?v=20261011b
   - javascripts/block-links.js?v=20261010a  # Obsidian 风格块引用链接支持
   - javascripts/ui-perf.js?v=20261025a
+  - javascripts/intro-questions.js?v=20261029a
+  - javascripts/intro-loader.js?v=20261029a
 
 extra_css:
   - stylesheets/edwinos.css?v=20261025b  # Unified EdwinOS cascade

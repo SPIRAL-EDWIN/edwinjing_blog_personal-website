@@ -412,10 +412,11 @@ class HomeSectionsTests(unittest.TestCase):
         env = Environment(loader=DictLoader({
             "main.html": (HOOK_PATH.parents[1] / "overrides/main.html").read_text(encoding="utf-8"),
             "partials/image-previews.html": (HOOK_PATH.parents[1] / "overrides/partials/image-previews.html").read_text(encoding="utf-8"),
+            "partials/intro-loader.html": (HOOK_PATH.parents[1] / "overrides/partials/intro-loader.html").read_text(encoding="utf-8"),
             "base.html": "{% block extrahead %}{% endblock %}",
         }), autoescape=True)
         env.filters["url"] = lambda value: value
-        output = Markup(env.get_template("main.html").render(page=page, config={"site_name": "Site"}))
+        output = Markup(env.get_template("main.html").render(page=page, config={"site_name": "Site", "extra": {}}))
         preloads = [node for node in output.select("link") if node.get("as") == "image"]
         self.assertEqual(len(preloads), 3)
         for descriptor, preload in zip(page.edwinos_home_image_preloads, preloads):
@@ -425,7 +426,7 @@ class HomeSectionsTests(unittest.TestCase):
         # Page scope is enforced in the template as well as the content hook.
         for url in ("HOME/friends/", "HOME/Archive/", "articles/example/"):
             page.url = url
-            output = Markup(env.get_template("main.html").render(page=page, config={"site_name": "Site"}))
+            output = Markup(env.get_template("main.html").render(page=page, config={"site_name": "Site", "extra": {}}))
             self.assertFalse(any(node.get("as") == "image" for node in output.select("link")))
 
     def test_home_preload_hook_skips_other_pages_and_external_assets(self):
