@@ -20,5 +20,17 @@ window.EdwinOSIntroQuestions = Object.freeze([
   'When should progress give way to precision?',
   'Is your reward responding to time, or to distance?',
   'Is your dataset frequency measured or assumed?',
-  'Do matching file counts prove your recordings are paired?'
+  'Do matching file counts prove your recordings are paired?',
+  'How do we know what we think we know?',
+  'Can repeated observations establish a necessary cause?',
+  'What distinguishes perception from illusion?',
+  'Can a social contract make us more free?',
+  'Is the general will just the sum of private wishes?',
+  'Can we criticize progress without rejecting civilization?',
+  'Does freedom mean doing whatever we want?',
+  'When do two variables refer to the same object?',
+  'When is a numerical answer close enough?',
+  'Does convergence mean we found the best solution?',
+  'How much does your starting guess shape the answer?',
+  'Does passing through every point make a better model?'
 ]);

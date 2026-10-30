@@ -38,7 +38,7 @@ Sources:
 - `docs/OsdNotes/Embodied AI/【Hand-Eye Calibration】 手眼标定理论与实践.md`
 - `docs/OsdNotes/Github学习笔记/Git with gh.md`
 
-No factual answers or new research claims were added. All 20 questions are under 60 characters. Per the latest decision, every opening starts at random using Fisher–Yates; rounds within the same opening do not repeat.
+No factual answers or new research claims were added. All 32 questions are under 60 characters. Per the latest decision, every opening starts at random using Fisher–Yates; rounds within the same opening do not repeat.
 
 ## Motion / constraints
 
@@ -111,3 +111,30 @@ and pair recordings by identity, rather than file counts alone.
 
 These are prompts to explore the notes, not new claims or reported results.
 No extra animation rounds are forced just to show more questions.
+
+## Philosophy and computing additions
+
+Selection prioritizes a meaningful tension or distinction over a command lookup.
+All are concise English adaptations, not claims that a philosophical position
+is settled or that every explanation in a course notebook is authoritative.
+
+| Questions | Source and author question/section |
+|---|---|
+| 21: knowing what we know | PHIL 206, epistemology priority; explicit “How do we know what we think we know?” |
+| 22: observation and necessary cause | PHIL 206, Hume's induction and constant conjunction discussion |
+| 23: perception vs illusion | PHIL 206, author's question about distinguishing illusion without permanent substance |
+| 24: social contract and freedom | PHIL 206, explicit self-question “社会契约如何能够促进而不是减少自由？” |
+| 25: general will vs private wishes | PHIL 206, General Will/众意 distinction and the taxation example |
+| 26: criticism of progress | PHIL 206, paired self-questions about abandoning civilization and why Rousseau does not return to nature |
+| 27: meaning of freedom | PHIL 206, freedom vs license and Redefining Freedom |
+| 28: variable identity | CS101/Python, Lec7 mutable aliases and the nested dictionary example |
+| 29: close enough | CS101/Python, floating-point comparison and isclose/allclose tolerances |
+| 30: convergence vs best | CS101/Python, Lec18 local hill climbing and no guarantee of global optimum |
+| 31: starting guesses | CS101/Python, Lec16 Newton example with two initial guesses |
+| 32: fitting every point | CS101/MATLAB, Lec26 high-degree fitting, overfitting and spline discussion |
+
+The course sources are `docs/OsdNotes/PHIL/PHIL 206.md`,
+`docs/OsdNotes/CS101/Python.md` and `docs/OsdNotes/CS101/MATLAB.md`.
+Questions 21, 23, 24 and 26 prioritize explicit self-questioning passages. Other
+questions distill demonstrated conceptual issues; none is represented as a
+verbatim personal question when it was authored here.
