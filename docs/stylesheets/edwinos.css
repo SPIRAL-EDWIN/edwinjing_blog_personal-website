@@ -6585,6 +6585,7 @@ body.is-homepage .academic-home-layout:not(.academic-home-layout--subpage)
 /* First-entry Opening — a notebook cell becomes a question. */
 .edwinos-intro { display: none; position: fixed; inset: 0; z-index: 10000; color: var(--md-default-fg-color); background: var(--md-default-bg-color); font: 400 15px/1.65 var(--edwinos-font-reading-sans); isolation: isolate; }
 .edwinos-intro-pending .edwinos-intro { display: grid; place-items: center; }
+.edwinos-intro:focus { outline:none; }
 .edwinos-intro::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(color-mix(in srgb,var(--md-default-fg-color) 7%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--md-default-fg-color) 7%,transparent) 1px,transparent 1px); background-size: 28px 28px; background-position: center; mask-image: radial-gradient(ellipse,black 15%,transparent 76%); }
 .edwinos-intro::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(circle at center, color-mix(in srgb,var(--md-typeset-a-color) 7%,transparent),transparent 40%); opacity: 0; transform: scale(.2); }
 .edwinos-intro.is-entered::after { animation: intro-thought 1200ms 400ms ease-out both; }
@@ -6665,7 +6666,7 @@ body.is-homepage .academic-home-layout:not(.academic-home-layout--subpage)
 }
 
 .blog-home a:focus-visible, .blog-home button:focus-visible { outline: 2px solid var(--academic-accent); outline-offset: 4px; }
-.blog-home .blog-home-feature { position: relative; min-width: 0; width: 100%; max-width: none; margin: 0 !important; padding: 0; background: transparent; }
+.blog-home .blog-home-feature { position: relative; min-width: 0; width: min(100%, max(260px, (100svh - 270px) * 480 / 854)); max-width: none; justify-self: center; margin: 0 !important; padding: 0; background: transparent; }
 .blog-home-feature__media { position: relative; overflow: hidden; border-radius: 22px; background: var(--md-default-bg-color); box-shadow: 0 16px 30px -16px rgb(0 0 0 / .35); }
 .blog-home-feature video { display: block; width: 100%; height: auto; aspect-ratio: 480 / 854; object-fit: contain; border-radius: 22px; background: var(--md-default-bg-color); }
 .blog-home .blog-home-feature figcaption { display: flex; align-items: center; justify-content: space-between; gap: 12px; text-align: left; font-style: normal; padding: 20px 0 0; margin: 0; font-size: 12px; color: var(--academic-ink); }
