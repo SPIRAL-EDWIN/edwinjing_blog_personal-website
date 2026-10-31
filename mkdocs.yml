@@ -127,6 +127,7 @@ watch:
 
 # 构建时根据内容文件和 Git 历史生成 HOME/Archive 页面
 hooks:
+  - hooks/figure_specs.py
   - hooks/archive.py
   - hooks/home_sections.py
   - hooks/search_scope.py

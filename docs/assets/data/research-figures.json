@@ -1,0 +1,163 @@
+{
+  "calibration": {
+    "nodes": [
+      {
+        "id": "robot",
+        "col": 0,
+        "row": 0,
+        "label": "ROBOT POSES",
+        "title": "End effector",
+        "detail": "Measurements from the arm",
+        "step": 0
+      },
+      {
+        "id": "camera",
+        "col": 0,
+        "row": 1,
+        "label": "CAMERA OBSERVATIONS",
+        "title": "Calibration board",
+        "detail": "Images at multiple poses",
+        "step": 0
+      },
+      {
+        "id": "motion",
+        "col": 1,
+        "row": 1,
+        "spanRows": 2,
+        "label": "RELATIVE MOTION",
+        "title": "A · X = X · B",
+        "detail": "Two views of the same motion",
+        "step": 1,
+        "math": "A\\cdot X=X\\cdot B",
+        "layoutRow": 0
+      },
+      {
+        "id": "estimate",
+        "col": 2,
+        "row": 1,
+        "spanRows": 2,
+        "label": "ESTIMATE",
+        "title": "Camera ↔ end effector",
+        "detail": "Inspect the transform",
+        "step": 3,
+        "layoutRow": 0
+      }
+    ],
+    "edges": [
+      {
+        "id": "robot-motion",
+        "from": "robot",
+        "to": "motion",
+        "step": 1
+      },
+      {
+        "id": "camera-motion",
+        "from": "camera",
+        "to": "motion",
+        "step": 1
+      },
+      {
+        "id": "motion-estimate",
+        "from": "motion",
+        "to": "estimate",
+        "step": 3
+      }
+    ],
+    "steps": [
+      {
+        "title": "Measurements",
+        "text": "Record robot poses and observe the board from multiple positions."
+      },
+      {
+        "title": "Relative motion",
+        "text": "Compare poses to describe the motion of the end effector and the camera."
+      },
+      {
+        "title": "Solve",
+        "text": "The motion pairs constrain AX = XB and the fixed camera-to-end-effector transform."
+      },
+      {
+        "title": "Check",
+        "text": "Inspect the resulting transform; one motion alone is usually insufficient."
+      }
+    ]
+  },
+  "simulation": {
+    "nodes": [
+      {
+        "id": "train",
+        "col": 0,
+        "row": 0,
+        "label": "TRAINING",
+        "title": "Isaac Lab",
+        "detail": "Learn the policy",
+        "step": 0
+      },
+      {
+        "id": "export",
+        "col": 1,
+        "row": 0,
+        "label": "EXPORT",
+        "title": "ONNX",
+        "detail": "Inference graphs",
+        "step": 1
+      },
+      {
+        "id": "validate",
+        "col": 2,
+        "row": 0,
+        "label": "CLOSED LOOP",
+        "title": "MuJoCo",
+        "detail": "Run without updating parameters",
+        "step": 2
+      },
+      {
+        "id": "checks",
+        "col": 3,
+        "row": 0,
+        "label": "CHECKS",
+        "title": "Deployment chain",
+        "detail": "Joint order · stability · errors",
+        "step": 3
+      }
+    ],
+    "edges": [
+      {
+        "id": "train-export",
+        "from": "train",
+        "to": "export",
+        "step": 1
+      },
+      {
+        "id": "export-validate",
+        "from": "export",
+        "to": "validate",
+        "step": 2
+      },
+      {
+        "id": "validate-checks",
+        "from": "validate",
+        "to": "checks",
+        "step": 3
+      }
+    ],
+    "steps": [
+      {
+        "title": "Train",
+        "text": "Train the policy in Isaac Lab before testing it elsewhere."
+      },
+      {
+        "title": "Export",
+        "text": "Export the inference graphs to ONNX for the deployment chain."
+      },
+      {
+        "title": "Validate",
+        "text": "Run the policy in MuJoCo as a closed loop without updating its parameters."
+      },
+      {
+        "title": "Inspect",
+        "text": "Check joint order, stability, errors and consistency across the chain."
+      }
+    ]
+  }
+}
