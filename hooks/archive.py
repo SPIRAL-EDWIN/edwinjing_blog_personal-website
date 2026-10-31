@@ -353,10 +353,10 @@ def _render_home_updates(entries, config):
         if re.search(r"[\u3400-\u9fff]", title):
             raise PluginError(f"English homepage title required for {entry.src_uri}; add title_en or blog-titles.yml entry")
         activity = entry.activity_date.isoformat()
-        display_date = entry.activity_date.strftime("%b %d, %Y").replace(" 0", " ")
+        display_date = entry.activity_date.strftime("%m/%Y")
         rows.append(
             f'<a class="blog-home-update" data-blog-home-reveal href="{html.escape(entry.page_url, quote=True)}">'
-            f'<time datetime="{activity}">{display_date}</time>'
+            f'<time class="news-date" datetime="{activity}" aria-label="{entry.activity_date.strftime("%B %d, %Y").replace(" 0", " ")}">{display_date}</time>'
             f'<strong class="blog-home-update__title">{html.escape(title)}</strong>'
             '</a>'
         )

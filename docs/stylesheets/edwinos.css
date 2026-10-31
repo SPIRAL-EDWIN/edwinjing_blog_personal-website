@@ -6704,8 +6704,7 @@ body.is-homepage .academic-home-layout:not(.academic-home-layout--subpage)
 
 .blog-home .title-dash { width: 26px; height: 2px; background: var(--academic-card-border); flex: 0 0 26px; }
 .blog-home-updates { border-top: 1px solid var(--academic-card-border); }
-.blog-home-update { display: grid; grid-template-columns: 112px minmax(0,1fr); gap: 14px; align-items: baseline; padding: 15px 8px; border-bottom: 1px solid var(--academic-card-border); color: var(--academic-ink) !important; text-decoration: none !important; transition: background-color 180ms; }
-.blog-home-update time { color: var(--academic-muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.blog-home-update { display: grid; grid-template-columns: 72px minmax(0,1fr); gap: 14px; align-items: baseline; padding: 15px 8px; border-bottom: 1px solid var(--academic-card-border); color: var(--academic-ink) !important; text-decoration: none !important; transition: background-color 180ms; }
 .blog-home-update__title { font-size: 14px; font-weight: 500; line-height: 1.5; }
 .blog-home-update:hover { background: color-mix(in srgb, var(--md-default-fg-color) 4%, transparent); }
 .blog-home-update:hover .blog-home-update__title { color: var(--academic-accent); }
@@ -7299,7 +7298,8 @@ body:has(.academic-home-layout) .news-text {
 }
 
 body:is(.is-homepage, .is-home-profile-page) .news-date,
-body:has(.academic-home-layout) .news-date {
+body:has(.academic-home-layout) .news-date,
+.blog-home .blog-home-update .news-date {
     align-self: baseline !important;
     align-self: first baseline !important;
     color: var(--academic-date) !important;
