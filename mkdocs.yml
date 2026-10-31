@@ -209,6 +209,7 @@ extra_javascript:
   - javascripts/figure-stage.js?v=20261031a
   - javascripts/intro-questions.js?v=20261029a
   - javascripts/intro-deck.js?v=20261031a
+  - javascripts/intro-typing.js?v=20261031a
   - javascripts/intro-loader.js?v=20261029a
 
 extra_css:

@@ -115,7 +115,7 @@
     if (reason === 'ready') revealContent(state);
     state.resolve({reason, elapsed: performance.now() - state.started, resources: state.resourceResults});
   }
-  async function round(question, state, budget = timing.round, first = false) {
+  async function round(question, state, budget = timing.round) {
     const start = performance.now();
     const text = state.overlay.querySelector('[data-intro-question]');
     const icon = state.overlay.querySelector('.edwinos-intro__icon');
@@ -123,22 +123,26 @@
     const box = state.overlay.querySelector('.edwinos-intro__box');
     box.style.setProperty('--intro-tilt', (Math.random() * 1.1 - .55).toFixed(2) + 'deg');
     state.overlay.classList.add('is-typing');
-    if (!reduce.matches) {
-      for (let i = 0; i < question.length; i++) {
+    // Reserve the final text's height before typing, including two-line mobile questions.
+    const paragraph = text.parentElement;
+    const mirror = document.createElement('span');
+    mirror.textContent = question + '|';
+    Object.assign(mirror.style, {position: 'absolute', visibility: 'hidden', pointerEvents: 'none', display: 'block', width: paragraph.clientWidth + 'px', overflowWrap: 'anywhere'});
+    paragraph.appendChild(mirror);
+    paragraph.style.minHeight = Math.ceil(mirror.getBoundingClientRect().height) + 'px';
+    mirror.remove();
+    box.setAttribute('role', 'group');
+    box.setAttribute('aria-label', question);
+    text.setAttribute('aria-live', 'off');
+    if (!reduce.matches && window.EdwinOSIntroTyping) {
+      const query = new URLSearchParams(location.search);
+      const forced = query.get('typo');
+      const typo = forced === '1' ? true : forced === '0' ? false : undefined;
+      const plan = window.EdwinOSIntroTyping.plan(question, {rng: state.typingRandom, typo});
+      for (const event of plan.events) {
         if (state.controller.signal.aborted) return;
-        const character = question[i];
-        text.textContent += character;
-        if (!await wait(timing.typeMin + Math.random() * (timing.typeMax - timing.typeMin) + (/[?,.!]/.test(character) ? timing.punctuation : 0), state)) return;
-        // A small correction makes the first question feel considered, not typed by a machine.
-        if (first && i === Math.floor(question.length / 2)) {
-          first = false;
-          if (!await wait(300, state)) return;
-          for (let j = 0; j < 4; j++) {
-            text.textContent = text.textContent.slice(0, -1);
-            if (!await wait(35, state)) return;
-          }
-          i -= 4;
-        }
+        text.textContent = event.value;
+        if (!await wait(event.delay, state)) return;
       }
     } else text.textContent = question;
     if (!await wait(timing.thought, state)) return;
@@ -188,24 +192,20 @@
     });
     (async () => {
       const all = window.EdwinOSIntroQuestions || [];
-      // Pick a group with 2:1 weights, then choose an available non-robotics
-      // category uniformly. Exhausted groups/categories are automatically ignored.
-      const used = new Set();
-      function nextQuestion(first) {
-        if (first && all.length) { used.add(all[0].id); return all[0].text; }
-        const remaining = all.filter(q => !used.has(q.id));
-        const robotics = remaining.filter(q => q.category === 'robotics');
-        const others = remaining.filter(q => q.category !== 'robotics');
-        const useRobot = robotics.length && (!others.length || Math.random() < 2 / 3);
-        let options = useRobot ? robotics : others;
-        if (!options.length) return 'Opening the notebook…';
-        if (!useRobot) {
-          const categories = [...new Set(options.map(q => q.category))];
-          const category = categories[Math.floor(Math.random() * categories.length)];
-          options = options.filter(q => q.category === category);
-        }
-        const chosen = options[Math.floor(Math.random() * options.length)];
-        used.add(chosen.id); return chosen.text;
+      const params = new URLSearchParams(location.search);
+      let storage = null;
+      try { storage = window.localStorage; } catch (_) { /* Private browsing may deny storage. */ }
+      const deck = window.EdwinOSIntroDeck && window.EdwinOSIntroDeck.create({
+        questions: all, storage, seed: params.get('seed'), forcedId: params.get('q')
+      });
+      // A deterministic debug seed also makes typo placement and rhythm repeatable.
+      if (params.has('seed')) {
+        let seed = Number(params.get('seed')) >>> 0;
+        state.typingRandom = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+      } else state.typingRandom = Math.random;
+      function nextQuestion() {
+        const selected = deck && deck.next();
+        return selected ? selected.text : (all[0] ? all[0].text : 'Opening the notebook…');
       }
       // Entry overlaps round timing; the first characters begin only after the rise.
       if (!await wait(reduce.matches ? 0 : timing.entry, state)) return;
@@ -216,7 +216,7 @@
         if (surface) state.glass.push(surface);
       });
       for (let i = 0; i < 3 && active === state; i++) {
-        await round(nextQuestion(i === 0), state, i === 0 ? Math.max(0, timing.round - (performance.now() - started)) : timing.round, i === 0);
+        await round(nextQuestion(), state, i === 0 ? Math.max(0, timing.round - (performance.now() - started)) : timing.round);
         if (active !== state) return;
         if (state.ready) {
           const failed = state.resourceResults.includes('failed');
