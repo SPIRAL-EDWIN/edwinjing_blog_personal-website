@@ -5,7 +5,18 @@
   var config = Object.assign(defaults, {{ config.extra.loader | default({}) | tojson }});
   var root = document.documentElement;
   var boot = window.__edwinosIntroBoot = {config: config, started: performance.now(), active: false};
-  var query = new URLSearchParams(location.search).get('intro');
+  var params = new URLSearchParams(location.search);
+  var query = params.get('intro');
+  boot.debugQuestion = query === '1' ? params.get('q') : null;
+  // Material uses ?q= for search. Consume only intro's forced-question debug
+  // parameter before Material initializes; ordinary search URLs stay intact.
+  if (boot.debugQuestion) {
+    try {
+      var url = new URL(location.href);
+      url.searchParams.delete('q');
+      history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+    } catch (_) { /* The opening must remain usable if URL rewriting is denied. */ }
+  }
   var isHome = {{ (page.url in ["", "index.html"]) | tojson }};
   var seen = false;
   try {
@@ -31,12 +42,20 @@
 </script>
 {% else %}
 <div class="edwinos-intro" id="edwinos-intro" hidden role="dialog" aria-modal="true" tabindex="-1" aria-label="Opening Edwin's notebook" aria-hidden="true" data-search-exclude>
+  <div class="edwinos-intro__ripple" aria-hidden="true">
+    {% for y in range(-3, 4) %}{% for x in range(-4, 5) %}
+    <span style="--cell-x:{{ x }};--cell-y:{{ y }};--cell-delay:{{ ((x*x + y*y)**0.5 * 68)|round|int }}ms"></span>
+    {% endfor %}{% endfor %}
+  </div>
   <div class="edwinos-intro__scene">
+    <span class="edwinos-intro__seed" aria-hidden="true"></span>
     <div class="edwinos-intro__box edwinos-glass">
       <p class="edwinos-intro__question" aria-hidden="true"><span data-intro-question></span><span class="edwinos-intro__cursor">|</span></p>
       <svg class="edwinos-intro__icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <g class="edwinos-intro__search"><circle cx="13" cy="13" r="7.5"/><path d="m19 19 7 7"/></g>
-        <g class="edwinos-intro__success"><circle cx="16" cy="16" r="13" pathLength="100"/><path d="m9.5 16 4.5 4.5 8.5-9" pathLength="100"/></g>
+        <circle class="edwinos-intro__icon-halo" cx="13" cy="13" r="7.5"/>
+        <circle class="edwinos-intro__icon-ring" cx="13" cy="13" r="7.5" pathLength="100"/>
+        <path class="edwinos-intro__icon-handle" d="m19 19 7 7" pathLength="100"/>
+        <path class="edwinos-intro__icon-check" d="m9.5 13 2.5 2.8 5-5.8" pathLength="100"/>
       </svg>
     </div>
     <span class="edwinos-intro__status" role="status" aria-live="polite"></span>

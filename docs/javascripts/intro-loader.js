@@ -6,11 +6,12 @@
   const root = document.documentElement;
   const boot = window.__edwinosIntroBoot;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  // Self-tuned Apple-style confirmation, NOT measured Apple Pay timings:
-  // circle first, tick 110ms later, green at confirmation start, then 1.08 overshoot.
-  const timing = Object.freeze({entry: 1000, typeMin: 28, typeMax: 45,
-    punctuation: 75, thought: 300, circle: 280, tickDelay: 110,
-    tick: 240, settle: 480, round: 3500, sink: 850, exit: 850, max: 7000});
+  // Choreography is tuned by eye, not measured from Apple's implementation.
+  // Source: Apple HIG feedback and Tap to Pay describe clear success/checkmark feedback,
+  // but do not publish timings or easing values. See docs/refs/apple-pay-success.md.
+  const timing = Object.freeze({entry: 1200, typeMin: 28, typeMax: 45,
+    punctuation: 75, thought: 300, press: 320, retract: 180,
+    checkDelay: 220, tick: 250, settle: 650, round: 3500, sink: 850, exit: 850, max: 7000});
   let active = null;
 
   function boundedResource(promise, signal, limit = 5800) {
@@ -146,14 +147,21 @@
       }
     } else text.textContent = question;
     if (!await wait(timing.thought, state)) return;
+    const iconStartColor = getComputedStyle(icon).color;
     state.overlay.classList.remove('is-typing');
     state.overlay.classList.add('is-success');
     if (!reduce.matches) {
-      const circle = icon.querySelector('.edwinos-intro__success circle');
-      const check = icon.querySelector('.edwinos-intro__success path');
-      animate(circle, [{strokeDashoffset: 100}, {strokeDashoffset: 0}], {duration: timing.circle, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both'}, state);
-      animate(check, [{strokeDashoffset: 100}, {strokeDashoffset: 0}], {duration: timing.tick, delay: timing.tickDelay, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both'}, state);
-      animate(icon, [{transform: 'scale(.94)'}, {transform: 'scale(1.08)', offset: .64}, {transform: 'scale(1)'}], {duration: timing.settle, easing: 'ease-out'}, state);
+      const handle = icon.querySelector('.edwinos-intro__icon-handle');
+      const check = icon.querySelector('.edwinos-intro__icon-check');
+      const halo = icon.querySelector('.edwinos-intro__icon-halo');
+      // One persistent lens ring anchors the morph; the handle retracts from its
+      // far tip as the check draws. Delay is intentional and interruptible.
+      animate(icon, [{transform:'scale(.92)'}, {transform:'scale(1.08)', offset:.56}, {transform:'scale(1)'}], {duration:timing.press,easing:'cubic-bezier(.22,.61,.36,1)',fill:'both'}, state);
+      animate(handle, [{strokeDashoffset:0}, {strokeDashoffset:100}], {duration:timing.retract,easing:'ease-in',fill:'both'}, state);
+      animate(check, [{strokeDashoffset:100}, {strokeDashoffset:0}], {duration:timing.tick,delay:timing.checkDelay,easing:'cubic-bezier(.22,.61,.36,1)',fill:'both'}, state);
+      const green = document.querySelector('[data-md-color-scheme="slate"]') ? '#30d158' : '#248a3d';
+      animate(icon, [{color:iconStartColor}, {color:green}], {duration:320,delay:110,easing:'ease-out',fill:'both'}, state);
+      animate(halo, [{opacity:0,transform:'scale(1)'}, {opacity:.32,transform:'scale(1.08)',offset:.15}, {opacity:0,transform:'scale(1.85)'}], {duration:520,delay:timing.checkDelay,easing:'ease-out',fill:'both'}, state);
     }
     if (!await wait(Math.max(timing.settle, budget - (performance.now() - start)), state)) return;
     state.animations.splice(0).forEach(animation => animation.cancel());
@@ -196,7 +204,7 @@
       let storage = null;
       try { storage = window.localStorage; } catch (_) { /* Private browsing may deny storage. */ }
       const deck = window.EdwinOSIntroDeck && window.EdwinOSIntroDeck.create({
-        questions: all, storage, seed: params.get('seed'), forcedId: params.get('q')
+        questions: all, storage, seed: params.get('seed'), forcedId: (boot && boot.debugQuestion) || params.get('q')
       });
       // A deterministic debug seed also makes typo placement and rhythm repeatable.
       if (params.has('seed')) {
