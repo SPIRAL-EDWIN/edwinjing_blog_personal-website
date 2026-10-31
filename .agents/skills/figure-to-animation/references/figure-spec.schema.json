@@ -17,7 +17,7 @@
   },
   "$defs": {
     "layer": {"type": "object", "required": ["id", "label"], "properties": {"id": {"type": "string", "minLength": 1}, "label": {"type": "string"}}},
-    "node": {"type": "object", "required": ["id", "layer", "label", "kind"], "properties": {"id": {"type": "string", "minLength": 1}, "layer": {"type": "string"}, "label": {"type": "string"}, "kind": {"type": "string"}}},
+    "node": {"type": "object", "required": ["id", "layer", "label", "kind", "col", "row"], "properties": {"id": {"type": "string", "minLength": 1}, "layer": {"type": "string"}, "label": {"type": "string"}, "kind": {"type": "string"}, "col": {"type": "integer"}, "row": {"type": "integer"}}},
     "edge": {"type": "object", "required": ["id", "from", "to"], "properties": {"id": {"type": "string", "minLength": 1}, "from": {"type": "string"}, "to": {"type": "string"}, "label": {"type": "string"}}},
     "highlight": {"type": "object", "required": ["id", "target", "role"], "properties": {"id": {"type": "string", "minLength": 1}, "target": {"type": "string"}, "role": {"type": "string"}}},
     "callout": {"type": "object", "required": ["id", "target", "text"], "properties": {"id": {"type": "string", "minLength": 1}, "target": {"type": "string"}, "text": {"type": "string"}}},

@@ -36,6 +36,10 @@ def validate(spec):
                         errors.append(f'{where}.{field}: expected nonempty array of IDs')
                 elif not isinstance(value, str) or not value.strip():
                     errors.append(f'{where}.{field}: expected nonempty string')
+            if section == 'nodes':
+                for axis in ('col', 'row'):
+                    if type(item.get(axis)) is not int:
+                        errors.append(f'{where}.{axis}: expected integer grid coordinate')
             ident = item.get('id')
             if isinstance(ident, str) and ident:
                 if ident in ids:
@@ -54,6 +58,20 @@ def validate(spec):
     refs('nodes', 'layer', {'layers'})
     for key in ('from', 'to'):
         refs('edges', key, {'nodes'})
+    nodes = {node['id']: node for node in spec.get('nodes', [])
+             if isinstance(node, dict) and isinstance(node.get('id'), str)} if isinstance(spec.get('nodes'), list) else {}
+    for i, edge in enumerate(spec.get('edges', []) if isinstance(spec.get('edges'), list) else []):
+        if not isinstance(edge, dict):
+            continue
+        source_id, target_id = edge.get('from'), edge.get('to')
+        source = nodes.get(source_id) if isinstance(source_id, str) else None
+        target = nodes.get(target_id) if isinstance(target_id, str) else None
+        if not source or not target:
+            continue  # Reported by the reference checks above.
+        for axis in ('col', 'row'):
+            start, end = source.get(axis), target.get(axis)
+            if type(start) is int and type(end) is int and end < start:
+                errors.append(f'edges[{i}]: {axis} moves backward ({start} to {end})')
     for section in ('highlights', 'callouts'):
         refs(section, 'target', {'nodes', 'edges', 'layers'})
     refs('steps', 'targets', {'layers', 'nodes', 'edges', 'highlights', 'callouts'})
