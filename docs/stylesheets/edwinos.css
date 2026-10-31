@@ -6609,17 +6609,21 @@ body.is-homepage .academic-home-layout:not(.academic-home-layout--subpage)
 @keyframes intro-curtain { from {transform:translateY(0)} to {transform:translateY(100%)} }
 .edwinos-intro__question { position:relative; flex:1; min-width:0; margin:0; display:block; overflow-wrap:anywhere; line-height:1.45; }
 .edwinos-intro__icon { flex:0 0 30px; width:30px; height:30px; overflow:visible; }
-.edwinos-intro__icon-ring,.edwinos-intro__icon-handle,.edwinos-intro__icon-check { stroke-dasharray:100; stroke-dashoffset:0; }
+.edwinos-intro__icon-ring,.edwinos-intro__icon-handle { stroke-dasharray:none; stroke-dashoffset:0; }
+.edwinos-intro__icon-check { stroke-dasharray:100; }
 .edwinos-intro__icon-check { stroke-dashoffset:100; }
-.edwinos-intro__icon-halo { opacity:0; transform-origin:13px 13px; }
-.edwinos-intro.is-success .edwinos-intro__icon { color:#248a3d; }
+.edwinos-intro__icon-ring,.edwinos-intro__icon-handle,.edwinos-intro__icon-check,.edwinos-intro__icon-halo { vector-effect:non-scaling-stroke; stroke-width:1.8px; }
+.edwinos-intro__icon-ring { transform-origin:9px 9px; }
+.edwinos-intro__icon-halo { opacity:0; transform-origin:12px 12px; }
+.edwinos-intro.is-success .edwinos-intro__icon { color:#34c759; }
 [data-md-color-scheme="slate"] .edwinos-intro.is-success .edwinos-intro__icon { color:#30d158; }
-.edwinos-intro.is-success .edwinos-intro__icon-handle { stroke-dashoffset:100; }
+.edwinos-intro.is-success .edwinos-intro__icon-ring { transform:translate(3px,3px) scale(1.5882352941); stroke-dasharray:none; }
+.edwinos-intro.is-success .edwinos-intro__icon-handle { stroke-dashoffset:100; visibility:hidden; }
 .edwinos-intro.is-success .edwinos-intro__icon-check { stroke-dashoffset:0; }
 .edwinos-intro.is-entered .edwinos-intro__icon-ring { animation:intro-icon-draw 220ms 850ms ease-out both; }
 .edwinos-intro.is-entered .edwinos-intro__icon-handle { animation:intro-icon-draw 150ms 1020ms ease-out both; }
 .edwinos-intro.is-success .edwinos-intro__icon-ring,.edwinos-intro.is-success .edwinos-intro__icon-handle { animation:none; }
-@keyframes intro-icon-draw {from {stroke-dashoffset:100} to {stroke-dashoffset:0} }
+@keyframes intro-icon-draw {from {stroke-dasharray:100;stroke-dashoffset:100} 99% {stroke-dasharray:100;stroke-dashoffset:0} to {stroke-dasharray:none;stroke-dashoffset:0} }
 .edwinos-intro__cursor {animation:intro-caret 800ms steps(2,end) infinite;color:var(--md-typeset-a-color)}
 .edwinos-intro.is-success .edwinos-intro__cursor {visibility:hidden}
 .edwinos-intro__status {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}

@@ -151,15 +151,16 @@
     state.overlay.classList.remove('is-typing');
     state.overlay.classList.add('is-success');
     if (!reduce.matches) {
+      const ring = icon.querySelector('.edwinos-intro__icon-ring');
       const handle = icon.querySelector('.edwinos-intro__icon-handle');
       const check = icon.querySelector('.edwinos-intro__icon-check');
       const halo = icon.querySelector('.edwinos-intro__icon-halo');
-      // One persistent lens ring anchors the morph; the handle retracts from its
-      // far tip as the check draws. Delay is intentional and interruptible.
+      // The lens moves and grows to the full magnifier footprint as its handle retracts.
       animate(icon, [{transform:'scale(.92)'}, {transform:'scale(1.08)', offset:.56}, {transform:'scale(1)'}], {duration:timing.press,easing:'cubic-bezier(.22,.61,.36,1)',fill:'both'}, state);
-      animate(handle, [{strokeDashoffset:0}, {strokeDashoffset:100}], {duration:timing.retract,easing:'ease-in',fill:'both'}, state);
+      animate(ring, [{transform:'translate(0,0) scale(1)'}, {transform:'translate(3px,3px) scale(1.5882352941)'}], {duration:timing.retract,easing:'cubic-bezier(.22,.61,.36,1)',fill:'both'}, state);
+      animate(handle, [{strokeDasharray:'100',strokeDashoffset:0,visibility:'visible'}, {strokeDashoffset:100,visibility:'visible',offset:.99}, {strokeDashoffset:100,visibility:'hidden'}], {duration:timing.retract,easing:'ease-in',fill:'both'}, state);
       animate(check, [{strokeDashoffset:100}, {strokeDashoffset:0}], {duration:timing.tick,delay:timing.checkDelay,easing:'cubic-bezier(.22,.61,.36,1)',fill:'both'}, state);
-      const green = document.querySelector('[data-md-color-scheme="slate"]') ? '#30d158' : '#248a3d';
+      const green = document.querySelector('[data-md-color-scheme="slate"]') ? '#30d158' : '#34c759';
       animate(icon, [{color:iconStartColor}, {color:green}], {duration:320,delay:110,easing:'ease-out',fill:'both'}, state);
       animate(halo, [{opacity:0,transform:'scale(1)'}, {opacity:.32,transform:'scale(1.08)',offset:.15}, {opacity:0,transform:'scale(1.85)'}], {duration:520,delay:timing.checkDelay,easing:'ease-out',fill:'both'}, state);
     }
