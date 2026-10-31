@@ -1,4 +1,4 @@
-/* Questions are traceable to maintained notes; the first is deliberately fixed. */
+/* Questions are traceable to maintained notes; each entry can be selected on any visit. */
 window.EdwinOSIntroQuestions = Object.freeze([
   {id:'sim-gap', text:'How to fill the gap between sim2sim and sim2real?', category:'robotics', source:'docs/经验分享/Phi Lab/WBC/Sim2Sim配置与训练.md'},
   {id:'sim-policy', text:'What changes when a policy meets another simulator?', category:'robotics', source:'docs/经验分享/Phi Lab/WBC/Sim2Sim配置与训练.md'},

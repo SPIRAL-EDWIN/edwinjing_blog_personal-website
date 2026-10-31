@@ -208,6 +208,7 @@ extra_javascript:
   - javascripts/ui-perf.js?v=20261025a
   - javascripts/figure-stage.js?v=20261031a
   - javascripts/intro-questions.js?v=20261029a
+  - javascripts/intro-deck.js?v=20261031a
   - javascripts/intro-loader.js?v=20261029a
 
 extra_css:
