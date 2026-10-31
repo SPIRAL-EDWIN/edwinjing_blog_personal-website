@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block extrahead %}
+  <script>window.EdwinOSFigureConfig = {{ config.extra.figure | default({}) | tojson }};</script>
   {% set edwinos_intro_phase = "head" %}
   {% include "partials/intro-loader.html" %}
   <script>

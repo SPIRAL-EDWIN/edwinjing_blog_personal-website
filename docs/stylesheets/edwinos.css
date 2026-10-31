@@ -6700,6 +6700,10 @@ body.is-homepage .academic-home-layout:not(.academic-home-layout--subpage)
  .research-figure__stage { display:grid; grid-template-columns:minmax(0,1fr); gap:12px 18px; align-items:center; padding-top:18px; }
 .research-figure--animated .research-figure__stage { grid-template-columns:100px minmax(0,1fr); }
 .research-figure__accessible { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.research-figure--seen .research-figure__accessible { position:static; width:auto; height:auto; overflow:visible; clip-path:none; white-space:normal; font-size:12px; color:var(--academic-muted); }
+.research-figure--seen .research-figure__explanation { display:none; }
+.research-figure--seen .research-figure__node { transition:none; }
+.research-figure--seen .research-figure__node.is-solved > strong { animation:none; }
 .research-figure__rail { display:none; flex-direction:column; align-items:stretch; border-left:1px solid var(--academic-card-border); }
 .research-figure--animated .research-figure__rail { display:flex; }
 .research-figure__rail[hidden] { display:none !important; }
