@@ -5128,15 +5128,16 @@
     var media = root.querySelector('.blog-home-feature');
     var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
     var saveData = !!(navigator.connection && navigator.connection.saveData);
-    var playGeneration = 0;
+    var playGeneration = 0, mediaInView = false, warmTimer = 0;
+    var warmVideos = [];
     var clips = Array.from(root.querySelectorAll('[data-blog-home-clip]'));
     var clipGroup = root.querySelector('.blog-home-clips');
     var caption = root.querySelector('[data-blog-home-caption]');
     var speed = root.querySelector('[data-blog-home-speed]');
     // Authored data-src avoids parser downloads before the Save-Data guard.
     if (video) {
-      video.preload = saveData ? 'none' : 'metadata';
-      if (!saveData && !video.getAttribute('src') && video.dataset.src) video.src = video.dataset.src;
+      video.preload = (saveData || motion.matches) ? 'none' : 'metadata';
+      if (!saveData && !motion.matches && !video.getAttribute('src') && video.dataset.src) video.src = video.dataset.src;
     }
     function selectClip(event) {
       var button = event.currentTarget;
@@ -5148,8 +5149,8 @@
       video.setAttribute('aria-label', button.dataset.caption + ', ' + button.dataset.speed);
       caption.textContent = button.dataset.caption; speed.textContent = button.dataset.speed;
       clips.forEach(function (clip) { clip.setAttribute('aria-pressed', clip === button ? 'true' : 'false'); });
-      // Switching is explicit playback intent; no inactive clip is warmed.
-      startVideo();
+      // The selected poster remains available even when motion is disabled.
+      if (!saveData && !motion.matches && (finePointer.matches || mediaInView)) startVideo();
     }
     function show(element, animate) {
       pending.delete(element);
@@ -5179,12 +5180,13 @@
     }
     function label() {
       if (!play || !video) return;
-      play.textContent = video.paused ? (finePointer.matches && !motion.matches && !saveData ? 'Hover to play' : 'Play preview') : 'Pause preview';
+      play.disabled = saveData || motion.matches;
+      play.textContent = play.disabled ? 'Poster only' : (video.paused ? (finePointer.matches ? 'Hover to play' : 'Play preview') : 'Pause preview');
       play.setAttribute('aria-label', video.paused ? 'Play robot preview' : 'Pause robot preview');
       play.setAttribute('aria-pressed', video.paused ? 'false' : 'true');
     }
     function startVideo() {
-      if (!video || !play) return;
+      if (!video || !play || motion.matches || saveData) return;
       var generation = ++playGeneration;
       if (!video.getAttribute('src') && video.dataset.src) video.src = video.dataset.src;
       var result = video.play();
@@ -5200,6 +5202,7 @@
     }
     function visibility() { if (document.hidden) pauseVideo(); }
     function reduceMotion() {
+      label();
       if (!motion.matches) return;
       pending.forEach(function (element) { show(element, false); });
       animations.forEach(function (animation) { animation.finish(); });
@@ -5214,17 +5217,31 @@
       document.addEventListener('visibilitychange', visibility);
       if ('IntersectionObserver' in window) {
         mediaObserver = new IntersectionObserver(function (entries) {
-          if (entries.some(function (entry) { return !entry.isIntersecting; })) pauseVideo();
-        });
+          entries.forEach(function (entry) {
+            mediaInView = entry.isIntersecting && entry.intersectionRatio >= .6;
+            if (!mediaInView) pauseVideo();
+            else if (!finePointer.matches && !document.hidden) startVideo();
+          });
+        }, { threshold: [0, .6] });
         mediaObserver.observe(video);
       }
       if (clipGroup) clipGroup.hidden = false;
       clips.forEach(function (clip) { clip.addEventListener('click', selectClip); });
+      // Warm only metadata after the first screen has had time to paint.
+      if (!saveData && !motion.matches) warmTimer = window.setTimeout(function () {
+        if (disposed || document.hidden || motion.matches) return;
+        clips.slice(1).forEach(function (clip) {
+          var warmer = document.createElement('video');
+          warmer.preload = 'metadata'; warmer.src = clip.dataset.src; warmVideos.push(warmer);
+        });
+      }, 3000);
       label();
     }
     motion.addEventListener('change', reduceMotion);
     blogHomeRuntime = { root: root, dispose: function () {
       disposed = true;
+      window.clearTimeout(warmTimer);
+      warmVideos.forEach(function (warmer) { warmer.removeAttribute('src'); warmer.load(); });
       localizedLabels.forEach(function (item) { item[0].setAttribute(item[1], item[2]); });
       if (observer) observer.disconnect(); if (mediaObserver) mediaObserver.disconnect();
       pending.forEach(function (element) { show(element, false); });

@@ -8,9 +8,9 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   // Self-tuned Apple-style confirmation, NOT measured Apple Pay timings:
   // circle first, tick 110ms later, green at confirmation start, then 1.08 overshoot.
-  const timing = Object.freeze({entry: 720, typeMin: 28, typeMax: 45,
+  const timing = Object.freeze({entry: 1000, typeMin: 28, typeMax: 45,
     punctuation: 75, thought: 300, circle: 280, tickDelay: 110,
-    tick: 240, settle: 480, round: 3200, sink: 420, exit: 580, max: 7000});
+    tick: 240, settle: 480, round: 3500, sink: 850, exit: 850, max: 7000});
   let active = null;
 
   function boundedResource(promise, signal, limit = 5800) {
@@ -115,7 +115,7 @@
     if (reason === 'ready') revealContent(state);
     state.resolve({reason, elapsed: performance.now() - state.started, resources: state.resourceResults});
   }
-  async function round(question, state, budget = timing.round) {
+  async function round(question, state, budget = timing.round, first = false) {
     const start = performance.now();
     const text = state.overlay.querySelector('[data-intro-question]');
     const icon = state.overlay.querySelector('.edwinos-intro__icon');
@@ -124,10 +124,21 @@
     box.style.setProperty('--intro-tilt', (Math.random() * 1.1 - .55).toFixed(2) + 'deg');
     state.overlay.classList.add('is-typing');
     if (!reduce.matches) {
-      for (const character of question) {
+      for (let i = 0; i < question.length; i++) {
         if (state.controller.signal.aborted) return;
+        const character = question[i];
         text.textContent += character;
         if (!await wait(timing.typeMin + Math.random() * (timing.typeMax - timing.typeMin) + (/[?,.!]/.test(character) ? timing.punctuation : 0), state)) return;
+        // A small correction makes the first question feel considered, not typed by a machine.
+        if (first && i === Math.floor(question.length / 2)) {
+          first = false;
+          if (!await wait(300, state)) return;
+          for (let j = 0; j < 4; j++) {
+            text.textContent = text.textContent.slice(0, -1);
+            if (!await wait(35, state)) return;
+          }
+          i -= 4;
+        }
       }
     } else text.textContent = question;
     if (!await wait(timing.thought, state)) return;
@@ -154,14 +165,14 @@
     overlay.dataset.reason = reason; overlay.dataset.resources = 'pending';
     overlay.querySelector('.edwinos-intro__status').textContent = 'Opening the notebook…';
     delete overlay.dataset.finishReason; delete overlay.dataset.elapsed;
-    // Keep the scrollbar and layout widths intact. Wheel/touch are intercepted only
-    // while visible. There is no skip gesture or control; the 7s watchdog owns recovery.
+    // Preserve geometry while allowing the reader to immediately skip.
     for (const node of document.body.children) if (node !== overlay && node instanceof HTMLElement && !['SCRIPT','STYLE','LINK'].includes(node.tagName)) {
       state.inert.push([node, node.inert]); node.inert = true;
     }
     const prevent = event => event.preventDefault();
     document.addEventListener('wheel', prevent, {passive: false, signal});
-    document.addEventListener('keydown', event => { if (['Tab', ' ', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End'].includes(event.key)) event.preventDefault(); }, {capture: true, signal});
+    document.addEventListener('keydown', event => { event.preventDefault(); dismiss('skip'); }, {capture: true, signal});
+    overlay.addEventListener('click', () => dismiss('skip'), {once: true, signal});
     document.addEventListener('touchmove', prevent, {passive: false, signal});
     window.addEventListener('pagehide', () => dismiss('pagehide'), {once: true, signal});
     reduce.addEventListener('change', () => dismiss('preference-change'), {once: true, signal});
@@ -176,13 +187,25 @@
       overlay.dataset.resources = state.ready ? (results.includes('failed') ? 'settled-with-errors' : 'ready') : 'timeout';
     });
     (async () => {
-      const all = window.EdwinOSIntroQuestions || ['Opening the notebook…'];
-      // Fisher–Yates: every opening can start with any authored question;
-      // subsequent rounds cannot repeat within this opening.
-      const questions = all.slice();
-      for (let i = questions.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [questions[i], questions[j]] = [questions[j], questions[i]];
+      const all = window.EdwinOSIntroQuestions || [];
+      // Pick a group with 2:1 weights, then choose an available non-robotics
+      // category uniformly. Exhausted groups/categories are automatically ignored.
+      const used = new Set();
+      function nextQuestion(first) {
+        if (first && all.length) { used.add(all[0].id); return all[0].text; }
+        const remaining = all.filter(q => !used.has(q.id));
+        const robotics = remaining.filter(q => q.category === 'robotics');
+        const others = remaining.filter(q => q.category !== 'robotics');
+        const useRobot = robotics.length && (!others.length || Math.random() < 2 / 3);
+        let options = useRobot ? robotics : others;
+        if (!options.length) return 'Opening the notebook…';
+        if (!useRobot) {
+          const categories = [...new Set(options.map(q => q.category))];
+          const category = categories[Math.floor(Math.random() * categories.length)];
+          options = options.filter(q => q.category === category);
+        }
+        const chosen = options[Math.floor(Math.random() * options.length)];
+        used.add(chosen.id); return chosen.text;
       }
       // Entry overlaps round timing; the first characters begin only after the rise.
       if (!await wait(reduce.matches ? 0 : timing.entry, state)) return;
@@ -193,13 +216,12 @@
         if (surface) state.glass.push(surface);
       });
       for (let i = 0; i < 3 && active === state; i++) {
-        await round(questions[i] || all[0], state, i === 0 ? Math.max(0, timing.round - (performance.now() - started)) : timing.round);
+        await round(nextQuestion(i === 0), state, i === 0 ? Math.max(0, timing.round - (performance.now() - started)) : timing.round, i === 0);
         if (active !== state) return;
         if (state.ready) {
           const failed = state.resourceResults.includes('failed');
           overlay.querySelector('.edwinos-intro__status').textContent = failed ? 'Continuing to the notebook' : 'Ready to read';
           overlay.classList.add('is-sinking');
-          if (!await wait(reduce.matches ? 0 : timing.sink, state)) return;
           overlay.classList.add('is-leaving');
           if (await wait(reduce.matches ? 100 : timing.exit, state)) dismiss(failed ? 'resources-failed' : 'ready');
           return;

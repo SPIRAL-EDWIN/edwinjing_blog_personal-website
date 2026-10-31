@@ -206,6 +206,7 @@ extra_javascript:
   - javascripts/mathjax.js?v=20261011b
   - javascripts/block-links.js?v=20261010a  # Obsidian 风格块引用链接支持
   - javascripts/ui-perf.js?v=20261025a
+  - javascripts/figure-stage.js?v=20261031a
   - javascripts/intro-questions.js?v=20261029a
   - javascripts/intro-loader.js?v=20261029a
 
