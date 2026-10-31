@@ -34,6 +34,7 @@ description: "Notes on robotics, embodied AI, coursework, and practical experime
       </div>
       <noscript><a href="assets/media/blog-home-robot.mp4">Watch the robot demonstration</a></noscript>
     </figure>
+    <!-- BLOG_HOME_COLLECTIONS -->
   </section>
 
   <section class="blog-home-lab" aria-labelledby="lab-paths">

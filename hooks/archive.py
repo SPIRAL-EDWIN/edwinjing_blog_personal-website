@@ -21,6 +21,7 @@ from urllib.parse import quote, unquote, urlsplit
 
 import yaml
 from mkdocs.exceptions import PluginError
+from mkdocs.structure.files import File
 
 
 log = logging.getLogger("mkdocs.archive")
@@ -653,14 +654,84 @@ def _break_lazy_blockquote_continuation(markdown: str) -> str:
     return "".join(converted)
 
 
+
+def _note_collections(config, files):
+    """Group published notes by their first folder; new folders join automatically."""
+    roots = {}
+    repo_root = Path(getattr(config, "config_file_path", "mkdocs.yml")).resolve().parent
+    for item in files:
+        src = getattr(item, "src_uri", "")
+        parts = PurePosixPath(src).parts
+        if len(parts) < 3 or parts[0] != "OsdNotes" or not src.endswith(".md") or parts[-1].lower() == "index.md":
+            continue
+        path = Path(item.abs_src_path) if item.abs_src_path else Path(config["docs_dir"]) / src
+        if not path.is_file():
+            continue
+        metadata, body = _plain_front_matter(path.read_text(encoding="utf-8"))
+        if not _metadata_bool(metadata.get("archive")):
+            continue
+        _, last = _git_dates(repo_root, path)
+        updated = _parse_date(metadata.get("updated")) or last or _parse_date(metadata.get("date")) or datetime.fromtimestamp(path.stat().st_mtime).date()
+        roots.setdefault(parts[1], []).append((item, _entry_title(metadata, body, src), updated))
+    return roots
+
+
+_COLLECTION_LABELS = {"Embodied AI": "Robotics", "PHIL": "Philosophy", "CHEM": "Chemistry", "CS101": "CS101", "Github学习笔记": "GitHub Notes"}
+
+
+def _collection_name(folder):
+    return _COLLECTION_LABELS.get(folder, folder)
+
+
+def _collection_src(folder):
+    return f"collections/{folder}/index.md"
+
+
+def on_files(files, config, **kwargs):
+    """Produce useful collection pages from the same note inventory as the index."""
+    for folder, notes in _note_collections(config, files).items():
+        src = _collection_src(folder)
+        name = _collection_name(folder)
+        target = File.generated(config, src, content="")
+        rows = ["---", yaml.safe_dump({"title": name, "archive": False}, allow_unicode=True).strip(), "---", "", f"# {name}", "", "<ul>"]
+        for item, title, updated in sorted(notes, key=lambda n: (n[2], n[1]), reverse=True):
+            url = _relative_url(item.url, target.url)
+            safe_title = html.escape(title).replace("[", "&#91;").replace("]", "&#93;")
+            rows.append(f'<li><a href="{html.escape(url, quote=True)}">{safe_title}</a> · {updated.strftime("%m/%Y")}</li>')
+        rows.append("</ul>")
+        target.content_string = "\n".join(rows) + "\n"
+        files.append(target)
+    return files
+
+
+def _render_home_collections(config, files, page):
+    groups = _note_collections(config, files)
+    order = {"Embodied AI": 0, "PHIL": 1, "CHEM": 2, "CS101": 3}
+    result = ['<section class="blog-home-collections" aria-labelledby="blog-collections-title"><h2 id="blog-collections-title">Collections</h2><p class="blog-home-collections__language">Notes are written in Chinese and English.</p><div class="blog-home-collections__rows">']
+    for folder, notes in sorted(groups.items(), key=lambda pair: (order.get(pair[0], 4), _collection_name(pair[0]).casefold())):
+        latest = max(n[2] for n in notes)
+        target = next((f for f in files if getattr(f, "src_uri", "") == _collection_src(folder)), None)
+        if not target:
+            continue
+        url = _relative_url(target.url, page.file.url)
+        label = html.escape(_collection_name(folder))
+        count = len(notes)
+        result.append(f'<a class="blog-home-collection" href="{html.escape(url, quote=True)}"><span>{label}</span><span class="blog-home-collection__count">{count} {"note" if count == 1 else "notes"}</span><time class="news-date" datetime="{latest.isoformat()}" aria-label="Updated {latest.strftime("%B %d, %Y").replace(" 0", " ")}">{latest.strftime("%m/%Y")}</time></a>')
+    result.append('</div></section>')
+    return "".join(result)
+
 def on_page_markdown(markdown, page, config, files, **kwargs):
     """Render the Archive page and make Obsidian block references linkable."""
     markdown = _break_lazy_blockquote_continuation(markdown)
     markdown = _normalize_obsidian_marks(markdown)
     markdown = _add_obsidian_block_anchors(markdown)
     src_uri = getattr(page.file, "src_uri", getattr(page.file, "src_path", ""))
-    if src_uri == "index.md" and "<!-- BLOG_HOME_UPDATES -->" in markdown:
-        return markdown.replace("<!-- BLOG_HOME_UPDATES -->", _render_home_updates(_collect_entries(config, files, page), config))
+    if src_uri == "index.md":
+        if "<!-- BLOG_HOME_UPDATES -->" in markdown:
+            markdown = markdown.replace("<!-- BLOG_HOME_UPDATES -->", _render_home_updates(_collect_entries(config, files, page), config))
+        if "<!-- BLOG_HOME_COLLECTIONS -->" in markdown:
+            markdown = markdown.replace("<!-- BLOG_HOME_COLLECTIONS -->", _render_home_collections(config, files, page))
+        return markdown
     if src_uri != ARCHIVE_PAGE or ARCHIVE_MARKER not in markdown:
         return markdown
 
