@@ -13,3 +13,6 @@ nul
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Private figure study and derived replicas: never publish or commit
+/sandbox/figure-training/

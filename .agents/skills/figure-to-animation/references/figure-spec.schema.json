@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FigureSpec",
+  "type": "object",
+  "required": ["id", "title", "source", "layers", "nodes", "edges", "highlights", "callouts", "steps", "readingOrder"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "title": {"type": "string", "minLength": 1},
+    "source": {"type": "string", "minLength": 1},
+    "layers": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/layer"}},
+    "nodes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/node"}},
+    "edges": {"type": "array", "items": {"$ref": "#/$defs/edge"}},
+    "highlights": {"type": "array", "items": {"$ref": "#/$defs/highlight"}},
+    "callouts": {"type": "array", "items": {"$ref": "#/$defs/callout"}},
+    "steps": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/step"}},
+    "readingOrder": {"type": "array", "minItems": 1, "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "$defs": {
+    "layer": {"type": "object", "required": ["id", "label"], "properties": {"id": {"type": "string", "minLength": 1}, "label": {"type": "string"}}},
+    "node": {"type": "object", "required": ["id", "layer", "label", "kind"], "properties": {"id": {"type": "string", "minLength": 1}, "layer": {"type": "string"}, "label": {"type": "string"}, "kind": {"type": "string"}}},
+    "edge": {"type": "object", "required": ["id", "from", "to"], "properties": {"id": {"type": "string", "minLength": 1}, "from": {"type": "string"}, "to": {"type": "string"}, "label": {"type": "string"}}},
+    "highlight": {"type": "object", "required": ["id", "target", "role"], "properties": {"id": {"type": "string", "minLength": 1}, "target": {"type": "string"}, "role": {"type": "string"}}},
+    "callout": {"type": "object", "required": ["id", "target", "text"], "properties": {"id": {"type": "string", "minLength": 1}, "target": {"type": "string"}, "text": {"type": "string"}}},
+    "step": {"type": "object", "required": ["id", "label", "description", "targets"], "properties": {"id": {"type": "string", "minLength": 1}, "label": {"type": "string"}, "description": {"type": "string"}, "targets": {"type": "array", "minItems": 1, "items": {"type": "string"}}}}
+  }
+}

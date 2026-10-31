@@ -13,6 +13,7 @@ site_author: "Chen Jing (经宸)"
 site_description: "Notes on robotics, embodied AI, coursework, and practical experiments by Chen Jing (经宸)."
 exclude_docs: |
   research/
+  sandbox/figure-training/
 copyright: >-
   <span class="footer-copyright">Copyright 2025-2026 Chen Jing.</span>
   <span class="site-status"><span class="site-status__dot" aria-hidden="true"></span>Syncing Knowledge Garden</span>
