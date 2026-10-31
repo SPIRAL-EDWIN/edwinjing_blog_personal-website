@@ -228,7 +228,7 @@ nav:
     - Friends: HOME/friends.md
   - ENotes:
     - Introduction: OsdNotes/index.md
-    - CS101:
+    - Computer Science:
       - OsdNotes/CS101/Python.md
       - OsdNotes/CS101/MATLAB.md
     - Github笔记:

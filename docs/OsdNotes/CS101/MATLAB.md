@@ -146,7 +146,7 @@ B = A( [ 5,9,2,2 ] );
 ### Strings
 
 ```matlab
-msg = 'I am going to miss CS101 during my winter break!';
+msg = 'I am going to miss Computer Science during my winter break!';
 fprintf( msg );    #也可用 disp？
 ```
 

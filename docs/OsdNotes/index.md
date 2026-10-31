@@ -30,7 +30,7 @@ Start with the embodied intelligence roadmap: perception, planning, and the conn
 
 ### Coursework
 
-Start with my CS101 Python notes, from expressions and data types to worked examples.
+Start with my Computer Science Python notes, from expressions and data types to worked examples.
 
 </div>
 

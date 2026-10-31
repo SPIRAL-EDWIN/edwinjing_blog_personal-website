@@ -676,7 +676,7 @@ def _note_collections(config, files):
     return roots
 
 
-_COLLECTION_LABELS = {"Embodied AI": "Robotics", "PHIL": "Philosophy", "CHEM": "Chemistry", "CS101": "CS101", "Github学习笔记": "GitHub Notes"}
+_COLLECTION_LABELS = {"Embodied AI": "Robotics", "PHIL": "Philosophy", "CHEM": "Chemistry", "CS101": "Computer Science", "Github学习笔记": "GitHub Notes"}
 
 
 def _collection_name(folder):
