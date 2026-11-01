@@ -355,8 +355,9 @@ def _render_home_updates(entries, config):
             raise PluginError(f"English homepage title required for {entry.src_uri}; add title_en or blog-titles.yml entry")
         activity = entry.activity_date.isoformat()
         display_date = entry.activity_date.strftime("%m/%Y")
+        accessible_name = html.escape(f'{title}, updated {display_date}', quote=True)
         rows.append(
-            f'<a class="blog-home-update" data-blog-home-reveal href="{html.escape(entry.page_url, quote=True)}">'
+            f'<a class="blog-home-update" data-blog-home-reveal href="{html.escape(entry.page_url, quote=True)}" aria-label="{accessible_name}">'
             f'<time class="news-date" datetime="{activity}" aria-label="{entry.activity_date.strftime("%B %d, %Y").replace(" 0", " ")}">{display_date}</time>'
             f'<strong class="blog-home-update__title">{html.escape(title)}</strong>'
             '</a>'
@@ -716,7 +717,8 @@ def _render_home_collections(config, files, page):
         url = _relative_url(target.url, page.file.url)
         label = html.escape(_collection_name(folder))
         count = len(notes)
-        result.append(f'<a class="blog-home-collection" href="{html.escape(url, quote=True)}"><span>{label}</span><span class="blog-home-collection__count">{count} {"note" if count == 1 else "notes"}</span><time class="news-date" datetime="{latest.isoformat()}" aria-label="Updated {latest.strftime("%B %d, %Y").replace(" 0", " ")}">{latest.strftime("%m/%Y")}</time></a>')
+        accessible_name = html.escape(f'{_collection_name(folder)}, {count} {"note" if count == 1 else "notes"}, updated {latest.strftime("%m/%Y")}', quote=True)
+        result.append(f'<a class="blog-home-collection" href="{html.escape(url, quote=True)}" aria-label="{accessible_name}"><span>{label}</span><span class="blog-home-collection__count">{count} {"note" if count == 1 else "notes"}</span><time class="news-date" datetime="{latest.isoformat()}" aria-label="Updated {latest.strftime("%B %d, %Y").replace(" 0", " ")}">{latest.strftime("%m/%Y")}</time></a>')
     result.append('</div></section>')
     return "".join(result)
 
