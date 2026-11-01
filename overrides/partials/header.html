@@ -17,6 +17,11 @@
     {% endfor %}
     <div class="edwinos-header-glass__fade"></div>
   </div>
+  {% if "navigation.tabs.sticky" in features %}
+    {% if "navigation.tabs" in features %}
+      {% include "partials/tabs.html" %}
+    {% endif %}
+  {% endif %}
   <nav class="md-header__inner md-grid" aria-label="{{ lang.t('header') }}">
     <a href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}" title="{{ config.site_name | e }}" class="md-header__button md-logo" aria-label="{{ config.site_name }}" data-md-component="logo">
       {% include "partials/logo.html" %}
@@ -43,6 +48,27 @@
         </div>
       </div>
     </div>
+    <a class="edwinos-header-academic edwinos-glass" href="https://edwinjing.github.io/" aria-label="Academic homepage" title="Academic homepage">
+      <span class="edwinos-header-academic__icon md-icon" aria-hidden="true">{% include ".icons/material/school-outline.svg" %}</span>
+      <span class="edwinos-header-academic__text">Academic homepage</span>
+    </a>
+    {% if "material/search" in config.plugins %}
+      {% set search = config.plugins["material/search"] | attr("config") %}
+      {% if search.enabled %}
+        <label class="md-header__button md-icon" for="__search">
+          {% set icon = config.theme.icon.search or "material/magnify" %}
+          {% include ".icons/" ~ icon ~ ".svg" %}
+        </label>
+        {% include "partials/search.html" %}
+      {% endif %}
+    {% endif %}
+    {% if config.repo_url %}
+      <div class="md-header__source">
+        {% with edwinos_source_icon_only = true %}
+          {% include "partials/source.html" %}
+        {% endwith %}
+      </div>
+    {% endif %}
     {% if config.theme.palette %}
       {% if not config.theme.palette is mapping %}
         {% include "partials/palette.html" %}
@@ -54,33 +80,7 @@
     {% if config.extra.alternate %}
       {% include "partials/alternate.html" %}
     {% endif %}
-    {% if "material/search" in config.plugins %}
-      {% set search = config.plugins["material/search"] | attr("config") %}
-      {% if search.enabled %}
-        <label class="md-header__button md-icon" for="__search">
-          {% set icon = config.theme.icon.search or "material/magnify" %}
-          {% include ".icons/" ~ icon ~ ".svg" %}
-        </label>
-        {% include "partials/search.html" %}
-      {% endif %}
-    {% endif %}
-    <a class="edwinos-header-academic edwinos-glass" href="https://edwinjing.github.io/" aria-label="Academic homepage" title="Academic homepage">
-      <span class="edwinos-header-academic__icon md-icon" aria-hidden="true">{% include ".icons/material/school-outline.svg" %}</span>
-      <span class="edwinos-header-academic__text">Academic homepage</span>
-    </a>
-    {% if config.repo_url %}
-      <div class="md-header__source">
-        {% with edwinos_source_icon_only = true %}
-          {% include "partials/source.html" %}
-        {% endwith %}
-      </div>
-    {% endif %}
   </nav>
-  {% if "navigation.tabs.sticky" in features %}
-    {% if "navigation.tabs" in features %}
-      {% include "partials/tabs.html" %}
-    {% endif %}
-  {% endif %}
   <script>
     /* Seed the real selected position before paint; the runtime reuses this
        geometry owner after Material replaces the tabs on content arrival. */

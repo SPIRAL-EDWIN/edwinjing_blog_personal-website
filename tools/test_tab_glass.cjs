@@ -37,7 +37,7 @@ function harness({active = 0, width = 154, left = 52, reducedMotion = false, use
   const root = 'https://test.local/project/';
   function replaceTabs(index, newLeft = state.left) {
     state.active = index; state.left = newLeft;
-    state.list = {};
+    state.list = {getBoundingClientRect: () => rect(state.left, 0, 261, 64)};
     state.rail = events({scrollLeft: 0, getBoundingClientRect: () => rect(state.left, 0, state.width, 64)});
     const widths = [101, 81, 71]; let offset = 0;
     state.links = ['', 'OsdNotes/', '经验分享/'].map((href, i) => {
@@ -47,7 +47,7 @@ function harness({active = 0, width = 154, left = 52, reducedMotion = false, use
   }
   replaceTabs(active);
   const tabs = {getBoundingClientRect: () => rect(state.left, 0, state.width, 64)};
-  const header = {dataset: {}, getBoundingClientRect: () => rect(0, 0, 320, 64), querySelector(selector) {
+  const header = events({dataset: {}, getBoundingClientRect: () => rect(0, 0, 320, 64), querySelector(selector) {
     if (selector === '.edwinos-tab-glass-track') return track;
     if (selector === '.edwinos-tab-glass') return glass;
     if (selector === '.md-tabs .md-grid') return state.rail;
@@ -55,8 +55,8 @@ function harness({active = 0, width = 154, left = 52, reducedMotion = false, use
     if (selector === '.md-tabs__list') return state.list;
     if (selector.includes('.md-tabs__item--active')) return state.links[state.active] || null;
     throw new Error('Unexpected header selector: ' + selector);
-  }, querySelectorAll: selector => { assert.equal(selector, '.md-tabs__link'); return state.links; }};
-  const document = {body, fonts, currentScript: {parentElement: header}, querySelector(selector) { assert.equal(selector, '.md-header'); return header; }};
+  }, querySelectorAll: selector => { assert.equal(selector, '.md-tabs__link'); return state.links; }});
+  const document = {body, fonts, documentElement: {style: {setProperty() {}}}, currentScript: {parentElement: header}, querySelector(selector) { assert.equal(selector, '.md-header'); return header; }};
   class ResizeObserver {
     constructor(callback) { this.callback = callback; this.observed = new Set(); this.disconnected = false; observers.push(this); }
     observe(node) { this.observed.add(node); }

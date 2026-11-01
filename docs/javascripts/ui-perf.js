@@ -893,6 +893,15 @@
         }
       }
     }
+    function onTabFocus(event) {
+      var link = event.target.closest && event.target.closest('.md-tabs__link');
+      var rail = header.querySelector('.md-tabs .md-grid');
+      if (!link || !rail) return;
+      var viewport = rail.getBoundingClientRect();
+      var box = link.getBoundingClientRect();
+      if (box.left < viewport.left) rail.scrollLeft += box.left - viewport.left;
+      else if (box.right > viewport.right) rail.scrollLeft += box.right - viewport.right;
+    }
     function onRailScroll() {
       // Reader scrolling follows the rail without forcing it back. Automatic
       // arrival/resize positioning reveals the selected link separately.
@@ -930,6 +939,7 @@
         window.cancelAnimationFrame(layoutFrame);
         if (resize) resize.disconnect();
         if (observedRail) observedRail.removeEventListener('scroll', onRailScroll);
+        header.removeEventListener('focusin', onTabFocus);
         window.removeEventListener('resize', scheduleLayout);
         if (reduced.removeEventListener) reduced.removeEventListener('change', onMotionPreference);
         else if (reduced.removeListener) reduced.removeListener(onMotionPreference);
@@ -940,6 +950,7 @@
     header.dataset.edwinosTabGlassReady = '1';
     bind();
     place(null, false, true);
+    header.addEventListener('focusin', onTabFocus);
     window.addEventListener('resize', scheduleLayout, { passive: true });
     if (reduced.addEventListener) reduced.addEventListener('change', onMotionPreference);
     else if (reduced.addListener) reduced.addListener(onMotionPreference);
@@ -5105,7 +5116,8 @@
   }
 
   // Reading desk: content remains readable without JS; only offscreen items
-  // enter once. Only the selected clip warms metadata; Save-Data waits for intent.
+  // enter once. The selected clip loads metadata; inactive clips warm after idle.
+  // Save-Data suppresses video requests.
   function setupBlogHome() {
     var root = document.querySelector('.blog-home');
     if (blogHomeRuntime && blogHomeRuntime.root === root) return;
@@ -5125,6 +5137,7 @@
     var animations = new Set(), pending = new Set();
     var video = root.querySelector('[data-blog-home-video]');
     var play = root.querySelector('[data-blog-home-play]');
+    var playStatus = root.querySelector('[data-blog-home-status]');
     var media = root.querySelector('.blog-home-feature');
     var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
     var saveData = !!(navigator.connection && navigator.connection.saveData);
@@ -5181,7 +5194,9 @@
     function label() {
       if (!play || !video) return;
       play.disabled = saveData || motion.matches;
-      play.textContent = play.disabled ? 'Poster only' : (video.paused ? (finePointer.matches ? 'Hover to play' : 'Play preview') : 'Pause preview');
+      play.hidden = play.disabled;
+      if (playStatus) playStatus.hidden = !play.disabled;
+      play.textContent = video.paused ? (finePointer.matches ? 'Hover to play' : 'Play preview') : 'Pause preview';
       play.setAttribute('aria-label', video.paused ? 'Play robot preview' : 'Pause robot preview');
       play.setAttribute('aria-pressed', video.paused ? 'false' : 'true');
     }

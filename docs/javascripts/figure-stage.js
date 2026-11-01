@@ -158,11 +158,14 @@
     record.finish = () => {
       if (record.finished) return;
       record.finished = true; remember(figure.dataset.figure);
+      // The step rail is removed below; keep keyboard focus on a stable local link.
+      const restoreFocus = figure.contains(document.activeElement);
       record.trigger?.kill(); record.timeline?.kill();
       record.handlers.forEach(([element,handler]) => element.removeEventListener('click',handler));
       record.handlers = [];
       figure.classList.remove('research-figure--animated'); figure.classList.add('research-figure--seen');
       rail.hidden=true; state(3,1); graph.measure();
+      if (restoreFocus) figure.querySelector('.research-figure__header a')?.focus({preventScroll:true});
     };
     if (seen.has(figure.dataset.figure) || figure.getBoundingClientRect().bottom < 0) { record.finish(); return; }
     if (matchMedia('(max-width:700px), (prefers-reduced-motion: reduce)').matches || !window.IntersectionObserver) { rail.hidden=true; return; }

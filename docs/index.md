@@ -25,7 +25,7 @@ description: "Notes on robotics, embodied AI, coursework, and practical experime
       </div>
       <figcaption>
         <span class="blog-home-feature__caption"><span data-blog-home-caption>Autonomous rollout</span><span data-blog-home-speed>Source footage · 5× speed</span></span>
-        <button class="edwinos-glass" type="button" data-blog-home-play aria-label="Play robot preview" aria-pressed="false">Play preview</button>
+        <button class="edwinos-glass" type="button" data-blog-home-play aria-label="Play robot preview" aria-pressed="false">Play preview</button><span class="blog-home-feature__status" data-blog-home-status hidden>Poster shown; motion is disabled.</span>
       </figcaption>
       <div class="blog-home-clips" role="group" aria-label="Choose a robot demonstration" hidden>
         <button class="edwinos-glass" type="button" data-blog-home-clip data-src="assets/media/blog-home-robot.mp4" data-poster="assets/images/blog-home-robot.webp" data-caption="Autonomous rollout" data-speed="Source footage · 5× speed" aria-pressed="true">Autonomous rollout</button>
