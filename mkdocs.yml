@@ -14,6 +14,7 @@ site_description: "Notes on robotics, embodied AI, coursework, and practical exp
 exclude_docs: |
   research/
   sandbox/figure-training/
+  sandbox/figure-sources/
 copyright: >-
   <span class="footer-copyright">Copyright 2025-2026 Chen Jing.</span>
   <span class="site-status"><span class="site-status__dot" aria-hidden="true"></span>Syncing Knowledge Garden</span>

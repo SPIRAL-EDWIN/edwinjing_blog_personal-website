@@ -1,0 +1,3369 @@
+{
+  "schema": "pptx-fixed-geometry-v1",
+  "slide_pt": [
+    960.0,
+    540.0
+  ],
+  "elements": [
+    {
+      "text_layout": {
+        "body": {
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 9,
+      "name": "矩形 8",
+      "z": 1,
+      "kind": "shape",
+      "box_pt": [
+        597.155748,
+        58.714961,
+        209.92189,
+        315.854094
+      ],
+      "raw_box_pt": [
+        597.155748,
+        58.714961,
+        209.92189,
+        315.854094
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": {
+        "type": "srgbClr",
+        "value": "E2E2E2",
+        "modifiers": {}
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": true,
+        "color": null,
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "wrap": "square"
+        },
+        "paragraphs": [
+          {}
+        ]
+      },
+      "id": 10,
+      "name": "文本框 9",
+      "z": 2,
+      "kind": "shape",
+      "box_pt": [
+        597.240472,
+        58.919528,
+        130.173937,
+        24.234409
+      ],
+      "raw_box_pt": [
+        597.240472,
+        58.919528,
+        130.173937,
+        24.234409
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [
+        {
+          "text": "3",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": null
+        },
+        {
+          "text": ")",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": null
+        },
+        {
+          "text": " ",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": null
+        },
+        {
+          "text": "Task Interface",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": null
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 3,
+      "name": "Rectangle 2",
+      "z": 3,
+      "kind": "shape",
+      "box_pt": [
+        171.043405,
+        58.73874,
+        426.77565,
+        124.764803
+      ],
+      "raw_box_pt": [
+        171.043405,
+        58.73874,
+        426.77565,
+        124.764803
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": {
+        "type": "srgbClr",
+        "value": "FFF3F2",
+        "modifiers": {}
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": true,
+        "color": null,
+        "width_pt": 1.1,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "wrap": "square"
+        },
+        "paragraphs": [
+          {}
+        ]
+      },
+      "id": 5,
+      "name": "文本框 4",
+      "z": 4,
+      "kind": "shape",
+      "box_pt": [
+        170.814173,
+        58.715039,
+        99.221545,
+        24.234409
+      ],
+      "raw_box_pt": [
+        170.814173,
+        58.715039,
+        99.221545,
+        24.234409
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [
+        {
+          "text": "1",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": {
+            "type": "srgbClr",
+            "value": "B64342",
+            "modifiers": {}
+          }
+        },
+        {
+          "text": ")",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": {
+            "type": "srgbClr",
+            "value": "B64342",
+            "modifiers": {}
+          }
+        },
+        {
+          "text": " ",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": {
+            "type": "srgbClr",
+            "value": "B64342",
+            "modifiers": {}
+          }
+        },
+        {
+          "text": "Training",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": {
+            "type": "srgbClr",
+            "value": "B64342",
+            "modifiers": {}
+          }
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 6,
+      "name": "Rectangle 4",
+      "z": 5,
+      "kind": "shape",
+      "box_pt": [
+        171.298039,
+        183.503543,
+        426.520937,
+        191.065906
+      ],
+      "raw_box_pt": [
+        171.298039,
+        183.503543,
+        426.520937,
+        191.065906
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": {
+        "type": "srgbClr",
+        "value": "F3F8FF",
+        "modifiers": {}
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": true,
+        "color": null,
+        "width_pt": 1.1,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "wrap": "square"
+        },
+        "paragraphs": [
+          {}
+        ]
+      },
+      "id": 7,
+      "name": "文本框 6",
+      "z": 6,
+      "kind": "shape",
+      "box_pt": [
+        170.236142,
+        348.715276,
+        124.29469,
+        24.234409
+      ],
+      "raw_box_pt": [
+        170.236142,
+        348.715276,
+        124.29469,
+        24.234409
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [
+        {
+          "text": "2",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": {
+            "type": "srgbClr",
+            "value": "0F4D92",
+            "modifiers": {}
+          }
+        },
+        {
+          "text": ")",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": {
+            "type": "srgbClr",
+            "value": "0F4D92",
+            "modifiers": {}
+          }
+        },
+        {
+          "text": " ",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": {
+            "type": "srgbClr",
+            "value": "0F4D92",
+            "modifiers": {}
+          }
+        },
+        {
+          "text": "Delopyment",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": {
+            "type": "srgbClr",
+            "value": "0F4D92",
+            "modifiers": {}
+          }
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 114,
+      "name": "Rectangle 4",
+      "z": 7,
+      "kind": "shape",
+      "box_pt": [
+        185.167008,
+        227.817087,
+        251.240945,
+        96.10189
+      ],
+      "raw_box_pt": [
+        185.167008,
+        227.817087,
+        251.240945,
+        96.10189
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "roundRect",
+      "adjustments": {
+        "adj": "val 7245"
+      },
+      "fill": {
+        "type": "schemeClr",
+        "value": "accent4",
+        "modifiers": {
+          "lumMod": "20000",
+          "lumOff": "80000"
+        }
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "srgbClr",
+          "value": "0F4D92",
+          "modifiers": {}
+        },
+        "width_pt": 1.1,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 106,
+      "name": "连接符: 肘形 105",
+      "z": 8,
+      "kind": "connector",
+      "box_pt": [
+        215.154094,
+        286.551811,
+        509.001024,
+        46.767165
+      ],
+      "raw_box_pt": [
+        215.154094,
+        286.551811,
+        509.001024,
+        46.767165
+      ],
+      "rotation": 180.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "bentConnector5",
+      "adjustments": {
+        "adj1": "val -1909",
+        "adj2": "val -16430",
+        "adj3": "val 103536"
+      },
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "schemeClr",
+          "value": "dk1",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": null,
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": {
+        "id": 122,
+        "idx": 2
+      },
+      "edge_kind": "feedback",
+      "points_pt": [
+        [
+          724.155118,
+          333.318976
+        ],
+        [
+          733.871948,
+          333.318976
+        ],
+        [
+          733.871948,
+          341.002822
+        ],
+        [
+          197.155818,
+          341.002822
+        ],
+        [
+          197.155818,
+          286.551811
+        ],
+        [
+          215.154094,
+          286.551811
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 105,
+      "name": "连接符: 肘形 104",
+      "z": 9,
+      "kind": "connector",
+      "box_pt": [
+        487.345276,
+        134.640787,
+        126.764016,
+        144.495276
+      ],
+      "raw_box_pt": [
+        487.345276,
+        134.640787,
+        126.764016,
+        144.495276
+      ],
+      "rotation": 180.0,
+      "flipH": false,
+      "flipV": true,
+      "geometry": "bentConnector3",
+      "adjustments": {
+        "adj1": "val 113989"
+      },
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "schemeClr",
+          "value": "dk1",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": null,
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null,
+      "edge_kind": "data",
+      "points_pt": [
+        [
+          614.109291,
+          134.640787
+        ],
+        [
+          469.612257,
+          134.640787
+        ],
+        [
+          469.612257,
+          279.136063
+        ],
+        [
+          487.345276,
+          279.136063
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {
+          "lIns": "64008",
+          "tIns": "27432",
+          "rIns": "64008",
+          "bIns": "27432",
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 117,
+      "name": "Rounded Rectangle 38",
+      "z": 10,
+      "kind": "shape",
+      "box_pt": [
+        335.363575,
+        263.366766,
+        88.061654,
+        46.369854
+      ],
+      "raw_box_pt": [
+        356.209475,
+        242.520866,
+        46.369854,
+        88.061654
+      ],
+      "rotation": 90.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "trapezoid",
+      "adjustments": {},
+      "fill": {
+        "type": "srgbClr",
+        "value": "FFFFFF",
+        "modifiers": {}
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "srgbClr",
+          "value": "0F4D92",
+          "modifiers": {}
+        },
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "lIns": "64008",
+          "tIns": "27432",
+          "rIns": "64008",
+          "bIns": "27432",
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 118,
+      "name": "Rounded Rectangle 38",
+      "z": 11,
+      "kind": "shape",
+      "box_pt": [
+        355.238945,
+        270.530866,
+        44.618163,
+        32.041654
+      ],
+      "raw_box_pt": [
+        355.238945,
+        270.530866,
+        44.618163,
+        32.041654
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "roundRect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": {
+        "no_fill": true,
+        "color": null,
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [
+        {
+          "text": "GRU",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": false,
+          "color": {
+            "type": "srgbClr",
+            "value": "0F4D92",
+            "modifiers": {}
+          }
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "lIns": "64008",
+          "tIns": "27432",
+          "rIns": "64008",
+          "bIns": "27432",
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 122,
+      "name": "Rounded Rectangle 38",
+      "z": 12,
+      "kind": "shape",
+      "box_pt": [
+        215.154016,
+        257.948976,
+        100.593858,
+        57.205512
+      ],
+      "raw_box_pt": [
+        236.848189,
+        236.254803,
+        57.205512,
+        100.593858
+      ],
+      "rotation": 90.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "trapezoid",
+      "adjustments": {},
+      "fill": {
+        "type": "srgbClr",
+        "value": "FFFFFF",
+        "modifiers": {}
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "srgbClr",
+          "value": "0F4D92",
+          "modifiers": {}
+        },
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "lIns": "64008",
+          "tIns": "27432",
+          "rIns": "64008",
+          "bIns": "27432",
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 123,
+      "name": "Rounded Rectangle 38",
+      "z": 13,
+      "kind": "shape",
+      "box_pt": [
+        217.142362,
+        270.530945,
+        96.617165,
+        32.041654
+      ],
+      "raw_box_pt": [
+        217.142362,
+        270.530945,
+        96.617165,
+        32.041654
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "roundRect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": {
+        "no_fill": true,
+        "color": null,
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [
+        {
+          "text": "Transformer",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": false,
+          "color": {
+            "type": "srgbClr",
+            "value": "0F4D92",
+            "modifiers": {}
+          }
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 124,
+      "name": "Connector 21",
+      "z": 14,
+      "kind": "connector",
+      "box_pt": [
+        315.747874,
+        286.551732,
+        27.955906,
+        0.0
+      ],
+      "raw_box_pt": [
+        315.747874,
+        286.551732,
+        27.955906,
+        0.0
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "line",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "schemeClr",
+          "value": "dk1",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": null,
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null,
+      "edge_kind": "data",
+      "points_pt": [
+        [
+          315.747874,
+          286.551732
+        ],
+        [
+          343.70378,
+          286.551732
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {
+          "wrap": "square"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 126,
+      "name": "文本框 125",
+      "z": 15,
+      "kind": "shape",
+      "box_pt": [
+        185.167008,
+        229.108031,
+        251.240945,
+        24.234409
+      ],
+      "raw_box_pt": [
+        185.167008,
+        229.108031,
+        251.240945,
+        24.234409
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [
+        {
+          "text": "Temporal Context Estimator ",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": false,
+          "color": {
+            "type": "srgbClr",
+            "value": "0F4D92",
+            "modifiers": {}
+          }
+        },
+        {
+          "text": "φ",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": false,
+          "color": {
+            "type": "srgbClr",
+            "value": "0F4D92",
+            "modifiers": {}
+          }
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 112,
+      "name": "连接符: 肘形 111",
+      "z": 16,
+      "kind": "connector",
+      "box_pt": [
+        201.555551,
+        161.027992,
+        109.231969,
+        66.789055
+      ],
+      "raw_box_pt": [
+        222.777008,
+        139.806535,
+        66.789055,
+        109.231969
+      ],
+      "rotation": 270.0,
+      "flipH": true,
+      "flipV": false,
+      "geometry": "bentConnector3",
+      "adjustments": {
+        "adj1": "val 50000"
+      },
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "srgbClr",
+          "value": "0F4D92",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": "dash",
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": {
+        "id": 114,
+        "idx": 0
+      },
+      "edge_kind": "update",
+      "points_pt": [
+        [
+          201.555551,
+          161.027992
+        ],
+        [
+          201.555551,
+          194.42252
+        ],
+        [
+          310.78752,
+          194.42252
+        ],
+        [
+          310.78752,
+          227.817047
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {
+          "lIns": "64008",
+          "tIns": "27432",
+          "rIns": "64008",
+          "bIns": "27432",
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 51,
+      "name": "Rounded Rectangle 38",
+      "z": 17,
+      "kind": "shape",
+      "box_pt": [
+        485.568896,
+        259.102809,
+        88.061654,
+        54.897768
+      ],
+      "raw_box_pt": [
+        502.150839,
+        242.520866,
+        54.897768,
+        88.061654
+      ],
+      "rotation": 90.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "trapezoid",
+      "adjustments": {},
+      "fill": {
+        "type": "srgbClr",
+        "value": "FFFFFF",
+        "modifiers": {}
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "srgbClr",
+          "value": "0F4D92",
+          "modifiers": {}
+        },
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "lIns": "64008",
+          "tIns": "27432",
+          "rIns": "64008",
+          "bIns": "27432",
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 61,
+      "name": "Rounded Rectangle 38",
+      "z": 18,
+      "kind": "shape",
+      "box_pt": [
+        501.341476,
+        270.530787,
+        52.823999,
+        32.041654
+      ],
+      "raw_box_pt": [
+        501.341476,
+        270.530787,
+        52.823999,
+        32.041654
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "roundRect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": {
+        "no_fill": true,
+        "color": null,
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [
+        {
+          "text": "Actor",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": false,
+          "color": {
+            "type": "srgbClr",
+            "value": "0F4D92",
+            "modifiers": {}
+          }
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 53,
+      "name": "矩形: 圆角 52",
+      "z": 19,
+      "kind": "shape",
+      "box_pt": [
+        607.27748,
+        85.514016,
+        185.809843,
+        95.466535
+      ],
+      "raw_box_pt": [
+        607.27748,
+        85.514016,
+        185.809843,
+        95.466535
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "roundRect",
+      "adjustments": {},
+      "fill": {
+        "type": "schemeClr",
+        "value": "bg1",
+        "modifiers": {
+          "lumMod": "95000"
+        }
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": null,
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 64,
+      "name": "图片 63",
+      "z": 20,
+      "kind": "picture",
+      "box_pt": [
+        685.598346,
+        113.269134,
+        34.211969,
+        42.932598
+      ],
+      "raw_box_pt": [
+        685.598346,
+        113.269134,
+        34.211969,
+        42.932598
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image1.png",
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "wrap": "none",
+          "rtlCol": "0"
+        },
+        "paragraphs": [
+          {}
+        ]
+      },
+      "id": 65,
+      "name": "文本框 64",
+      "z": 21,
+      "kind": "shape",
+      "box_pt": [
+        687.166535,
+        156.201654,
+        31.328031,
+        21.810945
+      ],
+      "raw_box_pt": [
+        687.166535,
+        156.201654,
+        31.328031,
+        21.810945
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [
+        {
+          "text": "VR",
+          "font": "Times New Roman",
+          "size_pt": 12.0,
+          "bold": false,
+          "color": null
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 60,
+      "name": "图片 59",
+      "z": 22,
+      "kind": "picture",
+      "box_pt": [
+        737.171654,
+        113.269134,
+        40.048819,
+        42.932598
+      ],
+      "raw_box_pt": [
+        737.171654,
+        113.269134,
+        40.048819,
+        42.932598
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image2.png",
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "wrap": "none",
+          "rtlCol": "0"
+        },
+        "paragraphs": [
+          {}
+        ]
+      },
+      "id": 63,
+      "name": "文本框 62",
+      "z": 23,
+      "kind": "shape",
+      "box_pt": [
+        724.744646,
+        155.449055,
+        60.61126,
+        20.599213
+      ],
+      "raw_box_pt": [
+        724.744646,
+        155.449055,
+        60.61126,
+        20.599213
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [
+        {
+          "text": "Trajectory",
+          "font": "Times New Roman",
+          "size_pt": 11.0,
+          "bold": false,
+          "color": null
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 58,
+      "name": "图片 57",
+      "z": 24,
+      "kind": "picture",
+      "box_pt": [
+        621.217717,
+        113.269134,
+        47.019291,
+        42.932598
+      ],
+      "raw_box_pt": [
+        621.217717,
+        113.269134,
+        47.019291,
+        42.932598
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image3.png",
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "wrap": "none",
+          "rtlCol": "0"
+        },
+        "paragraphs": [
+          {}
+        ]
+      },
+      "id": 59,
+      "name": "文本框 58",
+      "z": 25,
+      "kind": "shape",
+      "box_pt": [
+        620.417165,
+        156.201732,
+        60.772756,
+        21.810945
+      ],
+      "raw_box_pt": [
+        620.417165,
+        156.201732,
+        60.772756,
+        21.810945
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [
+        {
+          "text": "Diffusion",
+          "font": "Times New Roman",
+          "size_pt": 12.0,
+          "bold": false,
+          "color": null
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "wrap": "square"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 129,
+      "name": "文本框 128",
+      "z": 26,
+      "kind": "shape",
+      "box_pt": [
+        614.109055,
+        89.703465,
+        175.076772,
+        24.234409
+      ],
+      "raw_box_pt": [
+        614.109055,
+        89.703465,
+        175.076772,
+        24.234409
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [
+        {
+          "text": "Command sources",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": null
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 39,
+      "name": "连接符: 肘形 38",
+      "z": 27,
+      "kind": "connector",
+      "box_pt": [
+        487.345512,
+        292.983465,
+        122.008661,
+        30.711811
+      ],
+      "raw_box_pt": [
+        487.345512,
+        292.983465,
+        122.008661,
+        30.711811
+      ],
+      "rotation": 180.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "bentConnector3",
+      "adjustments": {
+        "adj1": "val 114770"
+      },
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "schemeClr",
+          "value": "dk1",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": null,
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null,
+      "edge_kind": "feedback",
+      "points_pt": [
+        [
+          609.354173,
+          323.695276
+        ],
+        [
+          469.324833,
+          323.695276
+        ],
+        [
+          469.324833,
+          292.983465
+        ],
+        [
+          487.345512,
+          292.983465
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {
+          "wrap": "square"
+        },
+        "paragraphs": [
+          {}
+        ]
+      },
+      "id": 141,
+      "name": "文本框 140",
+      "z": 28,
+      "kind": "shape",
+      "box_pt": [
+        196.705276,
+        197.254803,
+        87.711732,
+        19.38748
+      ],
+      "raw_box_pt": [
+        196.705276,
+        197.254803,
+        87.711732,
+        19.38748
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [
+        {
+          "text": "Auxiliary update",
+          "font": "Times New Roman",
+          "size_pt": 10.0,
+          "bold": false,
+          "color": {
+            "type": "srgbClr",
+            "value": "0F4D92",
+            "modifiers": {}
+          }
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "lIns": "64008",
+          "tIns": "27432",
+          "rIns": "64008",
+          "bIns": "27432",
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 44,
+      "name": "Rounded Rectangle 12",
+      "z": 29,
+      "kind": "shape",
+      "box_pt": [
+        430.200315,
+        76.678268,
+        50.154409,
+        33.2
+      ],
+      "raw_box_pt": [
+        430.200315,
+        76.678268,
+        50.154409,
+        33.2
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "roundRect",
+      "adjustments": {},
+      "fill": {
+        "type": "srgbClr",
+        "value": "FFFFFF",
+        "modifiers": {}
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "srgbClr",
+          "value": "B64342",
+          "modifiers": {}
+        },
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [
+        {
+          "text": "GAE",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": false,
+          "color": {
+            "type": "srgbClr",
+            "value": "B64342",
+            "modifiers": {}
+          }
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 46,
+      "name": "Connector 22",
+      "z": 30,
+      "kind": "connector",
+      "box_pt": [
+        384.918268,
+        93.278346,
+        45.282047,
+        0.459764
+      ],
+      "raw_box_pt": [
+        384.918268,
+        93.278346,
+        45.282047,
+        0.459764
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "line",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "schemeClr",
+          "value": "dk1",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": null,
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null,
+      "edge_kind": "data",
+      "points_pt": [
+        [
+          384.918268,
+          93.278346
+        ],
+        [
+          430.200315,
+          93.73811
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {
+          "lIns": "64008",
+          "tIns": "27432",
+          "rIns": "64008",
+          "bIns": "27432",
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 48,
+      "name": "Rounded Rectangle 9",
+      "z": 31,
+      "kind": "shape",
+      "box_pt": [
+        300.409213,
+        74.565591,
+        84.509055,
+        37.425433
+      ],
+      "raw_box_pt": [
+        300.409213,
+        74.565591,
+        84.509055,
+        37.425433
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "roundRect",
+      "adjustments": {},
+      "fill": {
+        "type": "srgbClr",
+        "value": "FFFFFF",
+        "modifiers": {}
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "srgbClr",
+          "value": "B64342",
+          "modifiers": {}
+        },
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [
+        {
+          "text": "Reward\nGating",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": false,
+          "color": {
+            "type": "srgbClr",
+            "value": "B64342",
+            "modifiers": {}
+          }
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 52,
+      "name": "Connector 21",
+      "z": 32,
+      "kind": "connector",
+      "box_pt": [
+        262.88622,
+        145.333622,
+        37.523071,
+        0.637638
+      ],
+      "raw_box_pt": [
+        262.88622,
+        145.333622,
+        37.523071,
+        0.637638
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "line",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "schemeClr",
+          "value": "dk1",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": null,
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null,
+      "edge_kind": "data",
+      "points_pt": [
+        [
+          262.88622,
+          145.333622
+        ],
+        [
+          300.409291,
+          145.97126
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 62,
+      "name": "连接符: 肘形 61",
+      "z": 33,
+      "kind": "connector",
+      "box_pt": [
+        384.918504,
+        109.878268,
+        70.359055,
+        36.092992
+      ],
+      "raw_box_pt": [
+        384.918504,
+        109.878268,
+        70.359055,
+        36.092992
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": true,
+      "geometry": "bentConnector2",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "schemeClr",
+          "value": "dk1",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": null,
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": {
+        "id": 69,
+        "idx": 0
+      },
+      "endCxn": {
+        "id": 44,
+        "idx": 2
+      },
+      "edge_kind": "data",
+      "points_pt": [
+        [
+          384.918504,
+          145.97126
+        ],
+        [
+          455.277559,
+          145.97126
+        ],
+        [
+          455.277559,
+          109.878268
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 67,
+      "name": "连接符: 肘形 66",
+      "z": 34,
+      "kind": "connector",
+      "box_pt": [
+        384.918543,
+        109.878307,
+        165.91252,
+        45.324409
+      ],
+      "raw_box_pt": [
+        445.212598,
+        49.584252,
+        45.324409,
+        165.91252
+      ],
+      "rotation": 90.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "bentConnector2",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "srgbClr",
+          "value": "B64342",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": "dash",
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": {
+        "id": 71,
+        "idx": 2
+      },
+      "endCxn": null,
+      "edge_kind": "update",
+      "points_pt": [
+        [
+          550.831063,
+          109.878307
+        ],
+        [
+          550.831063,
+          155.202717
+        ],
+        [
+          384.918543,
+          155.202717
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {
+          "lIns": "64008",
+          "tIns": "27432",
+          "rIns": "64008",
+          "bIns": "27432",
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 69,
+      "name": "Rounded Rectangle 38",
+      "z": 35,
+      "kind": "shape",
+      "box_pt": [
+        298.633109,
+        118.522362,
+        88.061654,
+        54.897717
+      ],
+      "raw_box_pt": [
+        315.215077,
+        101.940394,
+        54.897717,
+        88.061654
+      ],
+      "rotation": 90.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "trapezoid",
+      "adjustments": {},
+      "fill": {
+        "type": "srgbClr",
+        "value": "FFFFFF",
+        "modifiers": {}
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "srgbClr",
+          "value": "B64342",
+          "modifiers": {}
+        },
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "lIns": "64008",
+          "tIns": "27432",
+          "rIns": "64008",
+          "bIns": "27432",
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 70,
+      "name": "Rounded Rectangle 38",
+      "z": 36,
+      "kind": "shape",
+      "box_pt": [
+        314.405639,
+        129.950394,
+        52.82395,
+        32.041654
+      ],
+      "raw_box_pt": [
+        314.405639,
+        129.950394,
+        52.82395,
+        32.041654
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "roundRect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": {
+        "no_fill": true,
+        "color": null,
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [
+        {
+          "text": "Critic",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": false,
+          "color": {
+            "type": "srgbClr",
+            "value": "B64342",
+            "modifiers": {}
+          }
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "lIns": "64008",
+          "tIns": "27432",
+          "rIns": "64008",
+          "bIns": "27432",
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 71,
+      "name": "Rounded Rectangle 12",
+      "z": 37,
+      "kind": "shape",
+      "box_pt": [
+        525.75378,
+        76.678268,
+        50.154409,
+        33.2
+      ],
+      "raw_box_pt": [
+        525.75378,
+        76.678268,
+        50.154409,
+        33.2
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "roundRect",
+      "adjustments": {},
+      "fill": {
+        "type": "srgbClr",
+        "value": "FFFFFF",
+        "modifiers": {}
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "srgbClr",
+          "value": "B64342",
+          "modifiers": {}
+        },
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [
+        {
+          "text": "PPO",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": false,
+          "color": {
+            "type": "srgbClr",
+            "value": "B64342",
+            "modifiers": {}
+          }
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 73,
+      "name": "Connector 22",
+      "z": 38,
+      "kind": "connector",
+      "box_pt": [
+        480.840551,
+        93.280079,
+        45.282047,
+        0.459764
+      ],
+      "raw_box_pt": [
+        480.840551,
+        93.280079,
+        45.282047,
+        0.459764
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "line",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "schemeClr",
+          "value": "dk1",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": null,
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null,
+      "edge_kind": "data",
+      "points_pt": [
+        [
+          480.840551,
+          93.280079
+        ],
+        [
+          526.122598,
+          93.739843
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 81,
+      "name": "Connector 21",
+      "z": 39,
+      "kind": "connector",
+      "box_pt": [
+        264.479843,
+        93.278346,
+        35.92937,
+        0.195197
+      ],
+      "raw_box_pt": [
+        264.479843,
+        93.278346,
+        35.92937,
+        0.195197
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": true,
+      "geometry": "line",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "schemeClr",
+          "value": "dk1",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": null,
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": {
+        "id": 48,
+        "idx": 1
+      },
+      "edge_kind": "data",
+      "points_pt": [
+        [
+          264.479843,
+          93.473543
+        ],
+        [
+          300.409213,
+          93.278346
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 83,
+      "name": "连接符: 肘形 82",
+      "z": 40,
+      "kind": "connector",
+      "box_pt": [
+        529.599685,
+        109.878268,
+        21.231339,
+        155.221417
+      ],
+      "raw_box_pt": [
+        462.604646,
+        176.873307,
+        155.221417,
+        21.231339
+      ],
+      "rotation": 90.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "bentConnector3",
+      "adjustments": {
+        "adj1": "val 50000"
+      },
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "srgbClr",
+          "value": "B64342",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": "dash",
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": {
+        "id": 71,
+        "idx": 2
+      },
+      "endCxn": {
+        "id": 51,
+        "idx": 1
+      },
+      "edge_kind": "update",
+      "points_pt": [
+        [
+          550.831024,
+          109.878268
+        ],
+        [
+          550.831024,
+          187.488976
+        ],
+        [
+          529.599685,
+          187.488976
+        ],
+        [
+          529.599685,
+          265.099685
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {
+          "wrap": "square"
+        },
+        "paragraphs": [
+          {}
+        ]
+      },
+      "id": 90,
+      "name": "文本框 89",
+      "z": 41,
+      "kind": "shape",
+      "box_pt": [
+        488.32315,
+        111.47874,
+        68.49063,
+        19.38748
+      ],
+      "raw_box_pt": [
+        488.32315,
+        111.47874,
+        68.49063,
+        19.38748
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [
+        {
+          "text": "PPO update",
+          "font": "Times New Roman",
+          "size_pt": 10.0,
+          "bold": false,
+          "color": {
+            "type": "srgbClr",
+            "value": "B64342",
+            "modifiers": {}
+          }
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 13,
+      "name": "直接箭头连接符 12",
+      "z": 42,
+      "kind": "connector",
+      "box_pt": [
+        415.085118,
+        286.059764,
+        72.26,
+        0.491969
+      ],
+      "raw_box_pt": [
+        415.085118,
+        286.059764,
+        72.26,
+        0.491969
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": true,
+      "geometry": "straightConnector1",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "schemeClr",
+          "value": "dk1",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": null,
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null,
+      "edge_kind": "data",
+      "points_pt": [
+        [
+          415.085118,
+          286.551732
+        ],
+        [
+          487.345118,
+          286.059764
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 18,
+      "name": "直接箭头连接符 17",
+      "z": 43,
+      "kind": "connector",
+      "box_pt": [
+        571.854252,
+        286.524173,
+        37.665748,
+        0.027559
+      ],
+      "raw_box_pt": [
+        571.854252,
+        286.524173,
+        37.665748,
+        0.027559
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": true,
+      "geometry": "straightConnector1",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": {
+          "type": "schemeClr",
+          "value": "dk1",
+          "modifiers": {}
+        },
+        "width_pt": 1.5,
+        "dash": null,
+        "head": null,
+        "tail": "triangle"
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": {
+        "id": 51,
+        "idx": 0
+      },
+      "endCxn": {
+        "id": 41,
+        "idx": 1
+      },
+      "edge_kind": "data",
+      "points_pt": [
+        [
+          571.854252,
+          286.551732
+        ],
+        [
+          609.52,
+          286.524173
+        ]
+      ]
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 21,
+      "name": "图形 20",
+      "z": 44,
+      "kind": "picture",
+      "box_pt": [
+        202.711417,
+        81.737165,
+        60.530551,
+        24.075669
+      ],
+      "raw_box_pt": [
+        202.711417,
+        81.737165,
+        60.530551,
+        24.075669
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image4.svg",
+      "crop": {
+        "r": 86101,
+        "b": -14634
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 26,
+      "name": "图形 25",
+      "z": 45,
+      "kind": "picture",
+      "box_pt": [
+        188.900945,
+        136.215276,
+        33.428976,
+        21.002283
+      ],
+      "raw_box_pt": [
+        188.900945,
+        136.215276,
+        33.428976,
+        21.002283
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image4.svg",
+      "crop": {
+        "l": 38067,
+        "r": 54258
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 28,
+      "name": "图形 27",
+      "z": 46,
+      "kind": "picture",
+      "box_pt": [
+        411.871181,
+        121.533701,
+        36.306535,
+        21.002283
+      ],
+      "raw_box_pt": [
+        411.871181,
+        121.533701,
+        36.306535,
+        21.002283
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image4.svg",
+      "crop": {
+        "l": 28408,
+        "t": -1719,
+        "r": 63256,
+        "b": 1719
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 30,
+      "name": "图形 29",
+      "z": 47,
+      "kind": "picture",
+      "box_pt": [
+        492.58252,
+        69.87315,
+        17.688583,
+        27.711417
+      ],
+      "raw_box_pt": [
+        492.58252,
+        69.87315,
+        17.688583,
+        27.711417
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image4.svg",
+      "crop": {
+        "l": 22196,
+        "t": -13751,
+        "r": 73743,
+        "b": -18196
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 32,
+      "name": "图形 31",
+      "z": 48,
+      "kind": "picture",
+      "box_pt": [
+        398.293858,
+        71.811024,
+        18.530866,
+        21.950787
+      ],
+      "raw_box_pt": [
+        398.293858,
+        71.811024,
+        18.530866,
+        21.950787
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image4.svg",
+      "crop": {
+        "l": 15276,
+        "t": -768,
+        "r": 80469,
+        "b": -3748
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 17,
+      "name": "图形 16",
+      "z": 49,
+      "kind": "picture",
+      "box_pt": [
+        575.443307,
+        264.433386,
+        23.586299,
+        21.097638
+      ],
+      "raw_box_pt": [
+        575.443307,
+        264.433386,
+        23.586299,
+        21.097638
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image5.svg",
+      "crop": {
+        "l": 89827,
+        "t": -453,
+        "r": 4878,
+        "b": -1
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 24,
+      "name": "图形 23",
+      "z": 50,
+      "kind": "picture",
+      "box_pt": [
+        446.924488,
+        263.215197,
+        17.192598,
+        21.29189
+      ],
+      "raw_box_pt": [
+        446.924488,
+        263.215197,
+        17.192598,
+        21.29189
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image5.svg",
+      "crop": {
+        "l": 70521,
+        "t": -1379,
+        "r": 25620
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 31,
+      "name": "图形 30",
+      "z": 51,
+      "kind": "picture",
+      "box_pt": [
+        316.409764,
+        263.916299,
+        26.693858,
+        19.889685
+      ],
+      "raw_box_pt": [
+        316.409764,
+        263.916299,
+        26.693858,
+        19.889685
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image5.svg",
+      "crop": {
+        "l": 62626,
+        "t": 5297,
+        "r": 31382,
+        "b": -1
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 35,
+      "name": "图形 34",
+      "z": 52,
+      "kind": "picture",
+      "box_pt": [
+        188.744016,
+        263.215197,
+        29.629685,
+        21.29189
+      ],
+      "raw_box_pt": [
+        188.744016,
+        263.215197,
+        29.629685,
+        21.29189
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image5.svg",
+      "crop": {
+        "l": 55383,
+        "t": -1379,
+        "r": 37965
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 37,
+      "name": "图形 36",
+      "z": 53,
+      "kind": "picture",
+      "box_pt": [
+        226.799528,
+        133.944016,
+        39.051417,
+        21.29189
+      ],
+      "raw_box_pt": [
+        226.799528,
+        133.944016,
+        39.051417,
+        21.29189
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image5.svg",
+      "crop": {
+        "l": 45556,
+        "t": -1379,
+        "r": 45678
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 40,
+      "name": "图形 39",
+      "z": 54,
+      "kind": "picture",
+      "box_pt": [
+        444.161496,
+        294.928031,
+        22.926063,
+        22.296378
+      ],
+      "raw_box_pt": [
+        444.161496,
+        294.928031,
+        22.926063,
+        22.296378
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image5.svg",
+      "crop": {
+        "l": 83782,
+        "t": -6161,
+        "r": 11071,
+        "b": -1
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 45,
+      "name": "图形 44",
+      "z": 55,
+      "kind": "picture",
+      "box_pt": [
+        443.055197,
+        232.59748,
+        30.931181,
+        22.087874
+      ],
+      "raw_box_pt": [
+        443.055197,
+        232.59748,
+        30.931181,
+        22.087874
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image5.svg",
+      "crop": {
+        "l": 76023,
+        "t": -5168,
+        "r": 17034,
+        "b": -1
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 41,
+      "name": "矩形: 圆角 40",
+      "z": 56,
+      "kind": "shape",
+      "box_pt": [
+        609.52,
+        206.055591,
+        184.415906,
+        160.937165
+      ],
+      "raw_box_pt": [
+        609.52,
+        206.055591,
+        184.415906,
+        160.937165
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "roundRect",
+      "adjustments": {
+        "adj": "val 13000"
+      },
+      "fill": {
+        "type": "schemeClr",
+        "value": "bg1",
+        "modifiers": {
+          "lumMod": "95000"
+        }
+      },
+      "no_fill": false,
+      "gradient": null,
+      "stroke": {
+        "no_fill": false,
+        "color": null,
+        "width_pt": 1.0,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "wrap": "square"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 138,
+      "name": "文本框 137",
+      "z": 57,
+      "kind": "shape",
+      "box_pt": [
+        605.315984,
+        212.309528,
+        192.236535,
+        24.234409
+      ],
+      "raw_box_pt": [
+        605.315984,
+        212.309528,
+        192.236535,
+        24.234409
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": true,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [
+        {
+          "text": "Environment (Sim./Real)",
+          "font": "Times New Roman",
+          "size_pt": 14.0,
+          "bold": true,
+          "color": null
+        }
+      ],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 20,
+      "name": "图片 19",
+      "z": 58,
+      "kind": "picture",
+      "box_pt": [
+        617.955197,
+        239.303307,
+        166.804961,
+        115.406299
+      ],
+      "raw_box_pt": [
+        617.955197,
+        239.303307,
+        166.804961,
+        115.406299
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": null,
+      "stroke": null,
+      "text_runs": [],
+      "media": "image6.jpg",
+      "crop": {
+        "l": 30424,
+        "t": 11986,
+        "r": 9315,
+        "b": 11216
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {},
+        "paragraphs": []
+      },
+      "id": 4,
+      "name": "图片 3",
+      "z": 59,
+      "kind": "picture",
+      "box_pt": [
+        727.744173,
+        239.303307,
+        57.07622,
+        115.406299
+      ],
+      "raw_box_pt": [
+        727.744173,
+        239.303307,
+        57.07622,
+        115.406299
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": "<a:gradFill xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\"><a:gsLst><a:gs pos=\"67000\"><a:schemeClr val=\"accent1\"><a:lumMod val=\"5000\"/><a:lumOff val=\"95000\"/><a:alpha val=\"0\"/></a:schemeClr></a:gs><a:gs pos=\"100000\"><a:schemeClr val=\"bg1\"/></a:gs></a:gsLst><a:lin ang=\"0\" scaled=\"0\"/></a:gradFill>",
+      "stroke": null,
+      "text_runs": [],
+      "media": "image7.png",
+      "crop": {
+        "l": 12008
+      },
+      "stCxn": null,
+      "endCxn": null
+    },
+    {
+      "text_layout": {
+        "body": {
+          "rtlCol": "0",
+          "anchor": "ctr"
+        },
+        "paragraphs": [
+          {
+            "algn": "ctr"
+          }
+        ]
+      },
+      "id": 15,
+      "name": "矩形 14",
+      "z": 60,
+      "kind": "shape",
+      "box_pt": [
+        618.516378,
+        239.303307,
+        109.842756,
+        115.406299
+      ],
+      "raw_box_pt": [
+        618.516378,
+        239.303307,
+        109.842756,
+        115.406299
+      ],
+      "rotation": 0.0,
+      "flipH": false,
+      "flipV": false,
+      "geometry": "rect",
+      "adjustments": {},
+      "fill": null,
+      "no_fill": false,
+      "gradient": "<a:gradFill xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\"><a:gsLst><a:gs pos=\"59000\"><a:schemeClr val=\"accent1\"><a:lumMod val=\"5000\"/><a:lumOff val=\"95000\"/><a:alpha val=\"0\"/></a:schemeClr></a:gs><a:gs pos=\"100000\"><a:schemeClr val=\"bg1\"/></a:gs></a:gsLst><a:lin ang=\"0\" scaled=\"0\"/></a:gradFill>",
+      "stroke": {
+        "no_fill": true,
+        "color": null,
+        "width_pt": null,
+        "dash": null,
+        "head": null,
+        "tail": null
+      },
+      "text_runs": [],
+      "media": null,
+      "crop": {},
+      "stCxn": null,
+      "endCxn": null
+    }
+  ]
+}
