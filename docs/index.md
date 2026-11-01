@@ -14,10 +14,6 @@ description: "Notes on robotics, embodied AI, coursework, and practical experime
       <h1 id="blog-home-title">Notes from the lab,<br>and the work between.</h1>
       <p class="blog-home-author">Chen Jing <span lang="zh">(经宸)</span> · Working notebook</p>
       <p>I’m Chen Jing. This notebook follows my work in robotics: coordinate transforms, simulation checks, reward tuning—and the tools I use along the way.</p>
-      <nav class="blog-home-actions" aria-label="Explore the notebook">
-        <a class="blog-home-action edwinos-glass" href="OsdNotes/">Browse the notes</a>
-        <a href="%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/">Lab notes &amp; experience</a>
-      </nav>
     </div>
     <figure class="blog-home-feature">
       <div class="blog-home-feature__media">

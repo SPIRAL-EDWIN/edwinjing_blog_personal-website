@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% set edwinos_notes_footer = page and page.file and (page.file.src_uri.startswith("OsdNotes/") or page.file.src_uri.startswith("经验分享/")) %}
+{% set edwinos_notes_footer = page and page.file and (page.file.src_uri.startswith("OsdNotes/") or page.file.src_uri.startswith("经验分享/") or page.file.src_uri.startswith("collections/")) %}
 
 {% block htmltitle %}
   {% if page.url == "" %}

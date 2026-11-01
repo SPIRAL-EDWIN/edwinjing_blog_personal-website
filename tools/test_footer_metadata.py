@@ -53,6 +53,7 @@ class FooterMetadataTests(unittest.TestCase):
     def test_note_landing_and_child_pages_share_metadata_without_visitor_badges(self):
         for source, url in (
             ("OsdNotes/index.md", "OsdNotes/"),
+            ("collections/Embodied AI/index.md", "collections/Embodied AI/"),
             ("经验分享/index.md", "经验分享/"),
             ("OsdNotes/CHEM/CHEM 102.md", "OsdNotes/CHEM/CHEM 102/"),
             ("经验分享/Phi Lab/note.md", "经验分享/Phi Lab/note/"),
