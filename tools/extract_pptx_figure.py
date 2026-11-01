@@ -2,8 +2,6 @@
 """Extract fixed geometry from the co-authored source slide; never copy PPTX into docs."""
 import argparse, json, zipfile, posixpath
 from pathlib import Path
-from lxml import etree
-from pptx import Presentation
 EMU=12700
 NS={'p':'http://schemas.openxmlformats.org/presentationml/2006/main','a':'http://schemas.openxmlformats.org/drawingml/2006/main','r':'http://schemas.openxmlformats.org/officeDocument/2006/relationships'}
 P='{%s}'%NS['p']; A='{%s}'%NS['a']; R='{%s}'%NS['r']
@@ -15,7 +13,16 @@ def color(el):
   if tag in ('srgbClr','schemeClr','sysClr','prstClr'):
    return {'type':tag,'value':child.get('val'),'modifiers':{etree.QName(c).localname:c.get('val') for c in child}}
  return None
+def visual_box_pt(ox, oy, w, h, sx, sy, tx, ty, rotation):
+ """Rotate a right-angle child box before applying its group's axis scales."""
+ if round(rotation) % 180 == 90:
+  ox, oy, w, h = ox + (w-h)/2, oy + (h-w)/2, h, w
+ return [(tx+sx*ox)/EMU, (ty+sy*oy)/EMU, sx*w/EMU, sy*h/EMU]
+
 def main():
+ global etree
+ from lxml import etree
+ from pptx import Presentation
  ap=argparse.ArgumentParser();ap.add_argument('--source',default='sandbox/figure-sources/bipedalwbc/source.pptx');ap.add_argument('--output',default='docs/assets/data/project-figures/bipedalwbc.json');args=ap.parse_args()
  prs=Presentation(args.source)
  with zipfile.ZipFile(args.source) as z:
@@ -34,8 +41,7 @@ def main():
      co=x.find('a:chOff',NS);ce=x.find('a:chExt',NS);cx,cy=val(co,'x'),val(co,'y');cw,ch=val(ce,'cx',1),val(ce,'cy',1)
      walk(el,(sx*w/cw,sy*h/ch,tx+sx*(ox-cx*w/cw),ty+sy*(oy-cy*h/ch)));continue
     X,Y,W,H=(tx+sx*ox)/EMU,(ty+sy*oy)/EMU,sx*w/EMU,sy*h/EMU
-    rot=val(x,'rot')/60000; visual=[X,Y,W,H]
-    if round(rot)%180==90:visual=[X+(W-H)/2,Y+(H-W)/2,H,W]
+    rot=val(x,'rot')/60000; visual=visual_box_pt(ox,oy,w,h,sx,sy,tx,ty,rot)
     sp=el.find('p:spPr',NS);geom=sp.find('a:prstGeom',NS) if sp is not None else None
     adjustments={v.get('name'):v.get('fmla') for v in geom.findall('a:avLst/a:gd',NS)} if geom is not None else {}
     ln=sp.find('a:ln',NS) if sp is not None else None;fill=sp.find('a:solidFill',NS) if sp is not None else None
