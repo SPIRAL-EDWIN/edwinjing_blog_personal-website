@@ -14,6 +14,17 @@ const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function main() {
+  // Publication previews belong to the separate academic Overview. Keep the
+  // checks intact for an Overview fixture supplied via SITE_DIR instead of
+  // silently treating unrelated blog-home video as equivalent coverage.
+  const index = path.join(site, 'index.html');
+  if (!fs.existsSync(index)) throw new Error(`Missing built site at ${index}; build it first`);
+  const html = fs.readFileSync(index, 'utf8');
+  if (!html.includes('overview-publication__media')) {
+    if (process.env.SITE_DIR) throw new Error('SITE_DIR does not contain the academic publication fixture');
+    console.log('SKIP publication previews: blog home has no academic publications; provide an Overview build via SITE_DIR');
+    return;
+  }
   const browser = await chromium.launch({ headless: true,
     executablePath: process.env.BROWSER_EXECUTABLE || undefined });
   try {

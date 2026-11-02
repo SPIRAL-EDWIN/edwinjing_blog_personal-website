@@ -16,6 +16,10 @@ async function main() {
     const context = await browser.newContext({viewport:{width:options.width || 1280,height:options.height || 1000},
       colorScheme:options.theme || 'light',reducedMotion:options.reduce ? 'reduce' : 'no-preference',javaScriptEnabled:options.javascript !== false});
     await context.addInitScript(({noObserver,pauseSidebar,visualHeight,captureFrames}) => {
+      // This suite exercises content-hub scrolling, not first-entry choreography.
+      // Seed the normal session flag before every document so the opening cannot
+      // consume the wheel input used by the reveal assertions.
+      try { sessionStorage.setItem('edwinos:intro:v1', 'seen'); } catch (_) {}
       window.__initialHubHash = location.hash;
       if(visualHeight && window.visualViewport) {
         let visibleHeight=visualHeight;

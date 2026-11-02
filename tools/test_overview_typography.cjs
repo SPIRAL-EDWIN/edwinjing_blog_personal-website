@@ -12,6 +12,17 @@ const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript
   '.png': 'image/png', '.webp': 'image/webp' };
 
 async function main() {
+  // The academic Overview moved to the separate homepage project. Keep this
+  // regression reusable against an Overview build supplied via SITE_DIR; the
+  // blog's Reading Desk is not an equivalent fixture.
+  const index = path.join(site, 'index.html');
+  if (!fs.existsSync(index)) throw new Error(`Missing built site at ${index}; build it first`);
+  const html = fs.readFileSync(index, 'utf8');
+  if (!html.includes('academic-home-layout') || !html.includes('academic-section')) {
+    if (process.env.SITE_DIR) throw new Error('SITE_DIR does not contain the academic Overview fixture');
+    console.log('SKIP overview typography: blog home is Reading Desk; provide an academic Overview build via SITE_DIR');
+    return;
+  }
   const browser = await chromium.launch({ headless: true,
     executablePath: process.env.BROWSER_EXECUTABLE || undefined });
   try {
