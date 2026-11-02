@@ -6766,6 +6766,56 @@ body.is-homepage .academic-home-layout:not(.academic-home-layout--subpage)
 .no-js .research-figure__explanation { display:none; }
 @media(max-width:700px) { .research-figure__fallback-arrow { left:50%; top:100%; transform:translate(-50%,10px) rotate(90deg); } }
 
+/* Project figure: fixed-geometry SVG from Edwin's PowerPoint (BipedalWBC framework).
+   The artwork keeps its paper colors in both themes on a light plate; the runtime
+   reveals elements in place (no movement), so every frame keeps the PPTX geometry. */
+.blog-home .project-figure { position: relative; width: 100%; margin: 0 0 44px; padding: 24px 28px 22px; border: 1px solid var(--academic-card-border); border-radius: 16px; background: color-mix(in srgb,var(--academic-card-bg) 94%,var(--academic-accent)); }
+.project-figure__header { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
+.blog-home .project-figure__header h3 { margin: 0; font-size: 17px; color: var(--academic-ink); }
+.project-figure__links { display: flex; flex-wrap: wrap; gap: 6px 16px; flex-shrink: 0; font-size: 12px; }
+.project-figure__stage { display: grid; grid-template-columns: minmax(0,1fr); gap: 14px 20px; align-items: center; }
+.project-figure--animated .project-figure__stage { grid-template-columns: 128px minmax(0,1fr); }
+.project-figure__canvas { min-width: 0; padding: 10px; border-radius: 10px; background: #fff; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--academic-ink) 8%,transparent); }
+.project-figure__svg { display: block; width: 100%; height: auto; overflow: visible; }
+/* While pinned, the artwork, rail and step caption must fit one viewport: cap the
+   canvas by height (636.4 x 316 pt artwork => width = height x 2.014). */
+.project-figure--animated .project-figure__canvas { justify-self: center; width: min(100%, calc((100svh - 330px) * 2.014 + 20px)); }
+.project-figure__rail { display: flex; flex-direction: column; align-items: stretch; border-left: 1px solid var(--academic-card-border); }
+.project-figure__rail[hidden] { display: none; }
+.project-figure__rail button { display: flex; gap: 8px; align-items: baseline; padding: 8px 10px; color: var(--academic-muted); background: none; border: 0; text-align: left; font: 500 12px/1.3 var(--edwinos-font-reading-sans); cursor: pointer; }
+.project-figure__rail button[aria-pressed="true"] { color: var(--academic-accent); box-shadow: inset 2px 0 var(--academic-accent); }
+.project-figure__step-index { font-variant-numeric: tabular-nums; font-size: 10px; opacity: .7; }
+.project-figure__explanation { grid-column: 1 / -1; min-height: 64px; font-size: 13px; }
+.project-figure--animated .project-figure__explanation { grid-column: 2; }
+.project-figure__explanation[hidden] { display: none; }
+.project-figure__explanation strong { color: var(--academic-ink); }
+.project-figure__explanation p { max-width: 80ch; margin: 3px 0 0; color: var(--academic-muted); }
+.project-figure__explanation.is-changing { animation: figure-caption-in 180ms ease-out; }
+.project-figure__steps { max-width: 80ch; margin: 18px 0 0; padding-left: 1.5em; font-size: 12px; line-height: 1.6; color: var(--academic-muted); text-align: left; }
+.project-figure__steps li { margin: 0 0 4px; }
+.project-figure__steps strong { color: var(--academic-ink); font-weight: 600; }
+.project-figure--animated .project-figure__steps { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.blog-home .project-figure figcaption { margin: 14px 0 0; padding: 0; max-width: 80ch; text-align: left; text-wrap: pretty; color: var(--academic-muted); font-size: 12px; font-style: normal; }
+/* Reveal states. Outlines trace with pathLength=1; a ghost shows only a faint outline. */
+.project-figure--animated .project-figure__svg [data-role="outline"] { stroke-dasharray: 1 1; }
+.project-figure__svg .bwbc-reveal { stroke-dasharray: 1 1; stroke-dashoffset: 0; }
+.project-figure--animated .project-figure__svg .is-ghost [data-role="outline"] { stroke-dashoffset: 0 !important; stroke-opacity: .16; }
+.project-figure__svg [data-role="head"], .project-figure__svg [data-role="text"], .project-figure__svg [data-role="image"] { transition: none; }
+.project-figure__svg .bwbc-signal { opacity: 0; pointer-events: none; filter: drop-shadow(0 0 1.6px currentColor); }
+.project-figure--seen .project-figure__svg [data-role] { opacity: 1 !important; stroke-dashoffset: 0 !important; fill-opacity: 1 !important; stroke-opacity: 1 !important; }
+.project-figure--seen .project-figure__svg .bwbc-reveal { stroke-dashoffset: 0 !important; }
+.project-figure__crop { display: none; }
+@media (max-width: 700px) {
+    .blog-home .project-figure { padding: 18px 16px; }
+    .project-figure__header { flex-direction: column; gap: 6px; }
+    .project-figure__canvas { padding: 4px; }
+    .project-figure__steps { padding-left: 0; list-style: none; counter-reset: bwbc-step; font-size: 13px; }
+    .project-figure__steps li { margin: 0 0 18px; counter-increment: bwbc-step; }
+    .project-figure__steps li strong::before { content: counter(bwbc-step, decimal-leading-zero) "  "; font-variant-numeric: tabular-nums; color: var(--academic-muted); font-weight: 500; }
+    /* Narrow screens zoom into each step's region of the same artwork (labels >= 12px). */
+    .project-figure__crop { display: block; width: 100%; height: auto; margin: 0 0 8px; padding: 4px; border-radius: 8px; background: #fff; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--academic-ink) 8%,transparent); }
+}
+
 
 .blog-home-section { margin: 0 0 36px; }
 .blog-home-section-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 14px; }

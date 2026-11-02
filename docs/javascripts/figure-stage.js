@@ -107,7 +107,7 @@
     if (pendingFrame) cancelAnimationFrame(pendingFrame);
     pendingFrame = 0; pending.clear(); pendingHashTarget = null; pendingEnd = false;
     records.forEach(r => {
-      if (r.figure && !r.finished && (r.trigger?.progress > 0 || r.figure.getBoundingClientRect().bottom < 0)) remember(r.figure.dataset.figure);
+      if (r.figure && !r.finished && (r.trigger?.progress > 0 || r.figure.getBoundingClientRect().bottom < 0)) remember(r.project ? 'project:' + r.figure.dataset.projectFigure : r.figure.dataset.figure);
       r.observer?.disconnect(); r.resize?.disconnect(); r.trigger?.kill(); r.timeline?.kill(); r.handlers?.forEach(([e,h])=>e.removeEventListener('click',h));
     });
     records=[];
@@ -179,8 +179,140 @@
       buttons.forEach((button,i)=>{const h=()=>window.scrollTo({top:record.trigger.start+(record.trigger.end-record.trigger.start)*i/4,behavior:'smooth'});button.addEventListener('click',h);record.handlers.push([button,h]);});
     }).catch(()=>{rail.hidden=true;});
   }
+  /* Fixed-geometry project figures (PowerPoint-derived SVG, inlined at build time).
+     Elements never move: a step traces outlines, fades fills and labels in place,
+     draws connectors through a centreline mask and shows each arrowhead only when
+     its stroke arrives, then sends one signal along the step's main path. The same
+     play-once lifecycle as grid figures applies (pin, forward-only, static swap). */
+  const clamp = v => v < 0 ? 0 : v > 1 ? 1 : v;
+  const ease = t => { t = clamp(t); return 1 - Math.pow(1 - t, 3); };
+  const span = (p, a, b) => clamp((p - a) / (b - a));
+  function setupProject(figure, token) {
+    const stage = figure.querySelector('[data-project-figure-stage]');
+    const svg = stage?.querySelector('svg'); if (!svg) return;
+    const steps = JSON.parse(stage.dataset.steps || '{"always":[],"steps":[]}').steps;
+    const rail = stage.querySelector('.project-figure__rail');
+    const buttons = [...rail.querySelectorAll('button')];
+    const slot = stage.querySelector('.project-figure__explanation');
+    const title = slot.querySelector('[data-project-figure-title]'), copy = slot.querySelector('[data-project-figure-copy]');
+    const group = id => svg.querySelector(`[data-el="pptx-${id}"]`);
+    const units = steps.map(step => {
+      const els = step.elements.map(group).filter(Boolean);
+      return {
+        step,
+        outlines: els.flatMap(g => [...g.querySelectorAll('[data-role="outline"]')]),
+        // Fills exported as separate paths (e.g. PPO's white body) fade with the labels.
+        content: els.flatMap(g => [...g.querySelectorAll('[data-role="text"],[data-role="image"],[data-role="fill"]')]),
+        connectors: els.filter(g => g.dataset.kind === 'connector').map(g => ({
+          id: +g.dataset.el.slice(5),
+          reveal: svg.querySelector(`.bwbc-reveal[data-reveal="${g.dataset.el.slice(5)}"]`),
+          head: g.querySelector('[data-role="head"]'), route: g.querySelector('[data-role="route"]'), g,
+        })),
+      };
+    });
+    const record = {figure, handlers: [], finished: false, project: true};
+    records.push(record);
+    let furthest = -1, displayed = -1, signalDot = null;
+    const progressOf = new Map();
+    function paintStep(index, local) {
+      const u = units[index]; if (!u) return;
+      const outline = ease(span(local, 0, .38)), fill = ease(span(local, .22, .5));
+      u.outlines.forEach(p => { p.style.strokeDashoffset = String(1 - outline); p.style.fillOpacity = String(fill); });
+      u.content.forEach(el => { el.style.opacity = String(fill); });
+      const n = u.connectors.length || 1;
+      u.connectors.forEach((c, i) => {
+        const start = .42 + i * (.08 / n), draw = ease(span(local, start, Math.min(.9, start + .4)));
+        c.reveal?.style.setProperty('stroke-dashoffset', String(1 - draw));
+        if (c.head) c.head.style.opacity = String(span(draw, .96, 1));
+      });
+      u.groups ||= u.step.elements.map(group).filter(Boolean);
+      u.groups.forEach(g => g.classList.toggle('is-ghost', local <= 0));
+      progressOf.set(index, local);
+    }
+    function state(index, progress) {
+      furthest = Math.max(furthest, index);
+      for (let i = 0; i < units.length; i++) {
+        const local = i < furthest ? 1 : i === furthest ? Math.max(progressOf.get(i) || 0, progress) : 0;
+        if ((progressOf.get(i) ?? -1) !== local) paintStep(i, local);
+      }
+      if (displayed !== index) {
+        displayed = index;
+        slot.classList.remove('is-changing'); void slot.offsetWidth; slot.classList.add('is-changing');
+        title.textContent = steps[index].title; copy.textContent = steps[index].text;
+        buttons.forEach((b, i) => b.setAttribute('aria-pressed', String(i === index)));
+      }
+      const signalAt = span(progress, .9, 1);
+      signal(index, index === furthest ? signalAt : 1);
+    }
+    function signal(index, t) {
+      const u = units[index];
+      if (!signalDot) {
+        signalDot = document.createElementNS(svgNS, 'circle');
+        signalDot.setAttribute('r', '2.4'); signalDot.classList.add('bwbc-signal');
+        svg.querySelector('#bwbc-content').append(signalDot);
+      }
+      const routes = u.step.signal.map(id => svg.querySelector(`[data-el="pptx-${id}"] [data-role="route"]`)).filter(Boolean);
+      if (!routes.length || t <= 0 || t >= 1) { signalDot.style.opacity = '0'; return; }
+      const lengths = routes.map(r => r.getTotalLength()), total = lengths.reduce((a, b) => a + b, 0);
+      let at = t * total, k = 0; while (k < routes.length - 1 && at > lengths[k]) { at -= lengths[k]; k++; }
+      const point = routes[k].getPointAtLength(Math.min(at, lengths[k]));
+      signalDot.setAttribute('cx', point.x); signalDot.setAttribute('cy', point.y);
+      signalDot.style.fill = routes[k].dataset.colour || 'currentColor';
+      signalDot.style.opacity = String(Math.sin(Math.PI * t));
+    }
+    record.finish = () => {
+      if (record.finished) return;
+      record.finished = true; remember('project:' + figure.dataset.projectFigure);
+      const restoreFocus = figure.contains(document.activeElement);
+      record.trigger?.kill(); record.timeline?.kill();
+      record.handlers.forEach(([el, h]) => el.removeEventListener('click', h)); record.handlers = [];
+      figure.classList.remove('project-figure--animated'); figure.classList.add('project-figure--seen');
+      units.forEach((u, i) => paintStep(i, 1));
+      if (signalDot) signalDot.remove(); signalDot = null;
+      rail.hidden = true; slot.hidden = true;
+      if (restoreFocus) figure.querySelector('.project-figure__links a')?.focus({preventScroll: true});
+    };
+    record.figure = figure;
+    if (seen.has('project:' + figure.dataset.projectFigure) || figure.getBoundingClientRect().bottom < 0) { record.finish(); return; }
+    if (matchMedia('(max-width:700px), (prefers-reduced-motion: reduce)').matches || !window.IntersectionObserver) { record.finish(); return; }
+    motion().then(() => {
+      if (token !== generation || !figure.isConnected || record.finished) return;
+      figure.classList.add('project-figure--animated');
+      rail.hidden = false; slot.hidden = false;
+      // Very short viewports cannot show artwork, rail and caption together: stay static.
+      if (figure.offsetHeight > innerHeight * .96 || innerHeight < 560) {
+        figure.classList.remove('project-figure--animated'); record.finish(); return;
+      }
+      units.forEach((u, i) => paintStep(i, 0));
+      const count = units.length, clock = {value: 0}; let maxProgress = 0;
+      // Pin below the fixed header (64px) so the card title stays visible on short screens.
+      const timeline = gsap.timeline({scrollTrigger: {
+        trigger: figure, start: () => figure.offsetHeight > innerHeight - 140 ? 'top 68px' : 'center center',
+        end: () => `+=${innerHeight * .62 * count}`, pin: figure,
+        scrub: .5, snap: {snapTo: 1 / count, duration: .25, delay: .1, inertia: false, directional: false},
+        invalidateOnRefresh: true, onLeave: () => finishLater(record)}});
+      timeline.to(clock, {value: 1, duration: 1, ease: 'none', onUpdate: () => {
+        maxProgress = Math.max(maxProgress, clock.value);
+        // Step k plays over (k, k+1]; snap points k/count therefore rest on a completed
+        // step whose caption is showing, never on the next step's ghosts.
+        const position = maxProgress * count;
+        const current = position <= 1e-5 ? 0 : Math.min(count - 1, Math.ceil(position - 1e-5) - 1);
+        state(current, Math.min(1, position - current));
+        if (maxProgress >= .999) state(count - 1, 1);
+      }});
+      record.timeline = timeline; record.trigger = timeline.scrollTrigger;
+      buttons.forEach((button, i) => {
+        // Rail jumps land on the completed state of that step (a snap point).
+        const h = () => window.scrollTo({top: record.trigger.start + (record.trigger.end - record.trigger.start) * (i + 1) / count - (i === count - 1 ? 2 : 0), behavior: 'smooth'});
+        button.addEventListener('click', h); record.handlers.push([button, h]);
+      });
+      state(0, 0);
+    }).catch(() => record.finish());
+  }
   function init(){
-    dispose(); const token=generation; const figures=[...document.querySelectorAll('.research-figure[data-figure]')], mini=document.querySelector('[data-figure-preview]'); if(!figures.length&&!mini)return;
+    dispose(); const token=generation;
+    document.querySelectorAll('.project-figure[data-project-figure]').forEach(f => setupProject(f, token));
+    const figures=[...document.querySelectorAll('.research-figure[data-figure]')], mini=document.querySelector('[data-figure-preview]'); if(!figures.length&&!mini)return;
     specs().then(data=>{ if(token!==generation)return; figures.forEach(f=>setup(f,data[f.dataset.figure],token)); if(mini){const g=render(mini,data[mini.dataset.figurePreview],true); records.push({resize:g.resize});} }).catch(()=>{});
   }
   if(window.document$ && typeof window.document$.subscribe==='function') window.document$.subscribe(init); else if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();

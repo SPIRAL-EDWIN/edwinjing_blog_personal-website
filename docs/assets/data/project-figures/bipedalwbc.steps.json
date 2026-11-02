@@ -1,0 +1,178 @@
+{
+  "figure": "bipedalwbc",
+  "source": "Chen, Nai et al., Learning Holistic Whole-Body Loco-Manipulation with a Bipedal Mobile Manipulator (2026), Fig. 2; captions use facts stated in the paper and project page.",
+  "always": [
+    9,
+    10,
+    3,
+    5,
+    6,
+    7
+  ],
+  "steps": [
+    {
+      "id": "target",
+      "label": "One target",
+      "title": "One target from any source",
+      "text": "VR teleoperation, a learned diffusion policy and scripted trajectories all reduce to one command: a 6-DoF end-effector target in the robot's base frame.",
+      "elements": [
+        53,
+        129,
+        58,
+        59,
+        64,
+        65,
+        60,
+        63,
+        105,
+        45,
+        51,
+        61
+      ],
+      "signal": [
+        105
+      ],
+      "focus": [
+        474,
+        82,
+        322,
+        234
+      ]
+    },
+    {
+      "id": "whole-body",
+      "label": "Whole body",
+      "title": "One policy for all 14 joints",
+      "text": "The actor maps the target and the current observation to position offsets for all 14 arm and leg joints at 50 Hz; no base-velocity, gait or footstep command is given.",
+      "elements": [
+        18,
+        17,
+        41,
+        138,
+        20,
+        4,
+        15,
+        39,
+        40
+      ],
+      "signal": [
+        18,
+        39
+      ],
+      "focus": [
+        480,
+        200,
+        318,
+        172
+      ]
+    },
+    {
+      "id": "context",
+      "label": "Context",
+      "title": "Context from recent history",
+      "text": "A Transformer reads the last 10 onboard observations and a GRU carries memory across windows; their context z_t tells the actor how the body is responding. Only the estimator and the actor run on the robot.",
+      "elements": [
+        114,
+        126,
+        106,
+        35,
+        122,
+        123,
+        124,
+        31,
+        117,
+        118,
+        13,
+        24
+      ],
+      "signal": [
+        106,
+        124,
+        13
+      ],
+      "focus": [
+        180,
+        224,
+        300,
+        122
+      ]
+    },
+    {
+      "id": "reward",
+      "label": "Gated reward",
+      "title": "Reward gating in simulation",
+      "text": "In simulation, a phase variable shifts the reward from locomotion and approaching the target toward precise tracking and stabilization; locomotion and manipulation safety scores gate the task rewards.",
+      "elements": [
+        21,
+        81,
+        48,
+        46,
+        32
+      ],
+      "signal": [
+        81,
+        46
+      ],
+      "focus": [
+        188,
+        66,
+        248,
+        52
+      ]
+    },
+    {
+      "id": "critic",
+      "label": "Privileged critic",
+      "title": "A privileged critic",
+      "text": "An asymmetric critic sees privileged simulator state such as true base velocity and contact parameters; GAE turns rewards and values into advantages for PPO.",
+      "elements": [
+        37,
+        52,
+        69,
+        70,
+        62,
+        28,
+        44,
+        73,
+        30,
+        71
+      ],
+      "signal": [
+        52,
+        62,
+        73
+      ],
+      "focus": [
+        222,
+        66,
+        358,
+        112
+      ]
+    },
+    {
+      "id": "updates",
+      "label": "Two updates",
+      "title": "Two kinds of update",
+      "text": "PPO updates the actor and the critic. The estimator learns only from its auxiliary loss, predicting velocity and the next observation, because its context is detached during PPO updates.",
+      "elements": [
+        90,
+        67,
+        83,
+        26,
+        112,
+        141
+      ],
+      "signal": [
+        67,
+        83,
+        112
+      ],
+      "focus": [
+        184,
+        104,
+        374,
+        164
+      ]
+    }
+  ]
+}

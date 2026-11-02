@@ -129,6 +129,7 @@ watch:
 # 构建时根据内容文件和 Git 历史生成 HOME/Archive 页面
 hooks:
   - hooks/figure_specs.py
+  - hooks/project_figures.py
   - hooks/archive.py
   - hooks/home_sections.py
   - hooks/search_scope.py
@@ -210,14 +211,14 @@ extra_javascript:
   - javascripts/mathjax.js?v=20261011b
   - javascripts/block-links.js?v=20261010a  # Obsidian 风格块引用链接支持
   - javascripts/ui-perf.js?v=20261025a
-  - javascripts/figure-stage.js?v=20261031a
+  - javascripts/figure-stage.js?v=20261102a
   - javascripts/intro-questions.js?v=20261029a
   - javascripts/intro-deck.js?v=20261031a
   - javascripts/intro-typing.js?v=20261031a
   - javascripts/intro-loader.js?v=20261029a
 
 extra_css:
-  - stylesheets/edwinos.css?v=20261025b  # Unified EdwinOS cascade
+  - stylesheets/edwinos.css?v=20261102a  # Unified EdwinOS cascade
 
 # --- 7. 导航结构 (Navigation) ---
 # 如果不配置此项，MkDocs 会按文件目录自动生成。建议手动配置以控制顺序。
