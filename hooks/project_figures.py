@@ -57,6 +57,16 @@ def render(docs: Path, name: str, page_url: str) -> str:
     cfg = FIGURES[name]
     steps = json.loads((docs / cfg['steps']).read_text(encoding='utf-8'))
     _validate(docs, name, steps)
+    spec = json.loads((docs / cfg['spec']).read_text(encoding='utf-8'))
+    # Include the displayed height of the cropped vector math strips alongside
+    # authored font sizes; both are in the SVG's original PowerPoint points.
+    sizes = [run['size_pt'] for el in spec['elements'] for run in el.get('text_runs', [])
+             if run.get('text', '').strip() and run.get('size_pt')]
+    sizes += [el['box_pt'][3] for el in spec['elements']
+              if el.get('media') in ('image4.svg', 'image5.svg')]
+    if not sizes:
+        raise ValueError('figure has no measurable labels')
+    min_label_pt = min(sizes)
     rail = ''.join(
         f'<button type="button" data-step="{i}" aria-pressed="false">'
         f'<span class="project-figure__step-index">{i + 1:02d}</span>{html.escape(step["label"])}</button>'
@@ -77,13 +87,14 @@ def render(docs: Path, name: str, page_url: str) -> str:
                   for s in steps['steps']],
     }, separators=(',', ':')), quote=True)
     return (
-        f'<div class="project-figure__stage" data-project-figure-stage data-steps="{data}">'
+        f'<div class="project-figure__stage" data-project-figure-stage data-min-label-pt="{min_label_pt:g}" data-steps="{data}">'
         f'<nav class="project-figure__rail" aria-label="Framework steps" hidden>{rail}</nav>'
         f'<div class="project-figure__canvas">{_svg(docs, name, page_url)}</div>'
         f'<div class="project-figure__explanation" hidden>'
         f'<strong data-project-figure-title></strong><p data-project-figure-copy></p></div>'
         f'</div>'
-        f'<ol class="project-figure__steps">{items}</ol>'
+        f'<details class="project-figure__details" open><summary>FRAMEWORK STEP DESCRIPTIONS</summary>'
+        f'<ol class="project-figure__steps">{items}</ol></details>'
     )
 
 

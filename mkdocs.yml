@@ -144,6 +144,7 @@ extra:
     storageScope: session  # session | local
   figure:
     persistSeen: memory  # memory | session
+    minLabelPx: 9  # minimum rendered project-figure label size during motion
   archive:
     default_author: "Chen Jing (经宸)"
     # 首页、目录页与纯 UI 页面不进入内容归档；单篇文章也可设置 archive: false
@@ -212,6 +213,7 @@ extra_javascript:
   - javascripts/block-links.js?v=20261010a  # Obsidian 风格块引用链接支持
   - javascripts/ui-perf.js?v=20261025a
   - javascripts/figure-stage.js?v=20261102a
+  - javascripts/home-clips.js?v=20261103a
   - javascripts/intro-questions.js?v=20261029a
   - javascripts/intro-deck.js?v=20261031a
   - javascripts/intro-typing.js?v=20261031a

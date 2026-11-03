@@ -36,7 +36,9 @@
     if (pendingEnd) records.filter(r => r.figure && !r.finished).forEach(r => pending.add(r));
     const batch = [...pending]; pending.clear();
     // Preserve a stable landmark while pin spacers and step controls are removed.
-    const landmark = document.getElementById('recent-updates');
+    // When a resized pinned figure finishes, preserve the visible figure rather
+    // than a later section separated by the soon-to-be-removed pin spacer.
+    const landmark = batch.find(r => r.resizeFinish)?.figure || document.getElementById('recent-updates');
     const before = landmark?.getBoundingClientRect().top;
     batch.forEach(record => record.finish());
     if (landmark && landmark.isConnected && Number.isFinite(before)) {
@@ -108,7 +110,7 @@
     pendingFrame = 0; pending.clear(); pendingHashTarget = null; pendingEnd = false;
     records.forEach(r => {
       if (r.figure && !r.finished && (r.trigger?.progress > 0 || r.figure.getBoundingClientRect().bottom < 0)) remember(r.project ? 'project:' + r.figure.dataset.projectFigure : r.figure.dataset.figure);
-      r.observer?.disconnect(); r.resize?.disconnect(); r.trigger?.kill(); r.timeline?.kill(); r.handlers?.forEach(([e,h])=>e.removeEventListener('click',h));
+      r.observer?.disconnect(); r.resize?.disconnect(); r.cleanup?.(); r.trigger?.kill(); r.timeline?.kill(); r.handlers?.forEach(([e,h])=>e.removeEventListener('click',h));
     });
     records=[];
   }
@@ -182,7 +184,7 @@
   /* Fixed-geometry project figures (PowerPoint-derived SVG, inlined at build time).
      Elements never move: a step traces outlines, fades fills and labels in place,
      draws connectors through a centreline mask and shows each arrowhead only when
-     its stroke arrives, then sends one signal along the step's main path. The same
+     its stroke arrives. The same
      play-once lifecycle as grid figures applies (pin, forward-only, static swap). */
   const clamp = v => v < 0 ? 0 : v > 1 ? 1 : v;
   const ease = t => { t = clamp(t); return 1 - Math.pow(1 - t, 3); };
@@ -210,9 +212,19 @@
         })),
       };
     });
+    // Measure the *animated* canvas before changing layout. The drawing is
+    // 636.4 pt wide; the rail, grid gap and canvas inset consume 168 px.
+    const labelPt = Number(stage.dataset.minLabelPt);
+    const threshold = Number(config.minLabelPx ?? 9);
+    function legible() {
+      const width = Math.min(stage.getBoundingClientRect().width - 128 - 20 - 20,
+        (window.innerHeight - 330) * 2.014);
+      return Number.isFinite(labelPt) && labelPt > 0 && Number.isFinite(threshold) &&
+        width > 0 && labelPt * width / 636.4 >= threshold;
+    }
     const record = {figure, handlers: [], finished: false, project: true};
     records.push(record);
-    let furthest = -1, displayed = -1, signalDot = null;
+    let furthest = -1, displayed = -1;
     const progressOf = new Map();
     function paintStep(index, local) {
       const u = units[index]; if (!u) return;
@@ -231,6 +243,7 @@
     }
     function state(index, progress) {
       furthest = Math.max(furthest, index);
+      buttons.forEach((button, i) => button.classList.toggle('is-visited', i <= furthest));
       for (let i = 0; i < units.length; i++) {
         const local = i < furthest ? 1 : i === furthest ? Math.max(progressOf.get(i) || 0, progress) : 0;
         if ((progressOf.get(i) ?? -1) !== local) paintStep(i, local);
@@ -241,42 +254,61 @@
         title.textContent = steps[index].title; copy.textContent = steps[index].text;
         buttons.forEach((b, i) => b.setAttribute('aria-pressed', String(i === index)));
       }
-      const signalAt = span(progress, .9, 1);
-      signal(index, index === furthest ? signalAt : 1);
-    }
-    function signal(index, t) {
-      const u = units[index];
-      if (!signalDot) {
-        signalDot = document.createElementNS(svgNS, 'circle');
-        signalDot.setAttribute('r', '2.4'); signalDot.classList.add('bwbc-signal');
-        svg.querySelector('#bwbc-content').append(signalDot);
-      }
-      const routes = u.step.signal.map(id => svg.querySelector(`[data-el="pptx-${id}"] [data-role="route"]`)).filter(Boolean);
-      if (!routes.length || t <= 0 || t >= 1) { signalDot.style.opacity = '0'; return; }
-      const lengths = routes.map(r => r.getTotalLength()), total = lengths.reduce((a, b) => a + b, 0);
-      let at = t * total, k = 0; while (k < routes.length - 1 && at > lengths[k]) { at -= lengths[k]; k++; }
-      const point = routes[k].getPointAtLength(Math.min(at, lengths[k]));
-      signalDot.setAttribute('cx', point.x); signalDot.setAttribute('cy', point.y);
-      signalDot.style.fill = routes[k].dataset.colour || 'currentColor';
-      signalDot.style.opacity = String(Math.sin(Math.PI * t));
     }
     record.finish = () => {
       if (record.finished) return;
+      // Keep the completed desktop figure compact. Static/mobile/no-JS paths
+      // retain the open list; the full descriptions remain available on demand.
+      const compact = !record.forceExpanded && legible() && innerHeight >= 560 && !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+        (figure.classList.contains('project-figure--animated') || seen.has('project:' + figure.dataset.projectFigure));
       record.finished = true; remember('project:' + figure.dataset.projectFigure);
       const restoreFocus = figure.contains(document.activeElement);
       record.trigger?.kill(); record.timeline?.kill();
       record.handlers.forEach(([el, h]) => el.removeEventListener('click', h)); record.handlers = [];
       figure.classList.remove('project-figure--animated'); figure.classList.add('project-figure--seen');
+      figure.classList.toggle('project-figure--compact', compact);
       units.forEach((u, i) => paintStep(i, 1));
-      if (signalDot) signalDot.remove(); signalDot = null;
-      rail.hidden = true; slot.hidden = true;
+      // Preserve the rail as a stable visual record once a legible animation
+      // has completed, without leaving inert buttons that suggest navigation.
+      buttons.forEach(button => {
+        button.classList.add('is-visited');
+        button.setAttribute('aria-pressed', 'false');
+        button.disabled = compact;
+      });
+      rail.hidden = !compact; slot.hidden = true;
+      const details = figure.querySelector('.project-figure__details');
+      if (details && compact) details.open = false;
       if (restoreFocus) figure.querySelector('.project-figure__links a')?.focus({preventScroll: true});
     };
     record.figure = figure;
+    let resizeTimer;
+    const onResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (!figure.isConnected || token !== generation) return;
+        // ScrollTrigger fixes the pinned element's outer height. scrollHeight
+        // still captures contents that grow beyond that fixed box after resize.
+        const tooTall = figure.classList.contains('project-figure--animated') &&
+          Math.max(figure.offsetHeight, figure.scrollHeight) > innerHeight * .96;
+        if (!legible() || innerHeight < 560 || tooTall) {
+          if (!record.finished) { record.resizeFinish = true; record.forceExpanded = tooTall; finishLater(record); }
+          else if (figure.classList.contains('project-figure--compact')) {
+            figure.classList.remove('project-figure--compact');
+            rail.hidden = true;
+            const details = figure.querySelector('.project-figure__details');
+            if (details) details.open = true;
+          }
+        }
+      }, 150);
+    };
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    record.cleanup = () => { clearTimeout(resizeTimer); window.removeEventListener('resize', onResize); window.removeEventListener('orientationchange', onResize); };
     if (seen.has('project:' + figure.dataset.projectFigure) || figure.getBoundingClientRect().bottom < 0) { record.finish(); return; }
-    if (matchMedia('(max-width:700px), (prefers-reduced-motion: reduce)').matches || !window.IntersectionObserver) { record.finish(); return; }
+    if (!legible() || innerHeight < 560 || matchMedia('(prefers-reduced-motion: reduce)').matches || !window.IntersectionObserver) { record.finish(); return; }
     motion().then(() => {
       if (token !== generation || !figure.isConnected || record.finished) return;
+      if (!legible() || innerHeight < 560) { record.finish(); return; }
       figure.classList.add('project-figure--animated');
       rail.hidden = false; slot.hidden = false;
       // Very short viewports cannot show artwork, rail and caption together: stay static.

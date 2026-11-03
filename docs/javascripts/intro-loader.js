@@ -48,28 +48,6 @@
         jobs.push(boundedResource(imageReady(image, signal), signal));
       }
     });
-    const video = document.querySelector('[data-blog-home-video]');
-    if (video) {
-      if (video.poster) {
-        const poster = new Image(); poster.src = video.poster;
-        jobs.push(boundedResource(imageReady(poster, signal), signal));
-      }
-      // Save-Data deliberately suppresses metadata warmup; intentional playback
-      // remains possible. Full-video downloads are never requested by the intro.
-      if (!(navigator.connection && navigator.connection.saveData)) {
-        if (!video.getAttribute('src') && video.dataset.src) video.src = video.dataset.src;
-        video.preload = 'metadata';
-        const metadata = video.readyState >= 1 ? Promise.resolve() : new Promise((resolve, reject) => {
-          const clean = () => { video.removeEventListener('loadedmetadata', loaded); video.removeEventListener('error', failed); signal.removeEventListener('abort', clean); };
-          const loaded = () => { clean(); resolve(); };
-          const failed = () => { clean(); reject(); };
-          video.addEventListener('loadedmetadata', loaded, {once: true});
-          video.addEventListener('error', failed, {once: true});
-          signal.addEventListener('abort', clean, {once: true});
-        });
-        jobs.push(boundedResource(metadata, signal));
-      }
-    }
     return Promise.all(jobs);
   }
   function wait(ms, state) {
@@ -88,7 +66,7 @@
   }
   function revealContent(state) {
     if (reduce.matches) return;
-    const candidates = [...document.querySelectorAll('.blog-home-intro, .blog-home-feature, .blog-home-section-heading, .md-content__inner > h1')];
+    const candidates = [...document.querySelectorAll('.blog-home-intro, .blog-home-collections, .blog-home-section-heading, .md-content__inner > h1')];
     candidates.filter(node => {
       const r = node.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0;
     }).slice(0, 3).forEach((node, i) => {

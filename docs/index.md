@@ -15,21 +15,6 @@ description: "Notes on robotics, embodied AI, coursework, and practical experime
       <p class="blog-home-author">Chen Jing <span lang="zh">(经宸)</span> · Working notebook</p>
       <p>I’m Chen Jing. This notebook follows my work in robotics: coordinate transforms, simulation checks, reward tuning—and the tools I use along the way.</p>
     </div>
-    <figure class="blog-home-feature">
-      <div class="blog-home-feature__media">
-        <video data-blog-home-video data-src="assets/media/blog-home-robot.mp4" poster="assets/images/blog-home-robot.webp" muted loop playsinline preload="metadata" width="480" height="854" aria-label="Autonomous robot demonstration, source footage at five times speed"></video>
-      </div>
-      <figcaption>
-        <span class="blog-home-feature__caption"><span data-blog-home-caption>Autonomous rollout</span><span data-blog-home-speed>Source footage · 5× speed</span></span>
-        <button class="edwinos-glass" type="button" data-blog-home-play aria-label="Play robot preview" aria-pressed="false">Play preview</button><span class="blog-home-feature__status" data-blog-home-status hidden>Poster shown; motion is disabled.</span>
-      </figcaption>
-      <div class="blog-home-clips" role="group" aria-label="Choose a robot demonstration" hidden>
-        <button class="edwinos-glass" type="button" data-blog-home-clip data-src="assets/media/blog-home-robot.mp4" data-poster="assets/images/blog-home-robot.webp" data-caption="Autonomous rollout" data-speed="Source footage · 5× speed" aria-pressed="true">Autonomous rollout</button>
-        <button class="edwinos-glass" type="button" data-blog-home-clip data-src="assets/media/blog-home-board.mp4" data-poster="assets/images/blog-home-board.webp" data-caption="Board wiping" data-speed="Lab footage · original speed" aria-pressed="false">Board wiping</button>
-        <button class="edwinos-glass" type="button" data-blog-home-clip data-src="assets/media/blog-home-banana.mp4" data-poster="assets/images/blog-home-banana.webp" data-caption="Banana grasp" data-speed="Lab footage · original speed" aria-pressed="false">Banana grasp</button>
-      </div>
-      <noscript><a href="assets/media/blog-home-robot.mp4">Watch the robot demonstration</a></noscript>
-    </figure>
     <!-- BLOG_HOME_COLLECTIONS -->
   </section>
 
@@ -41,8 +26,29 @@ description: "Notes on robotics, embodied AI, coursework, and practical experime
     <figure class="project-figure" data-project-figure="bipedalwbc" aria-labelledby="bwbc-figure-title" aria-describedby="bwbc-figure-caption">
       <div class="project-figure__header"><h3 id="bwbc-figure-title">BipedalWBC framework</h3><span class="project-figure__links"><a href="https://wholebodyrobotics.github.io/BipedalWBC/" target="_blank" rel="noopener">Project page ↗</a><a href="https://arxiv.org/abs/2609.18930" target="_blank" rel="noopener">arXiv ↗</a></span></div>
       <!-- PROJECT_FIGURE:bipedalwbc -->
-      <figcaption id="bwbc-figure-caption">Figure 1. BipedalWBC framework: 1) training, 2) deployment and 3) the task interface. Adapted from Fig. 2 of Chen, Nai et al., <cite>Learning Holistic Whole-Body Loco-Manipulation with a Bipedal Mobile Manipulator</cite> (2026); Chen Jing is a co-author.</figcaption>
+      <figcaption id="bwbc-figure-caption">Adapted from Fig. 2 of Chen, Nai et al., <cite>Learning Holistic Whole-Body Loco-Manipulation with a Bipedal Mobile Manipulator</cite> (2026); Chen Jing is a co-author.</figcaption>
     </figure>
+    <section class="blog-home-clips" aria-labelledby="home-clips-title" data-home-clips>
+      <div class="blog-home-clips__heading"><h3 id="home-clips-title">In motion</h3><p>Simulation and lab footage · muted loops</p><button type="button" class="edwinos-glass" data-home-clips-toggle aria-pressed="false" hidden><span data-home-clips-toggle-label>Pause clips</span></button></div>
+      <ul class="blog-home-clips__grid">
+      <li><figure class="home-clip" data-home-clip data-src="assets/media/home-clip-z-workspace.mp4" data-focus="0.5,0.5" style="--ground:var(--home-clip-ground-1)" tabindex="0" aria-label="Z workspace, simulation, original speed. Press space or enter to pause or play.">
+        <div class="home-clip__media" style="background-image:url(data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAABQBACdASocACMAPwF0r1ErJyQiqqoBYCAJaQDKeBZnsNA8WWSMiqnrv7AAAP6ufk3o8GXVhawUJ/G6nZNoRIcXl5nD4/yar4rc4hdvSHlOdcA/0/TDTlO1UskvoklIAAA=)"><img class="home-clip__poster off-glb" src="assets/media/home-clip-z-workspace.webp" alt="" width="640" height="800" loading="lazy" decoding="async"><canvas aria-hidden="true"></canvas><img class="home-clip__clear off-glb" src="assets/media/home-clip-z-workspace.webp" alt="" width="640" height="800" loading="lazy" decoding="async"><video muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video></div>
+        <figcaption class="home-clip__chip"><span>Z workspace</span><span>Simulation · original speed</span></figcaption>
+        <button class="home-clip__play" type="button" data-home-clip-play aria-label="Play Z workspace">Play clip</button><noscript><a class="home-clip__download" href="assets/media/home-clip-z-workspace.mp4">Open video</a></noscript></figure></li>
+      <li><figure class="home-clip" data-home-clip data-src="assets/media/home-clip-orientation.mp4" data-focus="0.5,0.5" style="--ground:var(--home-clip-ground-2)" tabindex="0" aria-label="Orientation, simulation, original speed. Press space or enter to pause or play.">
+        <div class="home-clip__media" style="background-image:url(data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAABwBACdASocACMAPu1gpk6ppaOiNUgBMB2JZwAAegBlZYXzeOcZJJr/lSkAAAD+rn6lucJeHJ8playd3L3Kas391iOf45MQ1eHPqZixteKM5unSmp4Yro4cN1QAAA==)"><img class="home-clip__poster off-glb" src="assets/media/home-clip-orientation.webp" alt="" width="640" height="800" loading="lazy" decoding="async"><canvas aria-hidden="true"></canvas><img class="home-clip__clear off-glb" src="assets/media/home-clip-orientation.webp" alt="" width="640" height="800" loading="lazy" decoding="async"><video muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video></div>
+        <figcaption class="home-clip__chip"><span>Orientation</span><span>Simulation · original speed</span></figcaption>
+        <button class="home-clip__play" type="button" data-home-clip-play aria-label="Play Orientation">Play clip</button><noscript><a class="home-clip__download" href="assets/media/home-clip-orientation.mp4">Open video</a></noscript></figure></li>
+      <li><figure class="home-clip" data-home-clip data-src="assets/media/home-clip-lower.mp4" data-focus="0.5,0.5" style="--ground:var(--home-clip-ground-3)" tabindex="0" aria-label="Lower placement, lab footage, original speed. Press space or enter to pause or play.">
+        <div class="home-clip__media" style="background-image:url(data:image/webp;base64,UklGRuIAAABXRUJQVlA4INYAAAAwBgCdASocACMAPvlqqE6qpiOiNVgIAVAfCUAYmwG98A6oy7g/U5HUdE1TMNyJLOMhjXTJgMJ/lGAAAP5g54BPPRCJCcI2PQP2LPj5MEFcSyj6rEyyIOLYJSiQJORdNsZNlvI3sYDLe9TP9Ne7tjNiU8go74l7g/5HdQo1faQLBXEuD26JN4XNOZXLjpNWxHaAI+ONGFWqAnG0gQLh2uazbUn+YuK2WpR/wIP9Z7XKw1A0Sj+gKX5rP0POXeCjm1V76uM7h0xJz42sIsBUz6xzImGgAAAA)"><img class="home-clip__poster off-glb" src="assets/media/home-clip-lower.webp" alt="" width="640" height="800" loading="lazy" decoding="async"><canvas aria-hidden="true"></canvas><img class="home-clip__clear off-glb" src="assets/media/home-clip-lower.webp" alt="" width="640" height="800" loading="lazy" decoding="async"><video muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video></div>
+        <figcaption class="home-clip__chip"><span>Lower placement</span><span>Lab footage · original speed</span></figcaption>
+        <button class="home-clip__play" type="button" data-home-clip-play aria-label="Play Lower placement">Play clip</button><noscript><a class="home-clip__download" href="assets/media/home-clip-lower.mp4">Open video</a></noscript></figure></li>
+      <li><figure class="home-clip" data-home-clip data-src="assets/media/home-clip-board.mp4" data-focus="0.5,0.5" style="--ground:var(--home-clip-ground-4)" tabindex="0" aria-label="Board wiping, lab footage, original speed. Press space or enter to pause or play.">
+        <div class="home-clip__media" style="background-image:url(data:image/webp;base64,UklGRsAAAABXRUJQVlA4ILQAAACQBgCdASocACMAPwFmrE8rJSQiMBqqqWAgCWUAygASQwDzNC5ULUCIexozaGvOHiA7gOLVHt0obNj7ufsAAPkIF1e0DokioIh6u8NGgamzTve1uDOnotqLUpvJHYCgdQzDQm67bG0xtFiiNk8JQqmOf00mo70iO/y86fvH5LWI9CrRTCWxQnFeWr2mO41NJg0IS33zPke6DPmgqndG50nlm8tL8XYcALI+XU37i+tdgmU8AAA=)"><img class="home-clip__poster off-glb" src="assets/media/home-clip-board.webp" alt="" width="640" height="800" loading="lazy" decoding="async"><canvas aria-hidden="true"></canvas><img class="home-clip__clear off-glb" src="assets/media/home-clip-board.webp" alt="" width="640" height="800" loading="lazy" decoding="async"><video muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video></div>
+        <figcaption class="home-clip__chip"><span>Board wiping</span><span>Lab footage · original speed</span></figcaption>
+        <button class="home-clip__play" type="button" data-home-clip-play aria-label="Play Board wiping">Play clip</button><noscript><a class="home-clip__download" href="assets/media/home-clip-board.mp4">Open video</a></noscript></figure></li>
+      </ul>
+    </section>
   </section>
 
   <section class="blog-home-section" aria-labelledby="recent-updates">

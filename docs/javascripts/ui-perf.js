@@ -5116,8 +5116,7 @@
   }
 
   // Reading desk: content remains readable without JS; only offscreen items
-  // enter once. The selected clip loads metadata; inactive clips warm after idle.
-  // Save-Data suppresses video requests.
+  // enter once. The clip quilt owns its own separate media lifecycle.
   function setupBlogHome() {
     var root = document.querySelector('.blog-home');
     if (blogHomeRuntime && blogHomeRuntime.root === root) return;
@@ -5133,38 +5132,8 @@
       });
     });
     var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    var observer = null, mediaObserver = null, disposed = false;
+    var observer = null;
     var animations = new Set(), pending = new Set();
-    var video = root.querySelector('[data-blog-home-video]');
-    var play = root.querySelector('[data-blog-home-play]');
-    var playStatus = root.querySelector('[data-blog-home-status]');
-    var media = root.querySelector('.blog-home-feature');
-    var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-    var saveData = !!(navigator.connection && navigator.connection.saveData);
-    var playGeneration = 0, mediaInView = false, warmTimer = 0;
-    var warmVideos = [];
-    var clips = Array.from(root.querySelectorAll('[data-blog-home-clip]'));
-    var clipGroup = root.querySelector('.blog-home-clips');
-    var caption = root.querySelector('[data-blog-home-caption]');
-    var speed = root.querySelector('[data-blog-home-speed]');
-    // Authored data-src avoids parser downloads before the Save-Data guard.
-    if (video) {
-      video.preload = (saveData || motion.matches) ? 'none' : 'metadata';
-      if (!saveData && !motion.matches && !video.getAttribute('src') && video.dataset.src) video.src = video.dataset.src;
-    }
-    function selectClip(event) {
-      var button = event.currentTarget;
-      if (!video || button.getAttribute('aria-pressed') === 'true') return;
-      pauseVideo();
-      video.removeAttribute('src'); video.load();
-      video.dataset.src = button.dataset.src;
-      video.poster = button.dataset.poster;
-      video.setAttribute('aria-label', button.dataset.caption + ', ' + button.dataset.speed);
-      caption.textContent = button.dataset.caption; speed.textContent = button.dataset.speed;
-      clips.forEach(function (clip) { clip.setAttribute('aria-pressed', clip === button ? 'true' : 'false'); });
-      // The selected poster remains available even when motion is disabled.
-      if (!saveData && !motion.matches && (finePointer.matches || mediaInView)) startVideo();
-    }
     function show(element, animate) {
       pending.delete(element);
       element.style.removeProperty('opacity');
@@ -5191,83 +5160,20 @@
     function focus(event) {
       pending.forEach(function (element) { if (element.contains(event.target)) show(element, false); });
     }
-    function label() {
-      if (!play || !video) return;
-      play.disabled = saveData || motion.matches;
-      play.hidden = play.disabled;
-      if (playStatus) playStatus.hidden = !play.disabled;
-      play.textContent = video.paused ? (finePointer.matches ? 'Hover to play' : 'Play preview') : 'Pause preview';
-      play.setAttribute('aria-label', video.paused ? 'Play robot preview' : 'Pause robot preview');
-      play.setAttribute('aria-pressed', video.paused ? 'false' : 'true');
-    }
-    function startVideo() {
-      if (!video || !play || motion.matches || saveData) return;
-      var generation = ++playGeneration;
-      if (!video.getAttribute('src') && video.dataset.src) video.src = video.dataset.src;
-      var result = video.play();
-      if (result && result.catch) result.catch(function (error) {
-        if (disposed || generation !== playGeneration || error.name === 'AbortError') return;
-        play.textContent = 'Retry preview'; play.setAttribute('aria-label', 'Retry robot preview');
-      });
-    }
-    function pauseVideo() { playGeneration += 1; if (video) video.pause(); }
-    function toggleVideo() { if (video && !video.paused) pauseVideo(); else startVideo(); }
-    function enterVideo(event) {
-      if (event.pointerType !== 'touch' && finePointer.matches && !motion.matches && !saveData) startVideo();
-    }
-    function visibility() { if (document.hidden) pauseVideo(); }
     function reduceMotion() {
-      label();
       if (!motion.matches) return;
       pending.forEach(function (element) { show(element, false); });
       animations.forEach(function (animation) { animation.finish(); });
-      if (video) video.pause();
     }
     root.addEventListener('focusin', focus);
-    if (play && video) {
-      play.addEventListener('click', toggleVideo);
-      media.addEventListener('pointerenter', enterVideo);
-      media.addEventListener('pointerleave', pauseVideo);
-      video.addEventListener('play', label); video.addEventListener('pause', label);
-      document.addEventListener('visibilitychange', visibility);
-      if ('IntersectionObserver' in window) {
-        mediaObserver = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            mediaInView = entry.isIntersecting && entry.intersectionRatio >= .6;
-            if (!mediaInView) pauseVideo();
-            else if (!finePointer.matches && !document.hidden) startVideo();
-          });
-        }, { threshold: [0, .6] });
-        mediaObserver.observe(video);
-      }
-      if (clipGroup) clipGroup.hidden = false;
-      clips.forEach(function (clip) { clip.addEventListener('click', selectClip); });
-      // Warm only metadata after the first screen has had time to paint.
-      if (!saveData && !motion.matches) warmTimer = window.setTimeout(function () {
-        if (disposed || document.hidden || motion.matches) return;
-        clips.slice(1).forEach(function (clip) {
-          var warmer = document.createElement('video');
-          warmer.preload = 'metadata'; warmer.src = clip.dataset.src; warmVideos.push(warmer);
-        });
-      }, 3000);
-      label();
-    }
     motion.addEventListener('change', reduceMotion);
     blogHomeRuntime = { root: root, dispose: function () {
-      disposed = true;
-      window.clearTimeout(warmTimer);
-      warmVideos.forEach(function (warmer) { warmer.removeAttribute('src'); warmer.load(); });
       localizedLabels.forEach(function (item) { item[0].setAttribute(item[1], item[2]); });
-      if (observer) observer.disconnect(); if (mediaObserver) mediaObserver.disconnect();
+      if (observer) observer.disconnect();
       pending.forEach(function (element) { show(element, false); });
       animations.forEach(function (animation) { animation.cancel(); });
       root.removeEventListener('focusin', focus);
       motion.removeEventListener('change', reduceMotion);
-      document.removeEventListener('visibilitychange', visibility);
-      clips.forEach(function (clip) { clip.removeEventListener('click', selectClip); });
-      if (play) play.removeEventListener('click', toggleVideo);
-      if (media) { media.removeEventListener('pointerenter', enterVideo); media.removeEventListener('pointerleave', pauseVideo); }
-      if (video) { video.pause(); video.removeEventListener('play', label); video.removeEventListener('pause', label); }
     } };
   }
 
