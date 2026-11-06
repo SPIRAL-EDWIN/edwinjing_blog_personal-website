@@ -6814,14 +6814,15 @@ body.is-homepage .academic-home-layout:not(.academic-home-layout--subpage)
 .project-figure__steps strong { color: var(--academic-ink); font-weight: 600; }
 .project-figure--animated .project-figure__details { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .blog-home .project-figure figcaption { margin: 14px 0 0; padding: 0; max-width: none; text-align: center; text-wrap: pretty; color: var(--academic-muted); font-size: 12px; font-style: normal; }
-/* Reveal states. Outlines trace with pathLength=1; a ghost shows only a faint outline. */
+/* Reveal states. Outlines trace with pathLength=1. */
 .project-figure--animated .project-figure__svg [data-role="outline"] { stroke-dasharray: 1 1; }
 .project-figure__svg .bwbc-reveal { stroke-dasharray: 1 1; stroke-dashoffset: 0; }
-.project-figure--animated .project-figure__svg .is-ghost [data-role="outline"] { stroke-dashoffset: 0 !important; stroke-opacity: .16; }
+/* Before a step plays its elements are fully hidden: only the three solid region
+   backgrounds and their titles are visible at the start (no faint placeholder boxes). */
+.project-figure--animated .project-figure__svg .is-ghost [data-role] { opacity: 0 !important; }
 .project-figure__svg [data-role="head"], .project-figure__svg [data-role="text"], .project-figure__svg [data-role="image"] { transition: none; }
 .project-figure--seen .project-figure__svg [data-role] { opacity: 1 !important; stroke-dashoffset: 0 !important; fill-opacity: 1 !important; stroke-opacity: 1 !important; }
 .project-figure--seen .project-figure__svg .bwbc-reveal { stroke-dashoffset: 0 !important; }
-.project-figure__crop { display: none; }
 @media (max-width: 700px) {
     .blog-home .project-figure { padding: 18px 16px; }
     .project-figure__header { flex-direction: column; gap: 6px; }
@@ -6831,8 +6832,6 @@ body.is-homepage .academic-home-layout:not(.academic-home-layout--subpage)
     .project-figure__steps { padding-left: 0; list-style: none; counter-reset: bwbc-step; font-size: 13px; }
     .project-figure__steps li { margin: 0 0 18px; counter-increment: bwbc-step; }
     .project-figure__steps li strong::before { content: counter(bwbc-step, decimal-leading-zero) "  "; font-variant-numeric: tabular-nums; color: var(--academic-muted); font-weight: 500; }
-    /* Narrow screens zoom into each step's region of the same artwork (labels >= 12px). */
-    .project-figure__crop { display: block; width: 100%; height: auto; margin: 0 0 8px; padding: 4px; border-radius: 8px; background: #fff; box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--academic-ink) 8%,transparent); }
 }
 
 

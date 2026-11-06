@@ -29,7 +29,12 @@ const origin = process.env.SITE_URL || 'http://127.0.0.1:8000/';
     assert.equal((await narrow.evaluate(() => window.EdwinOSFigureConfig.minLabelPx)), 9);
     assert.deepEqual([...(await Promise.all([state(narrow), state(wide)])).map(s => s.animated)], [false, true]);
     assert((await state(wide)).labelPx >= 9, 'animated SVG must be readable');
-    assert((await state(narrow)).open, 'static step descriptions must be open');
+    assert(!(await state(narrow)).open, 'static step descriptions start collapsed');
+    await narrow.locator('.project-figure__details summary').click();
+    assert((await state(narrow)).open, 'step descriptions open on reader request');
+    await narrow.reload();
+    await narrow.waitForSelector('[data-project-figure-stage]');
+    assert(!(await state(narrow)).open, 'reload restores the collapsed default');
     await wide.evaluate(() => {
       const trigger = ScrollTrigger.getAll().find(t => t.trigger?.classList.contains('project-figure'));
       window.scrollTo(0, (trigger.start + trigger.end) / 2);
@@ -42,7 +47,7 @@ const origin = process.env.SITE_URL || 'http://127.0.0.1:8000/';
     await wide.waitForTimeout(400);
     const after = await wide.locator('.project-figure').evaluate(e => e.getBoundingClientRect().top);
     const resized = await state(wide);
-    assert(resized.seen && !resized.animated && !resized.compact && resized.open && !resized.pins);
+    assert(resized.seen && !resized.animated && !resized.compact && !resized.open && !resized.pins);
     assert(Math.abs(after - before) <= 2, `figure shifted ${after - before}px after pin removal`);
     await narrow.close(); await wide.close();
     const tall = await page(1440, 900);
@@ -51,7 +56,7 @@ const origin = process.env.SITE_URL || 'http://127.0.0.1:8000/';
     await tall.evaluate(() => window.dispatchEvent(new Event('resize')));
     await tall.waitForTimeout(400);
     const tooTall = await state(tall);
-    assert(tooTall.seen && !tooTall.animated && !tooTall.compact && tooTall.open,
+    assert(tooTall.seen && !tooTall.animated && !tooTall.compact && !tooTall.open,
       'resize must stop animation when its card exceeds 96% of viewport height');
     assert.deepEqual(errors, []);
     await tall.close();

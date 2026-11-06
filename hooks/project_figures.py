@@ -71,14 +71,8 @@ def render(docs: Path, name: str, page_url: str) -> str:
         f'<button type="button" data-step="{i}" aria-pressed="false">'
         f'<span class="project-figure__step-index">{i + 1:02d}</span>{html.escape(step["label"])}</button>'
         for i, step in enumerate(steps['steps']))
-    # Each step item carries a zoomed view of its region for narrow screens: a <use>
-    # of the one inline artwork with only a different viewBox (no geometry changes).
-    # xlink:href, not href: Material's instant-navigation prefetch rewrites every
-    # [href] element via `el.href = el.href`, which throws on SVGUseElement.
     items = ''.join(
-        f'<li><svg class="project-figure__crop" xmlns:xlink="http://www.w3.org/1999/xlink" '
-        f'viewBox="{" ".join(str(v) for v in step["focus"])}" '
-        f'aria-hidden="true" focusable="false"><use xlink:href="#bwbc-content"/></svg>'
+        f'<li>'
         f'<strong>{html.escape(step["title"])}.</strong> {html.escape(step["text"])}</li>'
         for step in steps['steps'])
     data = html.escape(json.dumps({
@@ -93,7 +87,7 @@ def render(docs: Path, name: str, page_url: str) -> str:
         f'<div class="project-figure__explanation" hidden>'
         f'<strong data-project-figure-title></strong><p data-project-figure-copy></p></div>'
         f'</div>'
-        f'<details class="project-figure__details" open><summary>FRAMEWORK STEP DESCRIPTIONS</summary>'
+        f'<details class="project-figure__details"><summary>FRAMEWORK STEP DESCRIPTIONS</summary>'
         f'<ol class="project-figure__steps">{items}</ol></details>'
     )
 

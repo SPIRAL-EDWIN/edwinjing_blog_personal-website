@@ -258,7 +258,7 @@
     record.finish = () => {
       if (record.finished) return;
       // Keep the completed desktop figure compact. Static/mobile/no-JS paths
-      // retain the open list; the full descriptions remain available on demand.
+      // retain the full descriptions in their native disclosure.
       const compact = !record.forceExpanded && legible() && innerHeight >= 560 && !matchMedia('(prefers-reduced-motion: reduce)').matches &&
         (figure.classList.contains('project-figure--animated') || seen.has('project:' + figure.dataset.projectFigure));
       record.finished = true; remember('project:' + figure.dataset.projectFigure);
@@ -276,8 +276,6 @@
         button.disabled = compact;
       });
       rail.hidden = !compact; slot.hidden = true;
-      const details = figure.querySelector('.project-figure__details');
-      if (details && compact) details.open = false;
       if (restoreFocus) figure.querySelector('.project-figure__links a')?.focus({preventScroll: true});
     };
     record.figure = figure;
@@ -295,8 +293,6 @@
           else if (figure.classList.contains('project-figure--compact')) {
             figure.classList.remove('project-figure--compact');
             rail.hidden = true;
-            const details = figure.querySelector('.project-figure__details');
-            if (details) details.open = true;
           }
         }
       }, 150);
